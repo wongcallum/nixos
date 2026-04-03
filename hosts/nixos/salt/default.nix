@@ -1,4 +1,9 @@
-{ config, inputs, ... }:
+{
+  config,
+  inputs,
+  withSystem,
+  ...
+}:
 let
   system = "x86_64-linux";
 in
@@ -22,14 +27,17 @@ in
   };
 
   flake.modules.nixos.salt = {
-    imports = [
-      config.flake.nixosModules.salt-disko
-      config.flake.nixosModules.salt-configuration
+    imports =
+      (with config.flake.nixosModules; [
+        salt-disko
+        salt-configuration
+      ])
+      ++ (with config.flake.modules.nixos; [
+        callum
 
-      config.flake.modules.nixos.callum
-
-      config.flake.modules.nixos.ssh
-      config.flake.modules.nixos.tailscale
-    ];
+        base
+        ssh
+        tailscale
+      ]);
   };
 }
