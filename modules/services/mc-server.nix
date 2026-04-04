@@ -29,6 +29,17 @@
                   USE_MEOWICE_FLAGS = "true";
                   TYPE = "FORGE";
                   PACKWIZ_URL = "https://asphodel.cc/packwiz/Ports/Curse/Raspberry-Server/pack.toml";
+                  MODRINTH_PROJECTS = ''
+                    # proxy-compatible-forge
+                    proxy-protocol-support:1.1.0-forge
+                    spark
+                    chunky
+                    collective
+                    beautified-chat-server
+                    no-telemetry
+                    keepheadnames
+                    grieflogger
+                  '';
                 };
                 exposePorts = [ "25565" ];
                 volumes = [ "${volumes.minecraft.ref}:/data" ];
