@@ -15,5 +15,7 @@
         options = "--delete-older-than 30d";
       };
     };
+
+    security.sudo.wheelNeedsPassword = false;
   };
 }

@@ -1,7 +1,6 @@
 {
   config,
   inputs,
-  withSystem,
   ...
 }:
 let
@@ -13,7 +12,6 @@ in
     profiles.system = {
       user = "root";
       sshUser = "callum";
-      interactiveSudo = true;
       path = inputs.deploy-rs.lib.${system}.activate.nixos config.flake.nixosConfigurations.salt;
     };
   };
