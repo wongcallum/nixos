@@ -3,8 +3,6 @@
     { lib, config, ... }:
     {
       system.stateVersion = "25.11";
-      networking.hostName = "salt";
-      boot.loader.systemd-boot.enable = true;
 
       boot.initrd.availableKernelModules = [
         "xhci_pci"

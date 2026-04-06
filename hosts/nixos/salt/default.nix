@@ -4,11 +4,12 @@
   ...
 }:
 let
+  hostname = "salt";
   system = "x86_64-linux";
 in
 {
-  flake.deploy.nodes.salt = {
-    hostname = "salt";
+  flake.deploy.nodes.${hostname} = {
+    inherit hostname;
     profiles.system = {
       user = "root";
       sshUser = "callum";
@@ -16,25 +17,28 @@ in
     };
   };
 
-  flake.nixosConfigurations.salt = inputs.nixpkgs.lib.nixosSystem {
+  flake.nixosConfigurations.${hostname} = inputs.nixpkgs.lib.nixosSystem {
     inherit system;
     modules = [
-      config.flake.modules.nixos.salt
+      { networking.hostName = hostname; }
+      config.flake.modules.nixos.${hostname}
       inputs.disko.nixosModules.default
       inputs.quadlet-nix.nixosModules.quadlet
     ];
   };
 
-  flake.modules.nixos.salt = {
+  flake.modules.nixos.${hostname} = {
     imports =
       (with config.flake.nixosModules; [
         salt-disko
         salt-configuration
       ])
       ++ (with config.flake.modules.nixos; [
+        base
+        uefi
+
         callum
 
-        base
         ssh
         tailscale
         mc-server
