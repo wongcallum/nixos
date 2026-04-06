@@ -8,14 +8,14 @@
         in
         {
           containers = {
-            raspberry-server = {
+            minecraft-server = {
               serviceConfig = {
                 RestartSec = "10";
                 Restart = "always";
                 TimeoutStartSec = "120";
               };
               containerConfig = {
-                image = "itzg/minecraft-server:java21-alpine";
+                image = "itzg/minecraft-server:java17";
                 podmanArgs = [
                   "--attach"
                   "stdin"
@@ -28,17 +28,17 @@
                   MEMORY = "6144M";
                   USE_MEOWICE_FLAGS = "true";
                   TYPE = "FORGE";
-                  PACKWIZ_URL = "https://asphodel.cc/packwiz/Ports/Curse/Raspberry-Server/pack.toml";
+                  # PACKWIZ_URL = "https://asphodel.cc/packwiz/Ports/Curse/Raspberry-Server/pack.toml";
                   MODRINTH_PROJECTS = ''
                     # proxy-compatible-forge
                     proxy-protocol-support:1.1.0-forge
                     spark
                     chunky
                     collective
-                    beautified-chat-server
+                    # beautified-chat-server
                     no-telemetry
                     keepheadnames
-                    grieflogger
+                    # grieflogger
                   '';
                 };
                 exposePorts = [ "25565" ];
@@ -51,7 +51,8 @@
           };
           volumes.minecraft.volumeConfig = {
             type = "bind";
-            device = "/data/minecraft";
+            device = "/data/cottage-witch";
+            # for some reason i couldn't change what the bind mount pointed to, maybe open an issue upstream
           };
           networks = {
             internal.networkConfig.subnets = [ "10.0.67.1/24" ];
