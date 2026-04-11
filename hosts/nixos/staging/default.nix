@@ -4,7 +4,7 @@
   ...
 }:
 let
-  hostname = "salt";
+  hostname = "staging";
   system = "x86_64-linux";
 in
 {
@@ -30,19 +30,20 @@ in
   flake.modules.nixos.${hostname} = {
     imports =
       (with config.flake.nixosModules; [
-        salt-disko
-        salt-configuration
+        staging-disko
+        staging-configuration
       ])
       ++ (with config.flake.modules.nixos; [
         base
         uefi
-        zram
+
+        impermanence-zfs
+        persistence
 
         callum
 
         ssh
         tailscale
-        mc-server
       ]);
   };
 }

@@ -4,7 +4,7 @@
   ...
 }:
 let
-  hostname = "salt";
+  hostname = "liz";
   system = "x86_64-linux";
 in
 {
@@ -30,19 +30,23 @@ in
   flake.modules.nixos.${hostname} = {
     imports =
       (with config.flake.nixosModules; [
-        salt-disko
-        salt-configuration
+        liz-disko
+        liz-configuration
+        liz-networking
       ])
       ++ (with config.flake.modules.nixos; [
         base
         uefi
         zram
 
+        impermanence-zfs
+        persistence
+
         callum
+        colin
 
         ssh
         tailscale
-        mc-server
       ]);
   };
 }

@@ -5,7 +5,7 @@ in
   flake.modules.nixos.${username} =
     { pkgs, ... }:
     {
-      users.users.callum = {
+      users.users.${username} = {
         isNormalUser = true;
         home = "/home/${username}";
         extraGroups = [
