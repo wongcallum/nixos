@@ -16,12 +16,6 @@
 
         ssh
         tailscale
-        samba
-        gateway
-        monitoring
-        syncthing
-        trilium
-        qbittorrent
       ]);
   };
 }

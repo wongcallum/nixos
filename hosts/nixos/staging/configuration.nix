@@ -37,11 +37,5 @@
           DNSStubListener = no
         '';
       };
-
-      modules.gateway.tld = "7sref";
-
-      modules.samba.shares = {
-        test = "/home/callum";
-      };
     };
 }

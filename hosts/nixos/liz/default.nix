@@ -19,7 +19,16 @@
 
         ssh
         tailscale
+        gateway
+        monitoring
         samba
+        syncthing
+        trilium
+        qbittorrent
+
+        quadlet-ai
+        quadlet-home-assistant
+        quadlet-media
       ]);
   };
 }
