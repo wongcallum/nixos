@@ -19,6 +19,9 @@
         samba
         gateway
         monitoring
+        syncthing
+        trilium
+        qbittorrent
       ]);
   };
 }

@@ -5,7 +5,7 @@
     {
       imports = [ inputs.impermanence.nixosModules.impermanence ];
 
-      options.persistence = {
+      options.modules.persistence = {
         persistDir = lib.mkOption {
           type = lib.types.str;
           default = "/persist";
@@ -13,9 +13,9 @@
       };
 
       config = {
-        fileSystems.${config.persistence.persistDir}.neededForBoot = true;
+        fileSystems.${config.modules.persistence.persistDir}.neededForBoot = true;
 
-        environment.persistence.${config.persistence.persistDir} = {
+        environment.persistence.${config.modules.persistence.persistDir} = {
           enable = true;
           hideMounts = true;
           directories = [

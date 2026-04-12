@@ -11,7 +11,7 @@
     { lib, config, ... }:
     {
       # by default, /etc/ssh/ssh_host_rsa_key and /etc/ssh/ssh_host_ed25519_key
-      environment.persistence.${config.persistence.persistDir}.files = lib.concatMap (key: [
+      environment.persistence.${config.modules.persistence.persistDir}.files = lib.concatMap (key: [
         key.path
         "${key.path}.pub"
       ]) config.services.openssh.hostKeys;

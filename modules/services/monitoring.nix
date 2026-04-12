@@ -62,7 +62,7 @@
   flake.modules.nixos.gateway =
     { config, ... }:
     {
-      gateway.localServices = [
+      modules.gateway.localServices = [
         {
           name = "Grafana";
           domainName = "grafana";

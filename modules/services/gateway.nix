@@ -5,7 +5,7 @@
     { config, pkgs, ... }:
     let
       caddyDataDir = config.utils.dataDir "caddy";
-      fqdn = domainName: "${domainName}.${config.gateway.tld}";
+      fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
       prismTowerPkg = inputs.prism-tower.lib.mkPrismTower {
         inherit pkgs;
         services = config.services.prism-tower.services;
@@ -14,10 +14,10 @@
     {
       imports = [ inputs.prism-tower.nixosModules.default ];
 
-      options.gateway = {
+      options.modules.gateway = {
         tld = lib.mkOption {
           type = lib.types.str;
-          default = "staging.7sref";
+          default = "7sref";
         };
         localServices = lib.mkOption {
           type = lib.types.listOf (
@@ -53,7 +53,7 @@
       };
 
       config = {
-        gateway.localServices = [
+        modules.gateway.localServices = [
           {
             name = "Technitium DNS";
             domainName = "technitium";
@@ -126,7 +126,7 @@
                     reverse_proxy ${service.addr}
                   '';
                 };
-              }) config.gateway.localServices
+              }) config.modules.gateway.localServices
             ))
             // {
               "http://${fqdn "prism.tower"}, https://${fqdn "prism.tower"}" = {
@@ -150,7 +150,7 @@
             url = "https://${fqdn service.domainName}";
             iconUrl = service.iconUrl;
             category = service.category;
-          }) (builtins.filter (service: !service.hidden) config.gateway.localServices);
+          }) (builtins.filter (service: !service.hidden) config.modules.gateway.localServices);
         };
       };
     };

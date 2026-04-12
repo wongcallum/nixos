@@ -14,6 +14,8 @@
   flake.modules.nixos.persistence =
     { config, ... }:
     {
-      environment.persistence.${config.persistence.persistDir}.directories = [ "/var/lib/tailscale" ];
+      environment.persistence.${config.modules.persistence.persistDir}.directories = [
+        "/var/lib/tailscale"
+      ];
     };
 }

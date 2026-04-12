@@ -9,7 +9,7 @@
       };
 
       config.utils = rec {
-        persistDir = lib.attrByPath [ "persistence" "persistDir" ] "" config;
+        persistDir = lib.attrByPath [ "modules" "persistence" "persistDir" ] "" config;
 
         dataDir = name: "${persistDir}/data/${name}";
       };
