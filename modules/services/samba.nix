@@ -47,4 +47,10 @@
         };
       };
     };
+
+  flake.modules.nixos.persistence =
+    { config, ... }:
+    {
+      environment.persistence.${config.modules.persistence.persistDir}.directories = [ "/var/lib/samba" ];
+    };
 }
