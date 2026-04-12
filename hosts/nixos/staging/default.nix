@@ -12,6 +12,7 @@
 
         impermanence-zfs
         persistence
+        sops
 
         callum
 
