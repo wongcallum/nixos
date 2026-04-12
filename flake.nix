@@ -18,6 +18,7 @@
     };
     impermanence.url = "github:nix-community/impermanence";
     quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
+    prism-tower.url = "github:L9-bms/prism-tower";
   };
 
   outputs =

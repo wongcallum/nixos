@@ -18,6 +18,8 @@
 
         ssh
         tailscale
+
+        gateway
       ]);
   };
 }
