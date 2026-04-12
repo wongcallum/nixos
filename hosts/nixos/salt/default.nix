@@ -7,7 +7,6 @@
         salt-configuration
       ])
       ++ (with config.flake.modules.nixos; [
-        base
         uefi
         zram
 

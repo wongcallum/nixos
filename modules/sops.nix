@@ -1,19 +1,13 @@
 { inputs, ... }:
 {
   flake.modules.nixos.sops =
-    {
-      config,
-      lib,
-      ...
-    }:
+    { config, ... }:
     {
       imports = [ inputs.sops-nix.nixosModules.sops ];
 
       sops = {
         defaultSopsFile = ../secrets/secrets.yaml;
-        age.sshKeyPaths = [
-          "${lib.attrByPath [ "persistence" "persistDir" ] "" config}/etc/ssh/ssh_host_ed25519_key"
-        ];
+        age.sshKeyPaths = [ "${config.utils.persistDir}/etc/ssh/ssh_host_ed25519_key" ];
       };
     };
 }

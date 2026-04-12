@@ -4,7 +4,7 @@
   flake.modules.nixos.gateway =
     { config, pkgs, ... }:
     let
-      caddyDataDir = "${lib.attrByPath [ "persistence" "persistDir" ] "" config}/data/caddy";
+      caddyDataDir = config.utils.dataDir "caddy";
       fqdn = domainName: "${domainName}.${config.gateway.tld}";
       prismTowerPkg = inputs.prism-tower.lib.mkPrismTower {
         inherit pkgs;
@@ -77,6 +77,11 @@
           owner = "caddy";
           group = "caddy";
           mode = "0400";
+        };
+
+        fileSystems."/var/lib/technitium-dns-server" = {
+          device = config.utils.dataDir "technitium-dns-server";
+          options = [ "bind" ];
         };
 
         services.technitium-dns-server.enable = true;

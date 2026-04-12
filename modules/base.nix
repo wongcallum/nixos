@@ -1,7 +1,10 @@
+{ inputs, ... }:
 {
   flake.modules.nixos.base =
     { pkgs, ... }:
     {
+      imports = [ inputs.self.modules.generic.utils ];
+
       time.timeZone = "Australia/Sydney";
       i18n.defaultLocale = "en_US.UTF-8";
 

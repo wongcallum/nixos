@@ -25,6 +25,7 @@ in
       system = "x86_64-linux";
       modules = [
         { networking.hostName = hostname; }
+        config.flake.modules.nixos.base
         module
         inputs.disko.nixosModules.default
         inputs.quadlet-nix.nixosModules.quadlet

@@ -7,9 +7,7 @@
         staging-configuration
       ])
       ++ (with config.flake.modules.nixos; [
-        base
         uefi
-
         impermanence-zfs
         persistence
         sops
@@ -20,6 +18,7 @@
         tailscale
 
         gateway
+        monitoring
       ]);
   };
 }

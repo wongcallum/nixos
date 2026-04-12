@@ -8,10 +8,8 @@
         liz-networking
       ])
       ++ (with config.flake.modules.nixos; [
-        base
         uefi
         zram
-
         impermanence-zfs
         persistence
         sops
