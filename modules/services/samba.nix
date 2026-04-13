@@ -51,6 +51,8 @@
   flake.modules.nixos.persistence =
     { config, ... }:
     {
-      environment.persistence.${config.modules.persistence.persistDir}.directories = [ "/var/lib/samba" ];
+      environment.persistence.${config.modules.persistence.persistDir}.directories =
+        lib.mkIf config.services.samba.enable
+          [ "/var/lib/samba" ];
     };
 }

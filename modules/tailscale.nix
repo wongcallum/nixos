@@ -1,3 +1,4 @@
+{ lib, ... }:
 {
   flake.modules.nixos.tailscale =
     { config, ... }:
@@ -14,8 +15,10 @@
   flake.modules.nixos.persistence =
     { config, ... }:
     {
-      environment.persistence.${config.modules.persistence.persistDir}.directories = [
-        "/var/lib/tailscale"
-      ];
+      environment.persistence.${config.modules.persistence.persistDir}.directories =
+        lib.mkIf config.services.tailscale.enable
+          [
+            "/var/lib/tailscale"
+          ];
     };
 }
