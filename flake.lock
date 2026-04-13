@@ -228,7 +228,25 @@
         "nixpkgs": "nixpkgs",
         "prism-tower": "prism-tower",
         "quadlet-nix": "quadlet-nix",
+        "secrets": "secrets",
         "sops-nix": "sops-nix"
+      }
+    },
+    "secrets": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1776054851,
+        "narHash": "sha256-zFijg7Ey2wqlfj5hcHK+ZLaBbVs6Mr+dYrjQzuW+5PA=",
+        "ref": "refs/heads/master",
+        "rev": "ef40aec3eac88079f384dfdf5f842afe9dc68197",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/L9-bms/nixos-secrets.git"
+      },
+      "original": {
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/L9-bms/nixos-secrets.git"
       }
     },
     "sops-nix": {
