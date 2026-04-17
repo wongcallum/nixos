@@ -28,6 +28,7 @@
 
         quadlet-ai
         quadlet-home-assistant
+        quadlet-evcc
         quadlet-media
         quadlet-code
       ]);
