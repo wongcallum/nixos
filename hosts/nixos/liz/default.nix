@@ -29,6 +29,7 @@
         quadlet-ai
         quadlet-home-assistant
         quadlet-media
+        quadlet-code
       ]);
   };
 }
