@@ -6,24 +6,6 @@
     let
       caddyDataDir = config.utils.dataDir "caddy";
       fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
-
-      prismTowerPkg = inputs.prism-tower.lib.mkPackage {
-        inherit pkgs;
-        services = map (service: {
-          name = service.name;
-          url = "https://${fqdn service.domainName}";
-          iconUrl = service.iconUrl;
-          category = service.category;
-        }) (builtins.filter (service: !service.hidden) config.modules.gateway.localServices);
-        links = [
-          {
-            name = "Sentral";
-            url = "https://fortstreeths.sentral.com.au/auth/portal";
-          }
-        ];
-        # TODO: derive this value from the config somehow
-        searchUrl = "https://${fqdn "searx"}/search";
-      };
     in
     {
       options.modules.gateway = {
@@ -65,6 +47,8 @@
       };
 
       config = {
+        nixpkgs.overlays = [ inputs.prism-tower.overlays.default ];
+
         modules.gateway.localServices = [
           {
             name = "Technitium DNS";
@@ -148,7 +132,24 @@
                       ca 7sref_ca
                     }
                   }
-                  root * ${prismTowerPkg}
+                  root * ${
+                    pkgs.prism-tower.override {
+                      services = map (service: {
+                        name = service.name;
+                        url = "https://${fqdn service.domainName}";
+                        iconUrl = service.iconUrl;
+                        category = service.category;
+                      }) (builtins.filter (service: !service.hidden) config.modules.gateway.localServices);
+                      links = [
+                        {
+                          name = "Sentral";
+                          url = "https://fortstreeths.sentral.com.au/auth/portal";
+                        }
+                      ];
+                      # TODO: derive this value from the config somehow
+                      searchUrl = "https://${fqdn "searx"}/search";
+                    }
+                  }
                   file_server
                 '';
               };

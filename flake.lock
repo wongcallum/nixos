@@ -205,11 +205,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1777121500,
-        "narHash": "sha256-E5KWXwdnHdLRtz6TVzCTEq/q/3gX27dyvSuf4Qn0G1c=",
+        "lastModified": 1777261504,
+        "narHash": "sha256-85oxn3sRbyiUMyd0fYG0PMm6C+Lv/+SVn4cqucrqTJY=",
         "owner": "L9-bms",
         "repo": "prism-tower",
-        "rev": "a2478a7fb2e056a0d76c8b5bb0595da4c007435b",
+        "rev": "57972fd97dadf7c9bbd23ce1e1d26b52522b49e2",
         "type": "github"
       },
       "original": {
