@@ -82,7 +82,7 @@
     modules.gateway.localServices = [
       {
         name = "OpenWebUI";
-        domainName = "openwebui";
+        domainName = "chat";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/open-webui.png";
         addr = "172.22.0.2:8080";
         category = "Productivity";
@@ -96,7 +96,7 @@
       }
       {
         name = "SearXNG";
-        domainName = "searx";
+        domainName = "search";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/searxng.png";
         addr = "172.22.0.3:8080";
         hidden = true;

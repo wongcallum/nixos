@@ -147,7 +147,7 @@
                         }
                       ];
                       # TODO: derive this value from the config somehow
-                      searchUrl = "https://${fqdn "searx"}/search";
+                      searchUrl = "https://${fqdn "search"}/search";
                     }
                   }
                   file_server

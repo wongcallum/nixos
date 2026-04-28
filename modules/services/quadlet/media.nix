@@ -124,7 +124,8 @@ in
             # healthcheck systemd unit exits non-zero while status is "starting", preventing successful deploy
             healthInterval = "disable";
             environments = {
-              JELLYFIN_PublishedServerUrl = "https://jellyfin.7sref";
+              # TODO: i will also need to derive this from the config later on
+              JELLYFIN_PublishedServerUrl = "https://watch.media.7sref";
             };
             volumes = [
               "/mnt/media/media:/media:rw"
@@ -142,47 +143,47 @@ in
     modules.gateway.localServices = [
       {
         name = "Sonarr";
-        domainName = "sonarr";
+        domainName = "tv.media";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sonarr.png";
         addr = "172.21.0.3:8989";
         category = "Media";
       }
       {
         name = "Radarr";
-        domainName = "radarr";
+        domainName = "movies.media";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/radarr.png";
         addr = "172.21.0.4:7878";
         category = "Media";
       }
       {
         name = "Prowlarr";
-        domainName = "prowlarr";
+        domainName = "indexers.media";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prowlarr.png";
         addr = "172.21.0.5:9696";
         category = "Media";
       }
       {
         name = "qBittorrent";
-        domainName = "qbittorrent";
+        domainName = "torrent.media";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/qbittorrent.png";
         addr = "172.21.0.2:11090";
         category = "Media";
       }
       {
         name = "Jellyfin";
-        domainName = "jellyfin";
+        domainName = "watch.media";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jellyfin.png";
         addr = "172.21.0.7:8096";
         category = "Media";
       }
-      {
-        name = "FlareSolverr";
-        domainName = "flaresolverr";
-        iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flaresolverr.png";
-        addr = "172.21.0.6:8191";
-        category = "Media";
-        hidden = true;
-      }
+      # {
+      #   name = "FlareSolverr";
+      #   domainName = "flaresolverr.media";
+      #   iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flaresolverr.png";
+      #   addr = "172.21.0.6:8191";
+      #   category = "Media";
+      #   hidden = true;
+      # }
     ];
   };
 }

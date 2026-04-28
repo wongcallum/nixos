@@ -69,14 +69,14 @@
           domainName = "grafana";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grafana.png";
           addr = "${toString config.services.grafana.settings.server.http_addr}:${toString config.services.grafana.settings.server.http_port}";
-          category = "Monitoring";
+          category = "Administration";
         }
         {
           name = "Prometheus";
           domainName = "prometheus";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png";
           addr = "${toString config.services.prometheus.listenAddress}:${toString config.services.prometheus.port}";
-          category = "Monitoring";
+          category = "Administration";
         }
       ];
     };

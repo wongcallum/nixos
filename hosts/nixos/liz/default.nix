@@ -26,9 +26,9 @@
         qbittorrent
 
         quadlet-productivity
-        quadlet-home
         quadlet-media
-        quadlet-code
+        quadlet-automation
+        quadlet-development
       ]);
   };
 }

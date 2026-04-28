@@ -30,6 +30,7 @@ in
         domainName = "torrent";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vuetorrent.png";
         addr = "127.0.0.1:${toString port}";
+        category = "Administration";
       }
     ];
   };

@@ -1,8 +1,8 @@
 let
-  networkName = "code";
+  networkName = "development";
 in
 {
-  flake.modules.nixos.quadlet-code =
+  flake.modules.nixos.quadlet-development =
     { config, ... }:
     let
       inherit (config.virtualisation.quadlet) networks;

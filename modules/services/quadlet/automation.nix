@@ -1,5 +1,5 @@
 {
-  flake.modules.nixos.quadlet-home =
+  flake.modules.nixos.quadlet-automation =
     { config, ... }:
     {
       virtualisation.quadlet.containers = {
@@ -49,14 +49,14 @@
         domainName = "hass";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/home-assistant.png";
         addr = "127.0.0.1:8123";
-        category = "Home";
+        category = "Automation";
       }
       {
         name = "evcc";
         domainName = "evcc";
         iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/evcc.png";
         addr = "127.0.0.1:7070";
-        category = "Home";
+        category = "Automation";
       }
     ];
   };
