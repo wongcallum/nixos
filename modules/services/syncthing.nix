@@ -2,11 +2,25 @@
   flake.modules.nixos.syncthing =
     { config, ... }:
     {
+      sops.secrets."syncthing/key.pem" = {
+        owner = "syncthing";
+        group = "syncthing";
+        mode = "0440";
+      };
+
+      sops.secrets."syncthing/cert.pem" = {
+        owner = "syncthing";
+        group = "syncthing";
+        mode = "0440";
+      };
+
       services.syncthing = {
         enable = true;
         openDefaultPorts = true;
         dataDir = config.utils.dataDir "syncthing";
         configDir = config.utils.dataDir "syncthing";
+        key = config.sops.secrets."syncthing/key.pem".path;
+        cert = config.sops.secrets."syncthing/cert.pem".path;
       };
     };
 
