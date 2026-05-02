@@ -16,6 +16,8 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 `nix run github:nix-community/nixos-anywhere -- --flake .#{{host}} --target-host {{user@hostname}}`
 
+or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
+
 ## Edit secrets
 
 `nix run nixpkgs#sops secrets/secrets.yaml`
