@@ -47,7 +47,7 @@
           };
           containerConfig = {
             image = "mongo:latest";
-            environment = {
+            environments = {
               MONGO_INITDB_ROOT_USERNAME = "admin";
               MONGO_INITDB_ROOT_PASSWORD = "secretpassword";
             };
