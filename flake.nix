@@ -20,6 +20,10 @@
     prism-tower.url = "github:wongcallum/prism-tower";
     picolimbo.url = "github:wongcallum/PicoLimbo/nix";
     microvm.url = "github:astro/microvm.nix";
+    flux.url = "github:IogaMaster/flux";
+
+    # https://github.com/deniz-blue/mcman/pull/145
+    flux.inputs.mcman.url = "github:wongcallum/mcman/fix/papermc-channels";
 
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -28,6 +32,7 @@
     prism-tower.inputs.nixpkgs.follows = "nixpkgs";
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
+    flux.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
