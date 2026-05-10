@@ -22,8 +22,8 @@
     microvm.url = "github:astro/microvm.nix";
     flux.url = "github:IogaMaster/flux";
 
-    # https://github.com/deniz-blue/mcman/pull/145
-    flux.inputs.mcman.url = "github:wongcallum/mcman/fix/papermc-channels";
+    # flux's flake.lock doesn't have my fix yet
+    flux.inputs.mcman.url = "github:deniz-blue/mcman";
 
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";

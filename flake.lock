@@ -193,16 +193,15 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1778411187,
+        "lastModified": 1778414270,
         "narHash": "sha256-1k3DLrRynJALy+rnHzEabpTXqMyiiL9r8WdsFeUbfwU=",
-        "owner": "wongcallum",
+        "owner": "deniz-blue",
         "repo": "mcman",
-        "rev": "a61305859909493f45c59d7c489eb723ca6f3674",
+        "rev": "2665efb902631f7a98e0679ac7ed4998e6540022",
         "type": "github"
       },
       "original": {
-        "owner": "wongcallum",
-        "ref": "fix/papermc-channels",
+        "owner": "deniz-blue",
         "repo": "mcman",
         "type": "github"
       }
