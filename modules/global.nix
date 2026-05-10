@@ -8,9 +8,10 @@
         description = "Top-level domain for services";
       };
 
-      ssh.enable = lib.mkEnableOption "OpenSSH";
-      tailscale.enable = lib.mkEnableOption "Tailscale";
-      samba.enable = lib.mkEnableOption "Samba";
+      modules.ssh.enable = lib.mkEnableOption "OpenSSH";
+      modules.tailscale.enable = lib.mkEnableOption "Tailscale";
+      modules.samba.enable = lib.mkEnableOption "Samba";
+      modules.velocity.enable = lib.mkEnableOption "Velocity proxy";
 
       users = lib.mkOption {
         type = lib.types.attrsOf (
