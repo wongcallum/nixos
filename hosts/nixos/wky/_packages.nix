@@ -1,0 +1,54 @@
+{ pkgs, ... }:
+{
+  environment.systemPackages = with pkgs; [
+    kdePackages.qttools
+    vim
+    wget
+    git
+    foot
+    adwaita-icon-theme
+    nmap
+    qalculate-gtk
+    vesktop
+    obsidian
+    nautilus
+    scrcpy
+    android-tools
+    blueman
+    pavucontrol
+    libreoffice-fresh
+    xournalpp
+    btop
+    nixd
+    nixfmt
+    unzip
+    kdePackages.okular
+    (texliveBasic.withPackages (
+      ps: with ps; [
+        collection-xetex
+        collection-latex
+        collection-basic
+        collection-luatex
+        collection-binextra
+        collection-fontutils
+        collection-latexextra
+        collection-bibtexextra
+        collection-mathscience
+        collection-plaingeneric
+        collection-formatsextra
+        collection-latexrecommended
+        collection-fontsrecommended
+      ]
+    ))
+    zellij
+    wl-clipboard
+    lua-language-server
+    ncdu
+    foliate
+    markdown-oxide
+    zathura
+    tinymist
+    websocat
+    dnsmasq
+  ];
+}

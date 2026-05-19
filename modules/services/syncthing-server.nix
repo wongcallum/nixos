@@ -1,5 +1,5 @@
 {
-  flake.modules.nixos.syncthing =
+  flake.modules.nixos.syncthing-server =
     { config, ... }:
     {
       sops.secrets."syncthing/key.pem" = {
