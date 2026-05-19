@@ -21,7 +21,6 @@
     memoryPercent = 50;
   };
 
-  networking.hostName = "wky";
   networking.networkmanager.enable = true;
   services.resolved.enable = true;
 
@@ -32,9 +31,6 @@
   boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
   boot.initrd.kernelModules = [ "wl" ];
   boot.kernel.sysctl."ibt" = "off";
-
-  time.timeZone = "Australia/Sydney";
-  i18n.defaultLocale = "en_AU.UTF-8";
 
   services.logind.settings.Login = {
     HandleLidSwitch = "suspend";
@@ -211,17 +207,10 @@
   hardware.facetimehd.enable = true;
 
   nix.settings = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-
     trusted-users = [ "callum" ];
 
     extra-substituters = [ "https://yazi.cachix.org" ];
     extra-trusted-public-keys = [ "yazi.cachix.org-1:Dcdz63NZKfvUCbDGngQDAZq6kOroIrFoyO064uvLh8k=" ];
-
-    download-buffer-size = 524288000;
   };
 
   nix.buildMachines = [
