@@ -47,7 +47,6 @@
       inputs.nixpkgs.follows = "unstable";
     };
 
-    yazi.url = "github:sxyazi/yazi";
   };
 
   outputs =

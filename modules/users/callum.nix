@@ -23,17 +23,22 @@
           programs.fish.enable = true;
         };
 
-      homeManager.callum = {
-        home = {
-          username = "callum";
-          homeDirectory = "/home/callum";
-        };
+      homeManager.callum =
+        { pkgs, ... }:
+        {
+          home = {
+            username = "callum";
+            homeDirectory = "/home/callum";
+            packages = [ pkgs.neovim ];
+          };
 
-        programs.git.settings = {
-          user.name = "callum";
-          user.email = "mail@callumwong.com";
+          sessionVariables.EDITOR = "nvim";
+
+          programs.git.settings = {
+            user.name = "callum";
+            user.email = "mail@callumwong.com";
+          };
         };
-      };
     }
   ];
 }
