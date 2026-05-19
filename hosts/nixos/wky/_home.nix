@@ -5,9 +5,9 @@
 
     fonts
 
+    caelestia
     direnv
     git
-    noctalia
     zoxide
   ];
 

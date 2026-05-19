@@ -30,9 +30,8 @@
             username = "callum";
             homeDirectory = "/home/callum";
             packages = [ pkgs.neovim ];
+            sessionVariables.EDITOR = "nvim";
           };
-
-          sessionVariables.EDITOR = "nvim";
 
           programs.git.settings = {
             user.name = "callum";

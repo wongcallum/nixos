@@ -33,7 +33,6 @@
       firefox
       laptop
       nix-ld
-      noctalia
       syncthing-desktop
     ]);
 

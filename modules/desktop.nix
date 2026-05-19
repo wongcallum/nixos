@@ -1,6 +1,6 @@
 {
   flake.modules.nixos.desktop = {
-    programs.niri.enable = true;
+    programs.hyprland.enable = true;
 
     xdg.portal.enable = true;
 
