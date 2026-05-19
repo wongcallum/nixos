@@ -35,7 +35,6 @@
       nix-ld
       noctalia
       syncthing-desktop
-      yazi
     ]);
 
     networking.networkmanager.enable = true;
