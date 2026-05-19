@@ -1,5 +1,7 @@
 { inputs, ... }:
 {
+  flake.nixpkgs.wky = "unstable";
+
   flake.modules.nixos."hosts/nixos/wky" = {
     imports = [
       ./_configuration.nix
