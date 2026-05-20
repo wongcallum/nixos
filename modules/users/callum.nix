@@ -29,9 +29,14 @@
           home = {
             username = "callum";
             homeDirectory = "/home/callum";
-            packages = [ pkgs.neovim ];
-            sessionVariables.EDITOR = "nvim";
           };
+
+	  programs.neovim = {
+	    enable = true;
+	    defaultEditor = true;
+	    withPython3 = false;
+	    withRuby = false;
+	  };
 
           programs.git.settings = {
             user.name = "callum";
