@@ -36,6 +36,8 @@
       inputs.nixpkgs.follows = "unstable";
     };
 
+    hyprland.url = "github:hyprwm/Hyprland";
+
     caelestia-shell = {
       url = "github:caelestia-dots/shell";
       inputs.nixpkgs.follows = "unstable";

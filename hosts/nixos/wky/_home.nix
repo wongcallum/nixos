@@ -5,7 +5,6 @@
 
     fonts
 
-    caelestia
     direnv
     git
     zoxide
