@@ -161,7 +161,7 @@ in
           name = "Collabst";
           domainName = "collabst";
           addr = "172.26.0.5:8000";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/typst.png";
+          iconUrl = "https://raw.githubusercontent.com/collabst/collabst/main/assets/collabst-logo.svg";
           category = "Productivity";
         };
 
