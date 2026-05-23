@@ -57,8 +57,9 @@
           };
 
           systemd.services.picolimbo = {
-            serviceConfig.LoadCredential =
-              "velocity-secret:${config.sops.secrets."minecraft/velocity-secret".path}";
+            serviceConfig.LoadCredential = "velocity-secret:${
+              config.sops.secrets."minecraft/velocity-secret".path
+            }";
             environment.VELOCITY_SECRET = "%d/velocity-secret";
           };
         })
