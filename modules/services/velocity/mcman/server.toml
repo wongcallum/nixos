@@ -1,0 +1,9 @@
+name = "velocity"
+mc_version = "3.4.0-SNAPSHOT"
+
+[jar]
+type = "velocity"
+
+[launcher]
+eula_args = false
+nogui = false

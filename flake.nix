@@ -20,6 +20,12 @@
     prism-tower.url = "github:wongcallum/prism-tower";
     picolimbo.url = "github:wongcallum/PicoLimbo/nix";
     microvm.url = "github:astro/microvm.nix";
+    flux = {
+      url = "github:IogaMaster/flux";
+      inputs.nixpkgs.follows = "nixpkgs";
+      # flux's flake.lock doesn't have my fix yet
+      inputs.mcman.url = "github:deniz-blue/mcman";
+    };
 
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";

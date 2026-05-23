@@ -11,6 +11,7 @@
       ssh.enable = lib.mkEnableOption "OpenSSH";
       tailscale.enable = lib.mkEnableOption "Tailscale";
       samba.enable = lib.mkEnableOption "Samba";
+      velocity.enable = lib.mkEnableOption "Velocity proxy";
 
       users = lib.mkOption {
         type = lib.types.attrsOf (
