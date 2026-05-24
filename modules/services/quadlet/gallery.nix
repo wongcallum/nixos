@@ -61,32 +61,6 @@ in
             }
           );
 
-          gallery-migrate = lib.mkIf config.modules.containers.gallery {
-            containerConfig = {
-              image = "ghcr.io/wongcallum/gallery.callumwong.com-migrator:master";
-              autoUpdate = "registry";
-              environments = {
-                DATABASE_URL = "postgresql://postgres:postgres@172.24.0.2:5432/gallery";
-                SKIP_ENV_VALIDATION = "1";
-              };
-              networks = [ networks.${networkName}.ref ];
-              ip = "172.24.0.3";
-            };
-            unitConfig = {
-              Requires = [
-                "gallery-db.service"
-              ];
-              After = [
-                "gallery-db.service"
-              ];
-            };
-            serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
-              Restart = "no";
-            };
-          };
-
           gallery-app = lib.mkIf config.modules.containers.gallery {
             containerConfig = {
               image = "ghcr.io/wongcallum/gallery.callumwong.com:master";
@@ -101,11 +75,9 @@ in
             unitConfig = {
               Requires = [
                 "gallery-db.service"
-                "gallery-migrate.service"
               ];
               After = [
                 "gallery-db.service"
-                "gallery-migrate.service"
               ];
             };
             serviceConfig = {
