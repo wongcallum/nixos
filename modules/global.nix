@@ -47,6 +47,8 @@
         gallery = lib.mkEnableOption "Gallery";
 
         immich = lib.mkEnableOption "Immich";
+
+        collabst = lib.mkEnableOption "Collabst";
       };
     };
   };
