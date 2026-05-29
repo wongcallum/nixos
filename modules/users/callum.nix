@@ -23,26 +23,17 @@
           programs.fish.enable = true;
         };
 
-      homeManager.callum =
-        { pkgs, ... }:
-        {
-          home = {
-            username = "callum";
-            homeDirectory = "/home/callum";
-          };
-
-	  programs.neovim = {
-	    enable = true;
-	    defaultEditor = true;
-	    withPython3 = false;
-	    withRuby = false;
-	  };
-
-          programs.git.settings = {
-            user.name = "callum";
-            user.email = "mail@callumwong.com";
-          };
+      homeManager.callum = {
+        home = {
+          username = "callum";
+          homeDirectory = "/home/callum";
         };
+
+        programs.git.settings = {
+          user.name = "callum";
+          user.email = "mail@callumwong.com";
+        };
+      };
     }
   ];
 }
