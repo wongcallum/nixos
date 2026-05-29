@@ -2,16 +2,14 @@
 {
   environment.systemPackages = with pkgs; [
     kdePackages.qttools
-    vim
+    neovim
     wget
     git
     foot
     adwaita-icon-theme
-    nmap
     qalculate-gtk
     vesktop
-    obsidian
-    nautilus
+    nemo
     scrcpy
     android-tools
     blueman
@@ -20,26 +18,11 @@
     xournalpp
     btop
     nixd
+    nil
     nixfmt
+    nix-output-monitor
     unzip
     kdePackages.okular
-    (texliveBasic.withPackages (
-      ps: with ps; [
-        collection-xetex
-        collection-latex
-        collection-basic
-        collection-luatex
-        collection-binextra
-        collection-fontutils
-        collection-latexextra
-        collection-bibtexextra
-        collection-mathscience
-        collection-plaingeneric
-        collection-formatsextra
-        collection-latexrecommended
-        collection-fontsrecommended
-      ]
-    ))
     zellij
     wl-clipboard
     lua-language-server
@@ -48,7 +31,18 @@
     markdown-oxide
     zathura
     tinymist
+    typst
     websocat
     dnsmasq
+    gh
+    lazygit
+    nh
+    nnn
+    ripgrep
+    tauon
+    tree-sitter
+    vscode
+    zed-editor
+    xwayland-satellite
   ];
 }
