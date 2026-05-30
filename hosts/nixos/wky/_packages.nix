@@ -30,6 +30,7 @@
     foliate
     markdown-oxide
     zathura
+    xnviewmp
     tinymist
     typst
     websocat
@@ -43,6 +44,8 @@
     tree-sitter
     vscode
     zed-editor
-    xwayland-satellite
+    python3
+    mpv
+    jq
   ];
 }
