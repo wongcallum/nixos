@@ -1,0 +1,86 @@
+From 6532eb6b9d9afa0911e333ee197eb30d9716fdf9 Mon Sep 17 00:00:00 2001
+From: callum <mail@callumwong.com>
+Date: Sun, 31 May 2026 02:21:32 +1000
+Subject: [PATCH] xnviewmp: fix desktop entry installation
+
+appimageTools.wrapType2 delegates to buildFHSEnv, which silently
+drops extraInstallCommands, nativeBuildInputs, and desktopItems
+through its ... catch-all. The copyDesktopItems setup hook never runs.
+
+Wrap wrapType2 in a stdenvNoCC.mkDerivation so that the desktop entry
+and icon are properly installed.
+---
+ pkgs/by-name/xn/xnviewmp/package.nix | 33 +++++++++++++++++++---------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/pkgs/by-name/xn/xnviewmp/package.nix b/pkgs/by-name/xn/xnviewmp/package.nix
+index 24842efada65..d877cd8b63f6 100644
+--- a/pkgs/by-name/xn/xnviewmp/package.nix
++++ b/pkgs/by-name/xn/xnviewmp/package.nix
+@@ -2,6 +2,7 @@
+   appimageTools,
+   fetchurl,
+   runCommand,
++  stdenvNoCC,
+   lib,
+   makeDesktopItem,
+   copyDesktopItems,
+@@ -10,6 +11,14 @@
+   nix-update,
+ }:
+ let
++  pname = "xnviewmp";
++  version = "1.11.2";
++
++  src = fetchurl {
++    url = "https://download.xnview.com/old_versions/XnView_MP/XnView_MP-${version}.glibc2.17-x86_64.AppImage";
++    hash = "sha256-czgleryYMhRKxnv7Qb3E03iZ4mKXaz//jz7HmuQbjIc=";
++  };
++
+   icon =
+     runCommand "xnviewmp-icon.png"
+       {
+@@ -23,13 +32,14 @@ let
+         magick $src -resize 512x512 $out
+       '';
+ in
+-appimageTools.wrapType2 rec {
+-  pname = "xnviewmp";
+-  version = "1.11.2";
++stdenvNoCC.mkDerivation {
++  inherit pname version;
+ 
+-  src = fetchurl {
+-    url = "https://download.xnview.com/old_versions/XnView_MP/XnView_MP-${version}.glibc2.17-x86_64.AppImage";
+-    hash = "sha256-czgleryYMhRKxnv7Qb3E03iZ4mKXaz//jz7HmuQbjIc=";
++  src = appimageTools.wrapType2 {
++    inherit pname version src;
++    extraPkgs = pkgs: [
++      pkgs.qt5.qtbase
++    ];
+   };
+ 
+   nativeBuildInputs = [
+@@ -47,12 +57,15 @@ appimageTools.wrapType2 rec {
+     })
+   ];
+ 
+-  extraPkgs = pkgs: [
+-    pkgs.qt5.qtbase
+-  ];
++  installPhase = ''
++    runHook preInstall
++
++    mkdir -p $out/
++    cp -r bin $out/bin
+ 
+-  extraInstallCommands = ''
+     install -m 444 -D ${icon} $out/share/icons/hicolor/512x512/apps/xnviewmp.png
++
++    runHook postInstall
+   '';
+ 
+   passthru = {
+-- 
+2.54.0
+

@@ -46,7 +46,10 @@ in
             ];
           }
           // lib.optionalAttrs isUnstable {
-            nixpkgsPatcher.nixpkgs = inputs.unstable;
+            nixpkgsPatcher = {
+              nixpkgs = inputs.unstable;
+              patches = _pkgs: [ ../patches/xnviewmp-desktop.patch ];
+            };
           }
         )
       ))
