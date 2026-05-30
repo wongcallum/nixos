@@ -2,9 +2,10 @@
   flake.modules.nixos.laptop = {
     services = {
       logind.settings.Login = {
-        HandleLidSwitch = "suspend";
+        HandleLidSwitch = "ignore";
         HandleLidSwitchExternalPower = "ignore";
         HandleLidSwitchDocked = "ignore";
+        HandlePowerKey = "suspend";
       };
 
       tuned.enable = true;
