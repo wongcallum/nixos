@@ -5,10 +5,22 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
 
+    # best practice: do not mix stable and unstable on the same system
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     secrets = {
       url = "git+ssh://git@github.com/wongcallum/nixos-secrets.git?shallow=1";
+      flake = false;
+    };
+
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell/stable";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixpkgs-patcher.url = "github:gepbird/nixpkgs-patcher";
+    nixpkgs-patch-qalculate-gtk-cleanup = {
+      url = "https://github.com/NixOS/nixpkgs/pull/525322.diff";
       flake = false;
     };
 
@@ -34,6 +46,11 @@
     prism-tower.inputs.nixpkgs.follows = "nixpkgs";
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
+
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "unstable";
+    };
   };
 
   outputs =

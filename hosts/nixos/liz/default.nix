@@ -39,7 +39,7 @@
       gateway
       monitoring
       samba
-      syncthing
+      syncthing-server
       qbittorrent
 
       quadlet-productivity

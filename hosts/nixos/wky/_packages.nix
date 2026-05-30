@@ -1,0 +1,51 @@
+{ pkgs, ... }:
+{
+  environment.systemPackages = with pkgs; [
+    kdePackages.qttools
+    neovim
+    wget
+    git
+    foot
+    adwaita-icon-theme
+    qalculate-gtk
+    vesktop
+    nemo
+    scrcpy
+    android-tools
+    blueman
+    pavucontrol
+    libreoffice-fresh
+    xournalpp
+    btop
+    nixd
+    nil
+    nixfmt
+    nix-output-monitor
+    unzip
+    kdePackages.okular
+    zellij
+    wl-clipboard
+    lua-language-server
+    ncdu
+    foliate
+    markdown-oxide
+    zathura
+    xnviewmp
+    tinymist
+    typst
+    websocat
+    dnsmasq
+    gh
+    lazygit
+    nh
+    nnn
+    ripgrep
+    tauon
+    tree-sitter
+    vscode
+    zed-editor
+    python3
+    mpv
+    jq
+  ];
+}
