@@ -10,6 +10,7 @@
 
       ssh.enable = lib.mkEnableOption "OpenSSH";
       tailscale.enable = lib.mkEnableOption "Tailscale";
+      fonts.enable = lib.mkEnableOption "fonts";
       samba.enable = lib.mkEnableOption "Samba";
 
       users = lib.mkOption {

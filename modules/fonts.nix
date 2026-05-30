@@ -1,6 +1,6 @@
 {
   flake.modules.nixos.fonts =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
     let
       comic-mono-nf = pkgs.callPackage ../packages/fonts/comic-mono-nf { };
       ioskeley-mono = pkgs.callPackage ../packages/fonts/ioskeley-mono { };
@@ -9,6 +9,8 @@
       harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
     in
     {
+      modules.fonts.enable = lib.mkDefault true;
+
       fonts = {
         fontDir.enable = true;
         enableGhostscriptFonts = true;

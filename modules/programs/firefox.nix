@@ -1,18 +1,23 @@
 {
   flake.modules.nixos.firefox =
-    { config, ... }:
+    { config, lib, ... }:
     {
       programs.firefox = {
         enable = true;
-        preferences = {
-          "browser.fixup.domainsuffixwhitelist.${config.modules.gateway.tld}" = true;
-          "browser.download.panel.shown" = true;
-          "browser.search.suggest.enable" = false;
-          "browser.urlbar.suggest.searches" = false;
-          "browser.ml.linkPreview.enabled" = false;
-          "browser.ai.control.default" = "blocked";
-          "browser.urlbar.showSearchTerms.enabled" = true;
-        };
+        preferences = lib.mkMerge [
+          {
+            "browser.fixup.domainsuffixwhitelist.${config.modules.gateway.tld}" = true;
+            "browser.download.panel.shown" = true;
+            "browser.search.suggest.enable" = false;
+            "browser.urlbar.suggest.searches" = false;
+            "browser.ml.linkPreview.enabled" = false;
+            "browser.ai.control.default" = "blocked";
+            "browser.urlbar.showSearchTerms.enabled" = true;
+          }
+          (lib.optionalAttrs config.modules.fonts.enable {
+            "font.name.serif.x-western" = "HarmonyOS Sans TC";
+          })
+        ];
         autoConfig = ''
           // Any comment. You must start the file with a single-line comment!
           var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
