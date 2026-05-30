@@ -30,17 +30,25 @@ in
       (mkHosts "hosts/nixos/" config.flake.modules.nixos (
         hostname: module:
         let
-          nixpkgs = inputs.${config.flake.nixpkgs.${hostname} or "nixpkgs"};
-        in
-        nixpkgs.lib.nixosSystem {
+          baseName = config.flake.nixpkgs.${hostname} or "nixpkgs";
+          isUnstable = baseName == "unstable";
           system = "x86_64-linux";
-          modules = [
-            { networking.hostName = hostname; }
-            config.flake.modules.nixos.base
-            config.flake.modules.nixos.global
-            module
-          ];
-        }
+        in
+        (if isUnstable then inputs.nixpkgs-patcher.lib.nixosSystem else inputs.${baseName}.lib.nixosSystem) (
+          {
+            inherit system;
+            specialArgs = inputs;
+            modules = [
+              { networking.hostName = hostname; }
+              config.flake.modules.nixos.base
+              config.flake.modules.nixos.global
+              module
+            ];
+          }
+          // lib.optionalAttrs isUnstable {
+            nixpkgsPatcher.nixpkgs = inputs.unstable;
+          }
+        )
       ))
 
       (config.flake.modules.iso or { })

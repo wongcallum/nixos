@@ -18,6 +18,12 @@
       url = "github:AvengeMedia/DankMaterialShell/stable";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nixpkgs-patcher.url = "github:gepbird/nixpkgs-patcher";
+    nixpkgs-patch-qalculate-gtk-cleanup = {
+      url = "https://github.com/NixOS/nixpkgs/pull/525322.diff";
+      flake = false;
+    };
+
     deploy-rs.url = "github:serokell/deploy-rs";
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
