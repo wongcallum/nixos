@@ -1,23 +1,26 @@
 { inputs, ... }:
 {
   flake.modules.nixos.desktop =
-    { pkgs, ... }:
+    { ... }:
     {
-      programs.hyprland = {
+      imports = [
+        inputs.dms.nixosModules.dank-material-shell
+      ];
+
+      programs.dank-material-shell = {
         enable = true;
-        package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
-        portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+        systemd = {
+          enable = true;
+          restartIfChanged = true;
+        };
       };
 
-      environment.systemPackages = [
-        inputs.caelestia-shell.packages.${pkgs.stdenv.hostPlatform.system}.caelestia-shell
-        inputs.caelestia-shell.inputs.caelestia-cli.packages.${pkgs.stdenv.hostPlatform.system}.caelestia-cli
-      ];
-  
+      programs.niri.enable = true;
+
       xdg.portal.enable = true;
-  
+
       programs.kdeconnect.enable = true;
-  
+
       services.printing.enable = true;
       services.udisks2.enable = true;
     };
