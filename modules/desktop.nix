@@ -5,6 +5,7 @@
     {
       imports = [
         inputs.dms.nixosModules.dank-material-shell
+        inputs.dms.nixosModules.greeter
       ];
 
       programs.dank-material-shell = {
@@ -12,6 +13,11 @@
         systemd = {
           enable = true;
           restartIfChanged = true;
+        };
+        greeter = {
+          enable = true;
+          compositor.name = "niri";
+          configHome = "/home/callum";
         };
       };
 
