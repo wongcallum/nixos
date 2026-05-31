@@ -31,28 +31,18 @@ in
         hostname: module:
         let
           baseName = config.flake.nixpkgs.${hostname} or "nixpkgs";
-          isUnstable = baseName == "unstable";
           system = "x86_64-linux";
         in
-        (if isUnstable then inputs.nixpkgs-patcher.lib.nixosSystem else inputs.${baseName}.lib.nixosSystem)
-          (
-            {
-              inherit system;
-              specialArgs = inputs;
-              modules = [
-                { networking.hostName = hostname; }
-                config.flake.modules.nixos.base
-                config.flake.modules.nixos.global
-                module
-              ];
-            }
-            // lib.optionalAttrs isUnstable {
-              nixpkgsPatcher = {
-                nixpkgs = inputs.unstable;
-                patches = _pkgs: [ ../patches/xnviewmp-desktop.patch ];
-              };
-            }
-          )
+        inputs.${baseName}.lib.nixosSystem {
+          inherit system;
+          specialArgs = inputs;
+          modules = [
+            { networking.hostName = hostname; }
+            config.flake.modules.nixos.base
+            config.flake.modules.nixos.global
+            module
+          ];
+        }
       ))
 
       (config.flake.modules.iso or { })

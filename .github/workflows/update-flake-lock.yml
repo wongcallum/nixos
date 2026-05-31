@@ -28,3 +28,14 @@ jobs:
             dependencies
             automated
           commit-msg: "chore: update flake.lock"
+
+      - name: Rebase patched nixpkgs
+        env:
+          GITHUB_TOKEN: ${{ secrets.NIXPKGS_PAT }}
+        run: |
+          nixpkgs_rev=$(nix flake metadata --json | jq -er '.locks.nodes."unstable-upstream".locked.rev')
+          nix run nixpkgs#gh-cherry-pick -- \
+            --target wongcallum/nixpkgs@patched \
+            --first-hard-reset-to "NixOS/nixpkgs/$nixpkgs_rev" \
+            wongcallum/nixpkgs/6532eb6b9d9afa0911e333ee197eb30d9716fdf9
+          nix flake update unstable
