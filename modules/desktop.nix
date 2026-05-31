@@ -1,30 +1,25 @@
-{ inputs, ... }:
 {
   flake.modules.nixos.desktop =
     { pkgs, ... }:
     {
-      imports = [
-        inputs.dms.nixosModules.dank-material-shell
-        inputs.dms.nixosModules.greeter
-      ];
-
       programs = {
-        dank-material-shell = {
+        dms-shell = {
           enable = true;
           systemd = {
             enable = true;
             restartIfChanged = true;
-          };
-          greeter = {
-            enable = true;
-            compositor.name = "niri";
-            configHome = "/home/callum";
           };
         };
 
         niri.enable = true;
 
         kdeconnect.enable = true;
+      };
+
+      services.displayManager.dms-greeter = {
+        enable = true;
+        compositor.name = "niri";
+        configHome = "/home/callum";
       };
 
       environment.systemPackages = [
