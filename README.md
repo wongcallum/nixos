@@ -29,3 +29,10 @@ nix run nixpkgs#ssh-to-age -- -i /path/to/new/host/.ssh/id_ed25519.pub
 nvim ../nixos-secrets/.sops.yaml # add the new key
 nix run nixpkgs#sops -- updatekeys ../nixos-secrets/secrets.yaml
 ```
+
+## Patch nixpkgs
+```bash
+nvim scripts/patch-nixpkgs.sh # add commits/branches/PRs
+GITHUB_TOKEN=$(gh auth token) ./scripts/patch-nixpkgs.sh
+```
+
