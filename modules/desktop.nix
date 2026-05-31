@@ -26,6 +26,7 @@
         pkgs.adw-gtk3
         pkgs.xwayland-satellite
         pkgs.qt6Packages.qt6ct
+        pkgs.libsForQt5.qt5ct
       ];
 
       xdg.portal.enable = true;
