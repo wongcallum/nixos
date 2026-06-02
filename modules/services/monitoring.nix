@@ -11,6 +11,8 @@
             http_port = 2342;
             domain = "grafana.${config.modules.gateway.tld}";
           };
+          # internal
+          security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
           auth.disable_login_form = false;
           "auth.anonymous" = {
             enabled = true;
@@ -22,6 +24,7 @@
 
       fileSystems."/var/lib/${config.services.prometheus.stateDir}" = {
         device = config.utils.dataDir "prometheus2";
+        fsType = "none";
         options = [ "bind" ];
       };
 

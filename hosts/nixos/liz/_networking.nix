@@ -37,11 +37,7 @@ in
     };
   };
 
-  services.resolved = {
-    extraConfig = ''
-      DNSStubListener = no
-    '';
-  };
+  services.resolved.settings.Resolve.DNSStubListener = "no";
 
   environment.systemPackages = [ pkgs.ethtool ];
   services.networkd-dispatcher = {
