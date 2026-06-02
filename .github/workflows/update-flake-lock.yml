@@ -24,8 +24,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.NIXPKGS_PAT }}
         run: |
-          nix flake update unstable-upstream
-          ./scripts/patch-nixpkgs.sh
+          # Update unstable-upstream, rebuild the patched fork, relock unstable.
+          # nix prints an "Updated input '<name>': old -> new" block (to stderr)
+          # for each change; capture it so we can surface it in the PR body.
+          {
+            nix flake update unstable-upstream
+            ./scripts/patch-nixpkgs.sh
+          } 2>&1 | tee /tmp/flake-update.log
+
+          # The DeterminateSystems action's PR body only lists inputs that *its*
+          # own `nix flake update` changes; unstable/unstable-upstream are already
+          # updated by now, so capture them here and expose them to the PR body.
+          changes=$(grep -A2 "Updated input" /tmp/flake-update.log | grep -v '^--$' || true)
+          {
+            echo "PATCHED_NIXPKGS_CHANGES<<PATCHED_NIXPKGS_EOF"
+            echo "$changes"
+            echo "PATCHED_NIXPKGS_EOF"
+          } >> "$GITHUB_ENV"
 
       - uses: DeterminateSystems/update-flake-lock@main
         with:
@@ -35,3 +50,18 @@ jobs:
             dependencies
             automated
           commit-msg: "chore: update flake.lock"
+          pr-body: |
+            Automated changes by the [update-flake-lock](https://github.com/DeterminateSystems/update-flake-lock) GitHub Action.
+
+            ```
+            {{ env.GIT_COMMIT_MESSAGE }}
+            ```
+
+            ### Patched nixpkgs (`unstable` & `unstable-upstream`)
+
+            Updated by the *Rebase patched nixpkgs* step before the action runs,
+            so they are missing from the summary above:
+
+            ```
+            {{ env.PATCHED_NIXPKGS_CHANGES }}
+            ```
