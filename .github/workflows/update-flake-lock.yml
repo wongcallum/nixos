@@ -24,8 +24,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.NIXPKGS_PAT }}
         run: |
-          nix flake update unstable-upstream
-          ./scripts/patch-nixpkgs.sh
+          {
+            nix flake update unstable-upstream
+            ./scripts/patch-nixpkgs.sh
+          } 2>&1 | tee /tmp/flake-update.log
+
+          changes=$(grep -A2 "Updated input" /tmp/flake-update.log | grep -v '^--$' || true)
+          {
+            echo "PATCHED_NIXPKGS_CHANGES<<PATCHED_NIXPKGS_EOF"
+            echo "$changes"
+            echo "PATCHED_NIXPKGS_EOF"
+          } >> "$GITHUB_ENV"
 
       - uses: DeterminateSystems/update-flake-lock@main
         with:
@@ -35,3 +44,8 @@ jobs:
             dependencies
             automated
           commit-msg: "chore: update flake.lock"
+          pr-body: |
+            ```
+            {{ env.GIT_COMMIT_MESSAGE }}
+            {{ env.PATCHED_NIXPKGS_CHANGES }}
+            ```
