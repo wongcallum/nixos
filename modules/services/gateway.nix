@@ -71,6 +71,7 @@
 
         fileSystems."/var/lib/technitium-dns-server" = {
           device = config.utils.dataDir "technitium-dns-server";
+          fsType = "none";
           options = [ "bind" ];
         };
 

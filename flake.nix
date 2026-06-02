@@ -6,7 +6,7 @@
     import-tree.url = "github:vic/import-tree";
 
     # best practice: do not mix stable and unstable on the same system
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     unstable-upstream.url = "github:nixos/nixpkgs/nixos-unstable";
     unstable.url = "github:wongcallum/nixpkgs/patched";
 

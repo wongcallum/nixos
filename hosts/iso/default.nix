@@ -28,7 +28,6 @@ let
               NIXPKGS_ALLOW_UNFREE = "1";
             };
 
-            networking.wireless.enable = false;
             networking.networkmanager.enable = true;
 
             programs.nano.enable = false;

@@ -38,11 +38,7 @@
     };
   };
 
-  services.resolved = {
-    extraConfig = ''
-      DNSStubListener = no
-    '';
-  };
+  services.resolved.settings.Resolve.DNSStubListener = "no";
 
   modules.gateway.tld = "staging.7sref";
 }
