@@ -22,6 +22,12 @@
     zfs.extraPools = [ "tank" ];
   };
 
+  services.zfs.autoScrub = {
+    enable = true;
+    interval = "monthly";
+    pools = [ "tank" ];
+  };
+
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   fileSystems."/mnt/media" = {
     device = "/dev/disk/by-uuid/0b878ab4-2310-4b8e-92e8-7ef5f47f75f8";
