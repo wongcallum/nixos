@@ -37,6 +37,7 @@
       ssh
       tailscale
       gateway
+      libvirt
       monitoring
       samba
       syncthing-server
