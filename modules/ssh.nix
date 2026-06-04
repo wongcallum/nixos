@@ -7,7 +7,16 @@
       enable = true;
       settings.PasswordAuthentication = false;
       settings.PermitRootLogin = "no";
+
+      # FIXME: probably insecure
+      extraConfig = ''
+        Match Address 192.168.122.0/24
+            PasswordAuthentication yes
+      '';
     };
+
+    # module does not automatically enable pam_unix.so unless services.openssh.settings.PasswordAuthentication is globally set to true
+    security.pam.services.sshd.unixAuth = lib.mkForce true;
   };
 
   flake.modules.nixos.persistence =
