@@ -23,6 +23,7 @@
     prism-tower.url = "github:wongcallum/prism-tower";
     picolimbo.url = "github:wongcallum/PicoLimbo/nix";
     microvm.url = "github:astro/microvm.nix";
+    ghostty.url = "github:ghostty-org/ghostty";
     flux = {
       url = "github:IogaMaster/flux";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -37,6 +38,7 @@
     prism-tower.inputs.nixpkgs.follows = "nixpkgs";
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
+    ghostty.inputs.nixpkgs.follows = "unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager";

@@ -6,7 +6,6 @@
     wget
     git
     foot
-    ghostty
     adwaita-icon-theme
     qalculate-gtk
     vesktop

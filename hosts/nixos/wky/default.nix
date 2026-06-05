@@ -31,6 +31,7 @@
       fonts
       bluetooth
       firefox
+      ghostty
       laptop
       nix-ld
       syncthing-desktop
