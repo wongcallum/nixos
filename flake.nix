@@ -27,7 +27,7 @@
       url = "github:IogaMaster/flux";
       inputs.nixpkgs.follows = "nixpkgs";
       # flux's flake.lock doesn't have my fix yet
-      inputs.mcman.url = "github:deniz-blue/mcman";
+      inputs.mcman.url = "github:deniz-blue/mcman/2665efb902631f7a98e0679ac7ed4998e6540022";
     };
 
     deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
