@@ -10,6 +10,10 @@
 
       security.pki.certificateFiles = [ ./7sref_ca.pem ];
 
+      environment.systemPackages = [
+        inputs.ghostty.packages.${pkgs.system}.default.terminfo
+      ];
+
       nix = {
         # https://jackson.dev/post/nix-reasonable-defaults/
         extraOptions = ''
