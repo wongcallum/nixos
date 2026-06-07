@@ -133,7 +133,7 @@ in
           lobehub = lib.mkIf config.modules.containers.lobehub (
             config.utils.mkContainer {
               containerConfig = {
-                image = "lobehub/lobehub";
+                image = "docker.io/lobehub/lobehub:latest";
                 autoUpdate = "registry";
                 publishPorts = [ "3210:3210" ];
                 environmentFiles = [ config.sops.secrets."docker/lobehub_env".path ];
