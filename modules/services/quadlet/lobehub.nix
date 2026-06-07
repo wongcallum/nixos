@@ -155,8 +155,8 @@ in
 
                   # api keys defined in nixos-secrets
                   SEARCH_PROVIDERS = "tavily,exa";
-                  CRAWLER_IMPLS = "tavily,exa,naive";
-                  TAVILY_EXTRACT_DEPTH = "advanced";
+                  CRAWLER_IMPLS = "exa,naive";
+                  #TAVILY_EXTRACT_DEPTH = "advanced";
                 };
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.28.0.5";
