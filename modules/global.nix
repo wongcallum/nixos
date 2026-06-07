@@ -50,6 +50,8 @@
         immich = lib.mkEnableOption "Immich";
 
         collabst = lib.mkEnableOption "Collabst";
+
+        lobehub = lib.mkEnableOption "LobeHub";
       };
     };
   };
