@@ -150,9 +150,7 @@
       "inputs": {
         "flake-compat": "flake-compat_2",
         "home-manager": "home-manager",
-        "nixpkgs": [
-          "unstable"
-        ],
+        "nixpkgs": "nixpkgs_2",
         "systems": "systems_2",
         "zig": "zig",
         "zon2nix": "zon2nix"
@@ -357,6 +355,19 @@
     },
     "nixpkgs_2": {
       "locked": {
+        "lastModified": 1780747962,
+        "narHash": "sha256-d86UGSjwACWRttincQzeiAEZYVPtP3kODhr9hYZD4e8=",
+        "rev": "cbb5cf358f50aa6acc9efd6113b7bcfbc352cd73",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1011620.cbb5cf358f50/nixexprs.tar.xz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
         "lastModified": 1780203844,
         "narHash": "sha256-K5sT4jTpGs15ADhviMKNBH38REpPf5Q6mM1+N6cArVE=",
         "owner": "nixos",
@@ -439,7 +450,7 @@
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "microvm": "microvm",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs_3",
         "picolimbo": "picolimbo",
         "prism-tower": "prism-tower",
         "quadlet-nix": "quadlet-nix",
