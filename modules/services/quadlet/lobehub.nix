@@ -18,7 +18,7 @@ in
 
       systemd.tmpfiles.rules = [
         "d ${config.utils.dataDir "lobehub/db"} 0755 root root -"
-        "d ${config.utils.dataDir "lobehub/redis"} 0755 root root -"
+        "d ${config.utils.dataDir "lobehub/redis"} 0755 999 999 -"
         "d ${config.utils.dataDir "lobehub/minio"} 0755 root root -"
       ];
 
