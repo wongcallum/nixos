@@ -41,6 +41,10 @@
             http_addr = "127.0.0.1";
             http_port = 2342;
             domain = "grafana.${config.modules.gateway.tld}";
+            # We sit behind the gateway (Caddy) reverse proxy, which terminates
+            # TLS and serves https://<domain>/ — so external links must point
+            # there, not at the internal http_addr:http_port.
+            root_url = "https://%(domain)s/";
           };
           # internal
           security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
