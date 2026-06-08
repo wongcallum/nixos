@@ -15,6 +15,9 @@
 
       ssh
       tailscale
+      sops
+
+      quadlet-lobehub
     ]);
   };
 }
