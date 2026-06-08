@@ -59,6 +59,9 @@
               static_configs = [
                 {
                   targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.${exporter}.port}" ];
+                  # Override the default `host:port` instance label with the
+                  # hostname so alerts/dashboards read "liz" instead of an IP.
+                  labels.instance = config.networking.hostName;
                 }
               ];
             })
