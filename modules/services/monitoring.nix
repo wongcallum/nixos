@@ -1,6 +1,37 @@
 {
   flake.modules.nixos.monitoring =
-    { config, ... }:
+    { config, lib, ... }:
+    let
+      exporterPorts = {
+        node = 9002;
+        zfs = 9004;
+        smartctl = 9003;
+      };
+      # Which exporters each monitored host runs. Explicit (not flake-derived);
+      # keep in sync with what the metrics/monitoring modules enable per host.
+      hostExporters = {
+        liz = [
+          "node"
+          "zfs"
+          "smartctl"
+        ];
+        staging = [
+          "node"
+          "zfs"
+        ];
+      };
+      # Self over loopback (no tailnet dependency to scrape ourselves); remotes
+      # via their tailscale IP from the global modules.hostAddrs map.
+      addrOf =
+        host: if host == config.networking.hostName then "127.0.0.1" else config.modules.hostAddrs.${host};
+      mkJob = exporter: {
+        job_name = exporter;
+        static_configs = lib.mapAttrsToList (host: _: {
+          targets = [ "${addrOf host}:${toString exporterPorts.${exporter}}" ];
+          labels.instance = host;
+        }) (lib.filterAttrs (_: exporters: builtins.elem exporter exporters) hostExporters);
+      };
+    in
     {
       services.grafana = {
         enable = true;
@@ -32,44 +63,15 @@
         enable = true;
         listenAddress = "127.0.0.1";
         port = 9001;
-        exporters = {
-          node = {
-            enable = true;
-            enabledCollectors = [
-              "logind"
-              "processes"
-              "systemd"
-              "tcpstat"
-            ];
-            port = 9002;
-          };
-          smartctl = {
-            enable = true;
-            port = 9003;
-          };
-          zfs = {
-            enable = true;
-            port = 9004;
-          };
+        # node + zfs exporters come from the `metrics` feature; smartctl stays
+        # here (liz-only for now) alongside the server.
+        exporters.smartctl = {
+          enable = true;
+          port = 9003;
         };
-        scrapeConfigs =
-          map
-            (exporter: {
-              job_name = "local_${exporter}";
-              static_configs = [
-                {
-                  targets = [ "127.0.0.1:${toString config.services.prometheus.exporters.${exporter}.port}" ];
-                  # Override the default `host:port` instance label with the
-                  # hostname so alerts/dashboards read "liz" instead of an IP.
-                  labels.instance = config.networking.hostName;
-                }
-              ];
-            })
-            [
-              "node"
-              "smartctl"
-              "zfs"
-            ];
+        # One job per exporter type; each host contributes a static_config with
+        # its own `instance` label. Targets resolve via modules.hostAddrs.
+        scrapeConfigs = map mkJob (builtins.attrNames exporterPorts);
       };
     };
 

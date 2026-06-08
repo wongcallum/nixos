@@ -23,6 +23,7 @@
       tailscale
 
       gateway
+      metrics
 
       picolimbo
       velocity
