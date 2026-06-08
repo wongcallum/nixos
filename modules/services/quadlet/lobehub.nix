@@ -1,7 +1,5 @@
 let
   networkName = "lobehub";
-  # salt's Tailscale IP — liz's gateway reverse-proxies here over the tailnet.
-  saltAddr = "100.83.198.98";
 in
 { inputs, lib, ... }:
 {
@@ -181,25 +179,24 @@ in
       };
     };
 
-  # The gateway lives on liz (which does not import quadlet-lobehub), so register
-  # unconditionally and point at salt's tailnet address rather than the internal
-  # podman IP. liz's Caddy terminates TLS and reverse-proxies over Tailscale.
-  flake.modules.nixos.gateway = _: {
-    modules.gateway.services = {
-      lobehub = {
-        name = "LobeChat";
-        domainName = "lobehub";
-        addr = "${saltAddr}:3210";
-        iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lobehub.png";
-        category = "AI";
-      };
+  flake.modules.nixos.gateway =
+    { config, ... }:
+    {
+      modules.gateway.services = {
+        lobehub = {
+          name = "LobeChat";
+          domainName = "lobehub";
+          addr = "${config.modules.hostAddrs.salt}:3210";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lobehub.png";
+          category = "AI";
+        };
 
-      lobehub-storage = {
-        name = "LobeChat Storage";
-        domainName = "lobehub-storage";
-        addr = "${saltAddr}:9000";
-        hidden = true;
+        lobehub-storage = {
+          name = "LobeChat Storage";
+          domainName = "lobehub-storage";
+          addr = "${config.modules.hostAddrs.salt}:9000";
+          hidden = true;
+        };
       };
     };
-  };
 }

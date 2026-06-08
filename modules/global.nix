@@ -14,6 +14,12 @@
       samba.enable = lib.mkEnableOption "Samba";
       velocity.enable = lib.mkEnableOption "Velocity proxy";
 
+      hostAddrs = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = { };
+        description = "hostname to tailscale IP address";
+      };
+
       users = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule {
@@ -53,6 +59,15 @@
 
         lobehub = lib.mkEnableOption "LobeHub";
       };
+    };
+
+    config.modules.hostAddrs = {
+      liz = "100.103.248.5";
+      milk = "100.83.57.121";
+      salt = "100.83.198.98";
+      staging = "100.103.202.124";
+      vm-gallery = "100.93.214.80";
+      wky = "100.79.128.120";
     };
   };
 }

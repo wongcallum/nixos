@@ -17,7 +17,7 @@
     enable = true;
     email = "mail@callumwong.com";
     virtualHosts."gallery.callumwong.com".extraConfig = ''
-      reverse_proxy 100.93.214.80:3000
+      reverse_proxy ${config.modules.hostAddrs.vm-gallery}:3000
     '';
   };
 }
