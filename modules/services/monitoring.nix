@@ -15,10 +15,8 @@
           "zfs"
           "smartctl"
         ];
-        staging = [
-          "node"
-          "zfs"
-        ];
+        milk = [ "node" ];
+        salt = [ "node" ];
       };
       # Self over loopback (no tailnet dependency to scrape ourselves); remotes
       # via their tailscale IP from the global modules.hostAddrs map.

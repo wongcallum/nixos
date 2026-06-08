@@ -17,6 +17,8 @@
       tailscale
       sops
 
+      metrics
+
       quadlet-lobehub
     ]);
   };
