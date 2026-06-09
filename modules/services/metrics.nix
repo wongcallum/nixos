@@ -36,5 +36,21 @@
         port = 9005;
         extraOptions = [ "--docker_only=false" ]; # also report podman/systemd cgroups
       };
+
+      # FIXME: https://github.com/NixOS/nixpkgs/pull/520137
+      nixpkgs.overlays = lib.mkIf (has "cadvisor") [
+        (_: prev: {
+          cadvisor = prev.cadvisor.overrideAttrs (_: {
+            version = "0.57.0";
+            src = prev.fetchFromGitHub {
+              owner = "google";
+              repo = "cadvisor";
+              rev = "v0.57.0";
+              hash = "sha256-9HeiSO6yedDpv6YUAdZU7CqfGkun4ugZs4RbSZ51MPU=";
+            };
+            vendorHash = "sha256-zPn7CqSw+SW0Air5dEs+/wNwNAJjd5XX7wC3hrOHJQU=";
+          });
+        })
+      ];
     };
 }
