@@ -1,13 +1,14 @@
-{ lib, ... }:
 {
-  # Prometheus exporters, imported by every monitored host. The central
-  # Prometheus server + Grafana live in the separate, liz-only `monitoring`
-  # feature, which scrapes these over the tailnet.
   flake.modules.nixos.metrics =
-    { config, ... }:
+    { config, lib, ... }:
+    let
+      hostname = config.networking.hostName;
+      exporters = (config.modules.metrics.hosts.${hostname} or { }).exporters or [ ];
+      has = e: builtins.elem e exporters;
+    in
     {
       services.prometheus.exporters = {
-        node = {
+        node = lib.mkIf (has "node") {
           enable = true;
           enabledCollectors = [
             "logind"
@@ -18,9 +19,13 @@
           port = 9002;
         };
 
-        # Only runs where ZFS is actually in use; mkDefault lets a host override.
-        zfs = {
-          enable = lib.mkDefault config.boot.zfs.enabled;
+        smartctl = lib.mkIf (has "smartctl") {
+          enable = true;
+          port = 9003;
+        };
+
+        zfs = lib.mkIf (has "zfs") {
+          enable = true;
           port = 9004;
         };
       };

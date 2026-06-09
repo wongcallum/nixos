@@ -4,30 +4,25 @@
     let
       exporterPorts = {
         node = 9002;
-        zfs = 9004;
         smartctl = 9003;
+        zfs = 9004;
       };
-      # Which exporters each monitored host runs. Explicit (not flake-derived);
-      # keep in sync with what the metrics/monitoring modules enable per host.
-      hostExporters = {
-        liz = [
-          "node"
-          "zfs"
-          "smartctl"
-        ];
-        milk = [ "node" ];
-        salt = [ "node" ];
-      };
-      # Self over loopback (no tailnet dependency to scrape ourselves); remotes
-      # via their tailscale IP from the global modules.hostAddrs map.
+      activeExporters = lib.unique (
+        lib.concatMap (h: h.exporters) (lib.attrValues config.modules.metrics.hosts)
+      );
       addrOf =
         host: if host == config.networking.hostName then "127.0.0.1" else config.modules.hostAddrs.${host};
       mkJob = exporter: {
         job_name = exporter;
-        static_configs = lib.mapAttrsToList (host: _: {
-          targets = [ "${addrOf host}:${toString exporterPorts.${exporter}}" ];
-          labels.instance = host;
-        }) (lib.filterAttrs (_: exporters: builtins.elem exporter exporters) hostExporters);
+        static_configs =
+          lib.mapAttrsToList
+            (host: hostCfg: {
+              targets = [ "${addrOf host}:${toString exporterPorts.${exporter}}" ];
+              labels.instance = host;
+            })
+            (
+              lib.filterAttrs (_: hostCfg: builtins.elem exporter hostCfg.exporters) config.modules.metrics.hosts
+            );
       };
     in
     {
@@ -39,9 +34,6 @@
             http_addr = "127.0.0.1";
             http_port = 2342;
             domain = "grafana.${config.modules.gateway.tld}";
-            # We sit behind the gateway (Caddy) reverse proxy, which terminates
-            # TLS and serves https://<domain>/ — so external links must point
-            # there, not at the internal http_addr:http_port.
             root_url = "https://%(domain)s/";
           };
           # internal
@@ -65,15 +57,7 @@
         enable = true;
         listenAddress = "127.0.0.1";
         port = 9001;
-        # node + zfs exporters come from the `metrics` feature; smartctl stays
-        # here (liz-only for now) alongside the server.
-        exporters.smartctl = {
-          enable = true;
-          port = 9003;
-        };
-        # One job per exporter type; each host contributes a static_config with
-        # its own `instance` label. Targets resolve via modules.hostAddrs.
-        scrapeConfigs = map mkJob (builtins.attrNames exporterPorts);
+        scrapeConfigs = map mkJob activeExporters;
       };
     };
 
