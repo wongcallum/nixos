@@ -34,7 +34,10 @@
         enable = true;
         listenAddress = "0.0.0.0";
         port = 9005;
-        extraOptions = [ "--docker_only=false" ]; # also report podman/systemd cgroups
+        extraOptions = [
+          "--docker_only=false" # also report podman/systemd cgroups
+          "--disable_metrics=disk" # this kills CPU on zfs hosts per container
+        ];
       };
 
       # FIXME: https://github.com/NixOS/nixpkgs/pull/520137
