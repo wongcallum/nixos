@@ -20,6 +20,31 @@
         description = "hostname to tailscale IP address";
       };
 
+      metrics.hosts = lib.mkOption {
+        type = lib.types.attrsOf (
+          lib.types.submodule {
+            options.exporters = lib.mkOption {
+              type = lib.types.listOf (
+                lib.types.enum [
+                  "node"
+                  "zfs"
+                  "smartctl"
+                  "cadvisor"
+                ]
+              );
+            };
+          }
+        );
+        default = { };
+        description = "which exporters to enable and scrape per host";
+      };
+
+      monitoring.host = lib.mkOption {
+        type = lib.types.str;
+        default = "liz";
+        description = "control tower";
+      };
+
       users = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule {
@@ -61,13 +86,29 @@
       };
     };
 
-    config.modules.hostAddrs = {
-      liz = "100.103.248.5";
-      milk = "100.83.57.121";
-      salt = "100.83.198.98";
-      staging = "100.103.202.124";
-      vm-gallery = "100.93.214.80";
-      wky = "100.79.128.120";
+    config.modules = {
+      hostAddrs = {
+        liz = "100.103.248.5";
+        milk = "100.83.57.121";
+        salt = "100.83.198.98";
+        staging = "100.103.202.124";
+        vm-gallery = "100.93.214.80";
+        wky = "100.79.128.120";
+      };
+
+      metrics.hosts = {
+        liz.exporters = [
+          "node"
+          "zfs"
+          "smartctl"
+          "cadvisor"
+        ];
+        milk.exporters = [ "node" ];
+        salt.exporters = [
+          "node"
+          "cadvisor"
+        ];
+      };
     };
   };
 }

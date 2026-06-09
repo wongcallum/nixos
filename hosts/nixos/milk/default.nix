@@ -10,6 +10,8 @@
 
       ssh
       tailscale
+      metrics
+      logs
     ];
   };
 }

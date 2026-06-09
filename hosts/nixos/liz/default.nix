@@ -38,7 +38,9 @@
       tailscale
       gateway
       libvirt
+      metrics
       monitoring
+      logs
       samba
       syncthing-server
       qbittorrent
