@@ -18,6 +18,7 @@
       sops
 
       metrics
+      logs
 
       quadlet-lobehub
     ]);

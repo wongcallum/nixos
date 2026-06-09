@@ -29,5 +29,12 @@
           port = 9004;
         };
       };
+
+      services.cadvisor = lib.mkIf (has "cadvisor") {
+        enable = true;
+        listenAddress = "0.0.0.0";
+        port = 9005;
+        extraOptions = [ "--docker_only=false" ]; # also report podman/systemd cgroups
+      };
     };
 }

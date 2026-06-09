@@ -29,6 +29,7 @@
                   "node"
                   "zfs"
                   "smartctl"
+                  "cadvisor"
                 ]
               );
             };
@@ -36,6 +37,12 @@
         );
         default = { };
         description = "which exporters to enable and scrape per host";
+      };
+
+      monitoring.host = lib.mkOption {
+        type = lib.types.str;
+        default = "liz";
+        description = "control tower";
       };
 
       users = lib.mkOption {
@@ -94,9 +101,13 @@
           "node"
           "zfs"
           "smartctl"
+          "cadvisor"
         ];
         milk.exporters = [ "node" ];
-        salt.exporters = [ "node" ];
+        salt.exporters = [
+          "node"
+          "cadvisor"
+        ];
       };
     };
   };
