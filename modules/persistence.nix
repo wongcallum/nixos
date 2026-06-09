@@ -15,6 +15,9 @@
       config = {
         fileSystems.${config.modules.persistence.persistDir}.neededForBoot = true;
 
+        # ensure that StateDirectory is not too permissive for DynamicUser services
+        systemd.tmpfiles.rules = [ "d /var/lib/private 0700 root root -" ];
+
         environment.persistence.${config.modules.persistence.persistDir} = {
           enable = true;
           hideMounts = true;

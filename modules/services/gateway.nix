@@ -69,20 +69,10 @@
           mode = "0400";
         };
 
-        fileSystems."/var/lib/technitium-dns-server" = {
-          device = config.utils.dataDir "technitium-dns-server";
-          fsType = "none";
-          options = [ "bind" ];
-        };
-
         services.technitium-dns-server.enable = true;
-        systemd.services.technitium-dns-server.serviceConfig = {
-          WorkingDirectory = lib.mkForce "/var/lib/technitium-dns-server";
-          BindPaths = lib.mkForce null;
-          DynamicUser = lib.mkForce false;
-          User = "root";
-          Group = "root";
-        };
+        # make sure we don't watch the entire root with inotify
+        systemd.services.technitium-dns-server.serviceConfig.WorkingDirectory =
+          "/var/lib/technitium-dns-server";
 
         services.caddy = {
           enable = true;
@@ -149,5 +139,16 @@
             };
         };
       };
+    };
+
+  # /var/lib/technitium-dns-server is a symlink to /var/lib/private/technitium-dns-server
+  flake.modules.nixos.persistence =
+    { config, ... }:
+    {
+      environment.persistence.${config.modules.persistence.persistDir}.directories =
+        lib.mkIf config.services.technitium-dns-server.enable
+          [
+            "/var/lib/private/technitium-dns-server"
+          ];
     };
 }
