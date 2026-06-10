@@ -1,0 +1,19 @@
+@namespace "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
+@-moz-document url("chrome://browser/content/browser.xhtml") {
+    * {
+        font-family: "HarmonyOS Sans TC";
+    }
+
+    .urlbar-input-box {
+        text-align: center;
+    }
+
+    /* reduce right-click menu padding */
+    menupopup:not(.in-menulist) > menuitem, 
+    menupopup:not(.in-menulist) > menu {
+        padding-block: 2px !important; 
+        min-height: unset !important;
+    }
+}
+
