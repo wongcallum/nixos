@@ -64,7 +64,6 @@ in
                 };
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.22.0.2";
-                publishPorts = [ "8088:8080" ]; # keep here for dad
                 volumes = [
                   "${config.utils.dataDir "open-webui"}:/app/backend/data"
                 ];
@@ -89,7 +88,8 @@ in
             notify = "healthy";
             healthStartPeriod = "30s";
             environmentFiles = [ config.sops.secrets."docker/silverbullet_env".path ];
-            publishPorts = [ "3000:3000" ];
+            networks = [ networks.${networkName}.ref ];
+            ip = "172.22.0.4";
             volumes = [
               "${config.utils.dataDir "silverbullet"}:/space"
             ];
@@ -113,7 +113,7 @@ in
         productivity-silverbullet = lib.mkIf config.modules.containers.silverbullet {
           name = "SilverBullet";
           domainName = "notes";
-          addr = "127.0.0.1:3000";
+          addr = "172.22.0.4:3000";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/silverbullet.png";
           category = "Productivity";
         };
