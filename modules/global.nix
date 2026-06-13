@@ -70,8 +70,6 @@
 
         ai-searxng = lib.mkEnableOption "SearXNG";
         ai-openwebui = lib.mkEnableOption "Open WebUI";
-        ai-copilot-api = lib.mkEnableOption "Copilot API";
-        ai-langflow = lib.mkEnableOption "Langflow";
         silverbullet = lib.mkEnableOption "SilverBullet";
 
         minecraft-server = lib.mkEnableOption "Minecraft Server";
@@ -79,8 +77,6 @@
         gallery = lib.mkEnableOption "Gallery";
 
         immich = lib.mkEnableOption "Immich";
-
-        collabst = lib.mkEnableOption "Collabst";
 
         lobehub = lib.mkEnableOption "LobeHub";
       };

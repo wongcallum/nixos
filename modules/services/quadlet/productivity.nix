@@ -6,11 +6,7 @@ in
   flake.modules.nixos.quadlet-productivity =
     { config, ... }:
     let
-      inherit (config.virtualisation.quadlet) networks builds;
-      copilotApiSrc = fetchGit {
-        url = "https://github.com/caozhiyuan/copilot-api.git";
-        rev = "fb30b781b51c8a0da2d22ecb045d66d2693463c8";
-      };
+      inherit (config.virtualisation.quadlet) networks;
     in
     {
       imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
@@ -18,16 +14,12 @@ in
       systemd.tmpfiles.rules = [
         "d ${config.utils.dataDir "searxng"} 0755 root root -"
         "d ${config.utils.dataDir "open-webui"} 0755 root root -"
-        "d ${config.utils.dataDir "copilot-api"} 0755 root root -"
-        "d ${config.utils.dataDir "langflow"} 0755 root root -"
         "d ${config.utils.dataDir "silverbullet"} 0755 root root -"
       ];
 
       modules.containers = {
         ai-searxng = lib.mkDefault true;
         ai-openwebui = lib.mkDefault true;
-        ai-copilot-api = lib.mkDefault true;
-        ai-langflow = lib.mkDefault true;
         silverbullet = lib.mkDefault true;
       };
 
@@ -80,36 +72,6 @@ in
             }
           );
 
-          ai-copilot-api = lib.mkIf config.modules.containers.ai-copilot-api {
-            containerConfig = {
-              image = builds.copilot-api.ref;
-              networks = [ networks.${networkName}.ref ];
-              ip = "172.22.0.4";
-              publishPorts = [ "4141:4141" ];
-              volumes = [
-                "${config.utils.dataDir "copilot-api"}:/root/.local/share/copilot-api"
-              ];
-            };
-          };
-
-          ai-langflow = lib.mkIf config.modules.containers.ai-langflow (
-            config.utils.mkContainer {
-              containerConfig = {
-                image = "langflowai/langflow:latest";
-                networks = [ networks.${networkName}.ref ];
-                ip = "172.22.0.5";
-                volumes = [
-                  "${config.utils.dataDir "langflow"}:/app/langflow"
-                ];
-              };
-            }
-          );
-        };
-
-        builds.copilot-api = lib.mkIf config.modules.containers.ai-copilot-api {
-          buildConfig = {
-            workdir = "${copilotApiSrc}";
-          };
         };
       };
 
@@ -148,14 +110,6 @@ in
           category = "Productivity";
         };
 
-        productivity-copilot-api = lib.mkIf config.modules.containers.ai-copilot-api {
-          name = "Copilot API";
-          domainName = "copilot";
-          addr = "172.22.0.4:4141";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/github-copilot.png";
-          category = "Productivity";
-        };
-
         productivity-silverbullet = lib.mkIf config.modules.containers.silverbullet {
           name = "SilverBullet";
           domainName = "notes";
@@ -169,14 +123,6 @@ in
           domainName = "search";
           addr = "172.22.0.3:8080";
           hidden = true;
-        };
-
-        productivity-langflow = lib.mkIf config.modules.containers.ai-langflow {
-          name = "Langflow";
-          domainName = "langflow";
-          addr = "172.22.0.5:7860";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/langflow.png";
-          category = "Productivity";
         };
       };
     };
