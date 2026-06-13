@@ -20,6 +20,9 @@ in
         "d ${config.utils.dataDir "media/jellyfin/cache"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/config"} 0755 root root -"
         "d ${config.utils.dataDir "media/slskd"} 0755 root root -"
+        "d /mnt/media/soulseek 0755 1000 1000 -"
+        "d /mnt/media/soulseek/downloads 0755 1000 1000 -"
+        "d /mnt/media/soulseek/incomplete 0755 1000 1000 -"
       ];
 
       modules.containers = {
@@ -30,6 +33,13 @@ in
         media-qbittorrent = lib.mkDefault true;
         media-jellyfin = lib.mkDefault true;
         media-slskd = lib.mkDefault true;
+      };
+
+      sops.secrets."docker/slskd_env" = lib.mkIf config.modules.containers.media-slskd {
+        owner = "root";
+        group = "root";
+        mode = "0440";
+        restartUnits = [ "media-slskd.service" ];
       };
 
       virtualisation.quadlet = {
@@ -134,13 +144,20 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "slskd/slskd:latest";
+                environmentFiles = [ config.sops.secrets."docker/slskd_env".path ];
                 environments = {
-                  SLSKD_REMOTE_CONFIGURATION = "true";
+                  SLSKD_REMOTE_CONFIGURATION = "false";
                   SLSKD_SLSK_LISTEN_PORT = "50300";
+                  SLSKD_DOWNLOADS_DIR = "/data/downloads";
+                  SLSKD_INCOMPLETE_DIR = "/data/incomplete";
+                  SLSKD_SHARED_DIR = "/music";
+                  APP_DIR = "/app";
+                  SLSKD_DISK_LOGGER = "true";
                 };
                 publishPorts = [ "50300:50300" ];
                 volumes = [
-                  "/mnt/media:/data:rw"
+                  "/mnt/media/soulseek:/data:rw"
+                  "/mnt/media/media/music:/music:ro"
                   "${config.utils.dataDir "media/slskd"}:/app:rw"
                 ];
                 networks = [ networks.${networkName}.ref ];
