@@ -19,6 +19,7 @@ in
         "d ${config.utils.dataDir "media/qbittorrent"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/cache"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/config"} 0755 root root -"
+        "d ${config.utils.dataDir "media/slskd"} 0755 root root -"
       ];
 
       modules.containers = {
@@ -28,6 +29,7 @@ in
         media-flaresolverr = lib.mkDefault true;
         media-qbittorrent = lib.mkDefault true;
         media-jellyfin = lib.mkDefault true;
+        media-slskd = lib.mkDefault true;
       };
 
       virtualisation.quadlet = {
@@ -127,6 +129,25 @@ in
               };
             }
           );
+
+          media-slskd = lib.mkIf config.modules.containers.media-slskd (
+            config.utils.mkContainer {
+              containerConfig = {
+                image = "slskd/slskd:latest";
+                environments = {
+                  SLSKD_REMOTE_CONFIGURATION = "true";
+                  SLSKD_SLSK_LISTEN_PORT = "50300";
+                };
+                publishPorts = [ "50300:50300" ];
+                volumes = [
+                  "/mnt/media:/data:rw"
+                  "${config.utils.dataDir "media/slskd"}:/app:rw"
+                ];
+                networks = [ networks.${networkName}.ref ];
+                ip = "172.21.0.8";
+              };
+            }
+          );
         };
       };
     };
@@ -182,6 +203,14 @@ in
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flaresolverr.png";
           category = "Media";
           hidden = true;
+        };
+
+        media-slskd = lib.mkIf config.modules.containers.media-slskd {
+          name = "slskd";
+          domainName = "soulseek.media";
+          addr = "172.21.0.8:5030";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/slskd.png";
+          category = "Media";
         };
       };
     };
