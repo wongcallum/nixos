@@ -187,8 +187,8 @@ in
           name = "LobeChat";
           domainName = "lobehub";
           addr = "${config.modules.hostAddrs.salt}:3210";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lobehub.png";
-          category = "AI";
+          iconUrl = "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@latest/icons/lobehub-color.svg";
+          category = "Productivity";
         };
 
         lobehub-storage = {
