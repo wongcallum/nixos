@@ -389,16 +389,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1778122981,
-        "narHash": "sha256-/amR4BruXmgORk5OjN4NT2Su52WG8wDkEbb5DjYzTjE=",
-        "owner": "wongcallum",
+        "lastModified": 1781542218,
+        "narHash": "sha256-AR2RrCn4D1LsP6CUXav9lhfW8jpO7temJsOX3n17U/s=",
+        "owner": "Quozul",
         "repo": "PicoLimbo",
-        "rev": "27b91b314b202083e34e8884edade412f864c913",
+        "rev": "7eca54beec6777d0299d0db6fbb083df372ea862",
         "type": "github"
       },
       "original": {
-        "owner": "wongcallum",
-        "ref": "nix",
+        "owner": "Quozul",
         "repo": "PicoLimbo",
         "type": "github"
       }

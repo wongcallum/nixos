@@ -21,7 +21,7 @@
     impermanence.url = "github:nix-community/impermanence";
     quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
     prism-tower.url = "github:wongcallum/prism-tower";
-    picolimbo.url = "github:wongcallum/PicoLimbo/nix";
+    picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
     flux = {
