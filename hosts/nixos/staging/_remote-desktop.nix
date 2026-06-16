@@ -19,7 +19,12 @@
 #       for p in /sys/class/drm/card*-*/status; do echo "$p -> $(cat $p)"; done
 #     If the "connected" connector is not DP-1, change `outputs.<name>` below to
 #     match and rebuild.
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   nixpkgs.config.allowUnfree = true; # NVIDIA driver is unfree
 
@@ -50,12 +55,27 @@
   services = {
     xserver.videoDrivers = [ "nvidia" ];
 
-    # Auto-login straight into niri so a graphical session (and the Sunshine user
-    # service) is up at boot without anyone typing into the greeter.
-    greetd.settings.initial_session = {
-      command = "${pkgs.niri}/bin/niri-session";
-      user = "callum";
-    };
+    # Headless streaming box: auto-login straight into niri as callum so a
+    # graphical session (and the Sunshine user service) is always up — there is
+    # nobody to type into a greeter. initial_session (first boot) and
+    # default_session (every start after) point at the same session, so greetd
+    # never shows a greeter and respawns niri if it ever exits. This is for
+    # staging only; wky keeps the shared desktop module's dms-greeter for
+    # interactive login.
+    displayManager.dms-greeter.enable = lib.mkForce false;
+    # dms-greeter is what enabled greetd; turn it on directly now that it is off.
+    greetd.enable = true;
+    greetd.settings =
+      let
+        niriSession = {
+          command = "${pkgs.niri}/bin/niri-session";
+          user = "callum";
+        };
+      in
+      {
+        initial_session = niriSession;
+        default_session = niriSession;
+      };
 
     # Sunshine: KMS capture + NVENC. Pair from Moonlight via https://staging:47990.
     sunshine = {
@@ -77,6 +97,26 @@
         encoder = "nvenc";
         adapter_name = "/dev/dri/renderD128";
       };
+    };
+  };
+
+  # greetd's auto-login (initial_session) fires ~0.5s into boot, before
+  # nvidia-drm has registered the passed-through 1060's DRM device. niri has no
+  # GPU retry: it panics ("couldn't find a GPU") and exits, so greetd falls back
+  # to the greeter and the Sunshine user service has no session to capture. Gate
+  # greetd on the card node appearing — niri then starts after the GPU is ready.
+  systemd.services = {
+    wait-for-gpu = {
+      serviceConfig = {
+        Type = "oneshot";
+        TimeoutStartSec = 30; # never block the login manager indefinitely
+      };
+      script = "until [ -e /dev/dri/card0 ]; do sleep 0.2; done";
+    };
+
+    greetd = {
+      wants = [ "wait-for-gpu.service" ];
+      after = [ "wait-for-gpu.service" ];
     };
   };
 
