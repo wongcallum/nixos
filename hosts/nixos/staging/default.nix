@@ -17,14 +17,20 @@
       impermanence-zfs
       persistence
       sops
+      zram
 
       callum
 
       ssh
       tailscale
 
+      audio
       desktop
+      fonts
+      firefox
       ghostty
+      hackneyed-cursors
+      nix-ld
     ]);
   };
 }
