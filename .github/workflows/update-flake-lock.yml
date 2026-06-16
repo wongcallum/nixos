@@ -23,12 +23,12 @@ jobs:
       - name: Rebase patched nixpkgs
         env:
           GITHUB_TOKEN: ${{ secrets.NIXPKGS_PAT }}
+        shell: bash -e -o pipefail {0}
         run: |
           {
             nix flake update unstable-upstream
             ./scripts/patch-nixpkgs.sh
           } 2>&1 | tee /tmp/flake-update.log
-
           changes=$(grep -A2 "Updated input" /tmp/flake-update.log | grep -v '^--$' || true)
           {
             echo "PATCHED_NIXPKGS_CHANGES<<PATCHED_NIXPKGS_EOF"
