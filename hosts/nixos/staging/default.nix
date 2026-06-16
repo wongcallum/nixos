@@ -8,6 +8,7 @@
     imports = [
       ./_disko.nix
       ./_configuration.nix
+      ./_remote-desktop.nix
 
       inputs.disko.nixosModules.default
     ]
@@ -22,10 +23,8 @@
       ssh
       tailscale
 
-      gateway
-
-      picolimbo
-      velocity
+      desktop
+      ghostty
     ]);
   };
 }
