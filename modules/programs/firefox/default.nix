@@ -29,6 +29,34 @@
         ];
 
         policies = {
+          SearchEngines = {
+            Default = "SearXNG";
+            Add = [
+              {
+                Name = "SearXNG";
+                URLTemplate = "https://search.7sref/search?q={searchTerms}";
+                Method = "GET";
+                Alias = "searx";
+              }
+            ];
+          };
+
+          OfferToSaveLogins = false;
+          AutofillAddressEnabled = false;
+          AutofillCreditCardEnabled = false;
+
+          PromptForDownloadLocation = true;
+          HttpsOnlyMode = "force_enabled";
+
+          SearchSuggestEnabled = false;
+
+          # if unset firefox overrides the autoConfig
+          NewTabPage = false;
+          Homepage = {
+            URL = "https://prism.tower.7sref";
+            StartPage = "previous-session";
+          };
+
           ExtensionSettings = {
             "uBlock0@raymondhill.net" = {
               install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
@@ -64,11 +92,13 @@
             "browser.urlbar.showSearchTerms.enabled" = true;
             "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
             "browser.uidensity" = 1; # compact
+            "layout.spellcheckDefault" = 0;
           }
           (lib.optionalAttrs config.modules.fonts.enable {
             "font.name.serif.x-western" = "HarmonyOS Sans TC";
           })
         ];
+
         autoConfig = ''
           // Any comment. You must start the file with a single-line comment!
           var { classes: Cc, interfaces: Ci, utils: Cu } = Components;
