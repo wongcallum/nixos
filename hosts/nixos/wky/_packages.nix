@@ -43,7 +43,6 @@
     tauon
     tree-sitter
     vscode
-    zed-editor
     python3
     mpv
     jq

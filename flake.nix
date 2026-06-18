@@ -24,6 +24,8 @@
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
+    zed.url = "github:wongcallum/zed/wayland-ext-background-effect";
+
     flux = {
       url = "github:IogaMaster/flux";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -35,6 +35,7 @@
       laptop
       nix-ld
       syncthing-desktop
+      zed
     ]);
 
     environment.variables.EDITOR = "nvim";
