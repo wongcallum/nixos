@@ -40,11 +40,6 @@
     prism-tower.inputs.nixpkgs.follows = "nixpkgs";
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
-
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "unstable";
-    };
   };
 
   outputs =
