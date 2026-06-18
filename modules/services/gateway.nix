@@ -133,6 +133,8 @@
                       searchUrl = "https://${fqdn "search"}/search";
                     }
                   }
+                  header /_astro/* Cache-Control "public, max-age=31536000, immutable"
+                  header /index.html Cache-Control "public, no-cache"
                   file_server
                 '';
               };
