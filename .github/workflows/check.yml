@@ -23,8 +23,8 @@ jobs:
 
       - uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: nix-${{ runner.os }}-check-${{ hashFiles('flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-check-
+          primary-key: nix-${{ runner.os }}-check-v2-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-check-v2-
           # Cache only the store + db. The default (`/nix`) also grabs the
           # Determinate installer's root-owned files (/nix/nix-installer,
           # /nix/receipt.json, /nix/var/determinate, /nix/var/log), which the
@@ -36,7 +36,7 @@ jobs:
             ~/.cache/nix
             ~root/.cache/nix
           purge: true
-          purge-prefixes: nix-${{ runner.os }}-check-
+          purge-prefixes: nix-${{ runner.os }}-check-v2-
           purge-created: 0
           purge-last-accessed: 86400
           purge-primary-key: never
