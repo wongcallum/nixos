@@ -1,4 +1,4 @@
-{ config, inputs, ... }:
+{ config, ... }:
 {
   flake.nixpkgs.wky = "unstable";
 
@@ -6,18 +6,6 @@
     imports = [
       ./_configuration.nix
       ./_packages.nix
-
-      inputs.home-manager.nixosModules.home-manager
-      {
-        home-manager = {
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          extraSpecialArgs = { inherit inputs; };
-          backupFileExtension = "backup";
-
-          users.callum = ./_home.nix;
-        };
-      }
     ]
     ++ (with config.flake.modules.nixos; [
       zram
@@ -36,6 +24,8 @@
       nix-ld
       syncthing-desktop
       zed
+      direnv
+      zoxide
     ]);
 
     environment.variables.EDITOR = "nvim";

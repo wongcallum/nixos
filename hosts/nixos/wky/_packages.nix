@@ -5,6 +5,7 @@
     neovim
     wget
     git
+    delta
     foot
     adwaita-icon-theme
     qalculate-gtk
