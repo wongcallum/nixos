@@ -25,6 +25,16 @@ jobs:
         with:
           primary-key: nix-${{ runner.os }}-check-${{ hashFiles('flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-check-
+          # Cache only the store + db. The default (`/nix`) also grabs the
+          # Determinate installer's root-owned files (/nix/nix-installer,
+          # /nix/receipt.json, /nix/var/determinate, /nix/var/log), which the
+          # next run's installer re-creates first, so tar restore fails with
+          # exit 2 and leaves store paths registered-but-invalid.
+          paths: |
+            /nix/store
+            /nix/var/nix/db/db.sqlite
+            ~/.cache/nix
+            ~root/.cache/nix
           purge: true
           purge-prefixes: nix-${{ runner.os }}-check-
           purge-created: 0
