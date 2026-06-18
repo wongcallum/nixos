@@ -25,6 +25,18 @@
           };
           programs.fish.enable = true;
         };
+
+      homeManager.callum = {
+        home = {
+          username = "callum";
+          homeDirectory = "/home/callum";
+        };
+
+        programs.git.settings = {
+          user.name = "callum";
+          user.email = "mail@callumwong.com";
+        };
+      };
     }
   ];
 }
