@@ -23,7 +23,6 @@
       laptop
       nix-ld
       syncthing-desktop
-      zed
       direnv
       zoxide
     ]);
