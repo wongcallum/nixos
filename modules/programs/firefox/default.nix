@@ -4,6 +4,31 @@
     {
       programs.firefox = {
         enable = true;
+        policies = {
+          ExtensionSettings = {
+            "uBlock0@raymondhill.net" = {
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi";
+              installation_mode = "force_installed";
+            };
+            "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi";
+              installation_mode = "force_installed";
+            };
+            "{9063c2e9-e07c-4c2c-9646-cfe7ca8d0498}" = {
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/old-reddit-redirect/latest.xpi";
+              installation_mode = "normal_installed";
+            };
+            "pywalfox@frewacom.org" = {
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/pywalfox/latest.xpi";
+              installation_mode = "normal_installed";
+            };
+            "{aecec67f-0d10-4fa7-b7c7-609a2db280cf}" = {
+              install_url = "https://addons.mozilla.org/firefox/downloads/latest/violentmonkey/latest.xpi";
+              installation_mode = "normal_installed";
+            };
+          };
+        };
+
         preferences = lib.mkMerge [
           {
             "browser.fixup.domainsuffixwhitelist.${config.modules.gateway.tld}" = true;
