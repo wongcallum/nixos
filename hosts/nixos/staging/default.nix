@@ -19,7 +19,6 @@
       uefi
       impermanence-zfs
       persistence
-      sops
       zram
 
       callum
