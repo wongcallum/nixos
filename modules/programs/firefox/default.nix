@@ -139,5 +139,13 @@
           }
         '';
       };
+
+      # DMS only writes pywal colors if `pywalfox` binary is in PATH
+      environment.systemPackages = [ pkgs.pywalfox-native ];
+
+      systemd.user.tmpfiles.rules = [
+        "d %h/.cache/wal 0755 - - -"
+        "L+ %h/.cache/wal/colors.json - - - - dank-pywalfox.json"
+      ];
     };
 }
