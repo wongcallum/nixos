@@ -1,51 +1,71 @@
 { pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
-    kdePackages.qttools
-    neovim
-    wget
+    # terminal tools
+    zellij
+    chezmoi
+    mise
+    android-tools
+
+    ## git
     git
     delta
-    foot
-    adwaita-icon-theme
-    qalculate-gtk
-    vesktop
-    nemo
-    scrcpy
-    android-tools
-    blueman
-    pavucontrol
-    libreoffice-fresh
-    xournalpp
+    lazygit
+    gh
+
+    ## general purpose
+    jq
+    ripgrep
+    wl-clipboard
+    wget
+    unzip
+
+    ## informational/helper
+    ncdu
     btop
+    nix-output-monitor
+    nh
+
+    # editors
+    neovim
+    tree-sitter
+    vscode
+    zed-editor
+
+    # lsp/format
     nixd
     nil
     nixfmt
-    nix-output-monitor
-    unzip
-    kdePackages.okular
-    zellij
-    wl-clipboard
     lua-language-server
-    ncdu
-    foliate
     markdown-oxide
+    typst
+    tinymist
+    websocat # for typst-preview.nvim
+
+    # productivity
+    xournalpp
+    libreoffice-fresh
+    qalculate-gtk
+    foliate
+    kdePackages.okular
     zathura
     xnviewmp
-    tinymist
-    typst
-    websocat
-    dnsmasq
-    gh
-    lazygit
-    nh
-    nnn
-    ripgrep
-    tauon
-    tree-sitter
-    vscode
-    python3
+    scrcpy
     mpv
-    jq
+
+    # file manager
+    nemo
+    nnn
+    doublecmd
+
+    # system
+    kdePackages.qttools
+    adwaita-icon-theme
+    pavucontrol
+    blueman
+
+    # bloat
+    vesktop
+    feishin
   ];
 }

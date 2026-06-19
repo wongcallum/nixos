@@ -12,5 +12,7 @@
           vhostUserPackages = [ pkgs.virtiofsd ];
         };
       };
+
+      environment.systemPackages = [ pkgs.dnsmasq ];
     };
 }

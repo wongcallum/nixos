@@ -63,11 +63,7 @@
             options.mountpoint = "legacy";
             mountpoint = "/nix";
           };
-          "nixos/home" = {
-            type = "zfs_fs";
-            options.mountpoint = "legacy";
-            mountpoint = "/home";
-          };
+          # intentionally no /home dataset so i can work on applying dotfiles from scratch
 
           "persist" = {
             type = "zfs_fs";
