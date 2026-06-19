@@ -154,4 +154,15 @@
     "input"
     "uinput"
   ];
+
+  # Sunshine keeps its pairing state (sunshine_state.json), the TLS cert/key it
+  # generates on first run, and the web-UI credentials under ~/.config/sunshine.
+  # staging rolls back to rpool/nixos/root@blank on every boot and has no /home
+  # dataset, so without persisting this every reboot wipes the pairing and every
+  # Moonlight client has to re-pair (and the web UI asks to set a new password).
+  # Persist just this directory — dotfiles are otherwise intentionally rebuilt
+  # from scratch (see _disko.nix).
+  environment.persistence.${config.modules.persistence.persistDir}.users.callum.directories = [
+    ".config/sunshine"
+  ];
 }
