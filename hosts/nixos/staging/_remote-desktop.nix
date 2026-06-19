@@ -52,6 +52,18 @@
     };
   };
 
+  # Kill the EFI/firmware "simple-framebuffer" so the passed-through 1060 is the
+  # only DRM device. OVMF's GOP framebuffer makes the kernel bind simpledrm as
+  # card0 ~0.5s into boot — long before nvidia-drm loads as card1. niri (started
+  # by greetd auto-login) then selects card0 as its primary GPU, and once
+  # nvidia's aperture handoff tears simpledrm down, niri is wedged forever on the
+  # dead node ("error creating renderer for primary GPU: NoDevice card0") with no
+  # output for Sunshine to capture ("Unable to find display or encoder").
+  # Blacklisting sysfb_init stops the firmware-fb device from ever being created,
+  # so the nvidia card is the only DRM card and niri cannot pick the wrong one.
+  # Headless box: no local console before nvidia-drm loads is fine (serial / ssh).
+  boot.kernelParams = [ "initcall_blacklist=sysfb_init" ];
+
   services = {
     xserver.videoDrivers = [ "nvidia" ];
 
@@ -104,14 +116,18 @@
   # nvidia-drm has registered the passed-through 1060's DRM device. niri has no
   # GPU retry: it panics ("couldn't find a GPU") and exits, so greetd falls back
   # to the greeter and the Sunshine user service has no session to capture. Gate
-  # greetd on the card node appearing — niri then starts after the GPU is ready.
+  # greetd on the GPU being ready by waiting for the nvidia render node. (Don't
+  # wait for card0: with the firmware framebuffer disabled above the nvidia card
+  # may enumerate as card1, and the old card0 wait was actually satisfied by
+  # simpledrm. simpledrm never created a render node, so renderD128 appears only
+  # once nvidia-drm is up — a card-number-independent "GPU ready" signal.)
   systemd.services = {
     wait-for-gpu = {
       serviceConfig = {
         Type = "oneshot";
         TimeoutStartSec = 30; # never block the login manager indefinitely
       };
-      script = "until [ -e /dev/dri/card0 ]; do sleep 0.2; done";
+      script = "until [ -e /dev/dri/renderD128 ]; do sleep 0.2; done";
     };
 
     greetd = {
