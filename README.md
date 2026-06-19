@@ -18,9 +18,28 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 
+### Sops on new host
+
+```bash
+set -gx temp $(mktemp -d) # or export in bash
+
+install -d -m 0755 "$temp/persist/etc/ssh"
+ssh-keygen -t ed25519 -N "" -C "root@{{host}}" -f "$temp/persist/etc/ssh/ssh_host_ed25519_key"
+chmod 0600 "$temp/persist/etc/ssh/ssh_host_ed25519_key"
+```
+
+[Add new sops host](#add-new-sops-host)
+
+```bash
+nix run github:nix-community/nixos-anywhere -- --flake .#{{host}} --extra-files "$temp" --target-host {{user@hostname}}
+rm -r "$temp"
+```
+
 ## Edit secrets
 
 `nix run nixpkgs#sops ../nixos-secrets/secrets.yaml`
+
+Remember to `nix flake update secrets`
 
 ## Add new sops host
 
@@ -29,6 +48,8 @@ nix run nixpkgs#ssh-to-age -- -i /path/to/new/host/.ssh/id_ed25519.pub
 nvim ../nixos-secrets/.sops.yaml # add the new key
 nix run nixpkgs#sops -- updatekeys ../nixos-secrets/secrets.yaml
 ```
+
+Remember to `nix flake update secrets`
 
 ## Patch nixpkgs
 ```bash
