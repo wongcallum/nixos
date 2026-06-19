@@ -61,8 +61,18 @@
   # output for Sunshine to capture ("Unable to find display or encoder").
   # Blacklisting sysfb_init stops the firmware-fb device from ever being created,
   # so the nvidia card is the only DRM card and niri cannot pick the wrong one.
-  # Headless box: no local console before nvidia-drm loads is fine (serial / ssh).
-  boot.kernelParams = [ "initcall_blacklist=sysfb_init" ];
+  #
+  # Headless box: with no firmware framebuffer there is no local console at all
+  # until nvidia-drm loads, so route the kernel console to the virtio console for
+  # early-boot visibility. The libvirt domain (nixos-25.11) wires a
+  # <console type='virtio'> → guest /dev/hvc0 and has no isa-serial device, so
+  # console=ttyS0 would go nowhere; use hvc0. tty0 stays for once the nvidia fb is
+  # up. `virsh console nixos-25.11` then shows the whole boot.
+  boot.kernelParams = [
+    "initcall_blacklist=sysfb_init"
+    "console=tty0"
+    "console=hvc0"
+  ];
 
   services = {
     xserver.videoDrivers = [ "nvidia" ];
