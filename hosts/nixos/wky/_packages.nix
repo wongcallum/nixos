@@ -7,6 +7,10 @@
     mise
     android-tools
 
+    ## fish plugins
+    fishPlugins.tide
+    fishPlugins.autopair
+
     ## git
     git
     delta
