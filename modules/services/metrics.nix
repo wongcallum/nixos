@@ -36,7 +36,9 @@
         port = 9005;
         extraOptions = [
           "--docker_only=false" # also report podman/systemd cgroups
-          "--disable_metrics=disk" # this kills CPU on zfs hosts per container
+
+          # this option replaces the default set instead of appending
+          "--disable_metrics=disk,advtcp,cpu_topology,cpuset,hugetlb,memory_numa,process,referenced_memory,resctrl,sched,tcp,udp"
         ];
       };
 
