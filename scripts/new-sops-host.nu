@@ -259,12 +259,11 @@ def main [
     }
 
     let do_update = (tri-state $update_input $no_update_input "update the nixos-secrets flake input?" $do_push)
-    mut override_secrets = false
     if not $do_update {
         if $do_push {
             print -e $"to update later, run: nix flake update secrets"
         } else {
-            print -e $"secrets not pushed; deploy with: nix flake update secrets --override-input secrets path:($secrets_dir)"
+            print -e $"secrets not pushed, run: nix flake update secrets --override-input secrets git+file:($secrets_dir)"
         }
         print -e $"host key generated at ($tmp) \(remember to remove it after deploying\)"
         return
@@ -276,15 +275,14 @@ def main [
         }
         print -e "flake input 'secrets' updated."
     } else {
-        $override_secrets = true
-        print -e $"(ansi yellow)note:(ansi reset) secrets not pushed; deploy will use --override-input secrets path:($secrets_dir)"
+        let u = (^nix flake update secrets --override-input secrets $"git+file:($secrets_dir)" --flake $flake_dir | complete)
+        if $u.exit_code != 0 {
+            error make {msg: $"nix flake update secrets \(local override\) failed: ($u.stderr)"}
+        }
+        print -e $"(ansi yellow)note:(ansi reset) flake.lock now points 'secrets' at the local repo ($secrets_dir)."
+        print -e "after pushing, restore the remote ref with: nix flake update secrets"
     }
 
-    let override_args = if $override_secrets {
-        ["--override-input" "secrets" $"path:($secrets_dir)"]
-    } else {
-        []
-    }
     let do_deploy = if ($deploy_target | is-not-empty) {
         true
     } else if $host_evaluated and (interactive) {
@@ -305,7 +303,7 @@ def main [
         let ok = (try {
             do {
                 cd $flake_dir
-                ^nix run nixpkgs#nixos-anywhere -- --flake $".#($hostname)" --extra-files $tmp --target-host $target ...$override_args
+                ^nix run nixpkgs#nixos-anywhere -- --flake $".#($hostname)" --extra-files $tmp --target-host $target
             }
             true
         } catch { false })
@@ -315,7 +313,6 @@ def main [
         } else {
             let cmd = (
                 ["nix" "run" "nixpkgs#nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" $target]
-                | append $override_args
                 | str join " "
             )
             print -e $"(ansi red)deploy failed.(ansi reset) the host key is kept at ($tmp)"
@@ -324,7 +321,6 @@ def main [
     } else {
         let cmd = (
             ["nix" "run" "nixpkgs#nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" ($target | default "<user@host>")]
-            | append $override_args
             | str join " "
         )
         print -e $"to deploy, run \(from ($flake_dir)\):"
