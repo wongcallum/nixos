@@ -20,6 +20,14 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 
+### Initialise a new host
+
+Create a new `hosts/{{host}}/default.nix`, then import `./_configuration.nix`
+
+Either manually create and fill in the file or pass in
+`--generate-hardware-config nixos-generate-config hosts/{{host}}/_configuration.nix`
+when running `nixos-anywhere`
+
 ### Sops on new host
 
 NEW! run `./scripts/new-sops-host.nu`
