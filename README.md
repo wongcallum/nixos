@@ -6,7 +6,9 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 ## Check flake
 
-`nix flake check`
+`nix build .#nixosConfigurations.{{host}}.config.system.build.toplevel` for one host, or
+
+`nix flake check` for the entire flake
 
 ## Deploy (rebuild)
 
@@ -20,9 +22,14 @@ or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 
 ### Sops on new host
 
+NEW! run `./scripts/new-sops-host.nu`
+
+#### Manual steps
+
 ```bash
 set -gx temp $(mktemp -d) # or export in bash
 
+# use just $temp/etc/ssh if host does not have impermanence
 install -d -m 0755 "$temp/persist/etc/ssh"
 ssh-keygen -t ed25519 -N "" -C "root@{{host}}" -f "$temp/persist/etc/ssh/ssh_host_ed25519_key"
 chmod 0600 "$temp/persist/etc/ssh/ssh_host_ed25519_key"
