@@ -666,16 +666,16 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1781683701,
-        "narHash": "sha256-0Dj0bMTe6Lyuf83ymAE56spJvMDiGIUdpOsX2333Mvo=",
+        "lastModified": 1782045908,
+        "narHash": "sha256-6Nh9p2HbtaqEN1T25b7ccLVHuPxFkjaojCVkRhQ155U=",
         "owner": "wongcallum",
         "repo": "zed",
-        "rev": "f42cefb803fcdd9a9e73fe72e549d2fd24beb19c",
+        "rev": "d5b0d8aa5a7438e896c09e2e80a155c7f9d4de71",
         "type": "github"
       },
       "original": {
         "owner": "wongcallum",
-        "ref": "wayland-ext-background-effect",
+        "ref": "wayland-ext-background-effect-blur",
         "repo": "zed",
         "type": "github"
       }
