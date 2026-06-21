@@ -305,7 +305,7 @@ def main [
         let ok = (try {
             do {
                 cd $flake_dir
-                ^nix run github:nix-community/nixos-anywhere -- --flake $".#($hostname)" --extra-files $tmp --target-host $target ...$override_args
+                ^nix run nixpkgs#nixos-anywhere -- --flake $".#($hostname)" --extra-files $tmp --target-host $target ...$override_args
             }
             true
         } catch { false })
@@ -314,7 +314,7 @@ def main [
             print -e "done."
         } else {
             let cmd = (
-                ["nix" "run" "github:nix-community/nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" $target]
+                ["nix" "run" "nixpkgs#nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" $target]
                 | append $override_args
                 | str join " "
             )
@@ -323,7 +323,7 @@ def main [
         }
     } else {
         let cmd = (
-            ["nix" "run" "github:nix-community/nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" ($target | default "<user@host>")]
+            ["nix" "run" "nixpkgs#nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" ($target | default "<user@host>")]
             | append $override_args
             | str join " "
         )

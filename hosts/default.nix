@@ -2,6 +2,7 @@
   config,
   inputs,
   lib,
+  deployLib,
   ...
 }:
 let
@@ -53,7 +54,7 @@ in
       profiles.system = {
         user = "root";
         sshUser = "callum";
-        path = inputs.deploy-rs.lib.x86_64-linux.activate.nixos hostConfiguration;
+        path = deployLib.activate.nixos hostConfiguration;
       };
     }) config.flake.nixosConfigurations;
   };

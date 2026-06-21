@@ -12,11 +12,11 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 ## Deploy (rebuild)
 
-`nix run github:serokell/deploy-rs -- .#{{host}}`
+`nix run nixpkgs#deploy-rs -- .#{{host}}`
 
 ## Deploy (install)
 
-`nix run github:nix-community/nixos-anywhere -- --flake .#{{host}} --target-host {{user@hostname}}`
+`nix run nixpkgs#nixos-anywhere -- --flake .#{{host}} --target-host {{user@hostname}}`
 
 or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 
@@ -38,7 +38,7 @@ chmod 0600 "$temp/persist/etc/ssh/ssh_host_ed25519_key"
 [Add new sops host](#add-new-sops-host)
 
 ```bash
-nix run github:nix-community/nixos-anywhere -- --flake .#{{host}} --extra-files "$temp" --target-host {{user@hostname}}
+nix run nixpkgs#nixos-anywhere -- --flake .#{{host}} --extra-files "$temp" --target-host {{user@hostname}}
 rm -r "$temp"
 ```
 
