@@ -1,3 +1,4 @@
+{ inputs, ... }:
 {
   flake.modules.nixos.fonts =
     { lib, pkgs, ... }:
@@ -7,6 +8,7 @@
       bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
       ibm-olympiad = pkgs.callPackage ../packages/fonts/ibm-olympiad-ttf { };
       harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
+      apple-fonts = inputs.apple-fonts.packages.${pkgs.system};
     in
     {
       modules.fonts.enable = lib.mkDefault true;
@@ -37,6 +39,12 @@
           terminus_font
           bitmap-fonts
           ibm-olympiad
+
+          # apple fonts
+          apple-fonts.sf-pro
+          apple-fonts.sf-mono
+          apple-fonts.sf-compact
+          apple-fonts.ny
         ];
         fontconfig = {
           enable = true;
