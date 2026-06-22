@@ -21,14 +21,18 @@ jobs:
 
       - uses: DeterminateSystems/nix-installer-action@main
         with:
-          # Upstream Nix (not Determinate): Determinate manages /etc/nix/nix.conf
-          # itself and drops extra-conf, so the calamari substituter never reaches
-          # the daemon that does IFD realisation. Upstream writes extra-conf to the
-          # system nix.conf, so calamari is used just like cache.nixos.org.
           determinate: false
-          extra-conf: |
-            extra-substituters = https://calamari.cachix.org
-            extra-trusted-public-keys = calamari.cachix.org-1:EktyeEyKRL+4q0JC0ejzBBgjVE3gHEu2COnrp6qgvBQ=
+
+      # crane's cleanCargoSource is an IFD path read during eval, which the
+      # nix-daemon must substitute from calamari. extra-conf / cachix-action only
+      # land in the *client* nix.conf; the daemon substitutes from /etc/nix/nix.conf
+      # (that's why cache.nixos.org works but calamari didn't). Write it there and
+      # restart the daemon so it's used just like cache.nixos.org.
+      - name: trust calamari in the nix-daemon config
+        run: |
+          echo "extra-substituters = https://calamari.cachix.org" | sudo tee -a /etc/nix/nix.conf
+          echo "extra-trusted-public-keys = calamari.cachix.org-1:EktyeEyKRL+4q0JC0ejzBBgjVE3gHEu2COnrp6qgvBQ=" | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon
 
       - uses: nix-community/cache-nix-action@v6
         with:
@@ -48,12 +52,5 @@ jobs:
           purge-created: 0
           purge-last-accessed: 86400
           purge-primary-key: never
-
-      - name: debug substituters + prefetch zed eval source
-        run: |
-          echo "=== /etc/nix/nix.conf ==="; sudo cat /etc/nix/nix.conf 2>/dev/null || true
-          echo "=== effective substituters ==="; nix config show 2>/dev/null | grep -iE "substituters|trusted-public" || true
-          echo "=== calamari reachable? ==="; nix path-info --store https://calamari.cachix.org /nix/store/v1wijhc4p24hs15a2in8gr0pmyacws3p-source 2>&1 || echo CANNOT_REACH
-          echo "=== copy eval source from calamari ==="; nix copy --from https://calamari.cachix.org /nix/store/v1wijhc4p24hs15a2in8gr0pmyacws3p-source 2>&1 && echo COPY_OK || echo COPY_FAIL
 
       - run: nix flake check --no-build --show-trace
