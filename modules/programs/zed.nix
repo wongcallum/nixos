@@ -4,7 +4,7 @@
     { pkgs, ... }:
     {
       environment.systemPackages = [
-        inputs.zed.packages.${pkgs.system}.default
+        inputs.zed.packages.${pkgs.stdenv.hostPlatform.system}.default
       ];
     };
 }

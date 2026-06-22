@@ -20,6 +20,7 @@
     kernelModules = [ "kvm-intel" ];
     supportedFilesystems = [ "zfs" ];
     zfs.extraPools = [ "tank" ];
+    zfs.forceImportRoot = false;
   };
 
   services.zfs.autoScrub = {

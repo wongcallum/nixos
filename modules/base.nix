@@ -11,7 +11,7 @@
       security.pki.certificateFiles = [ ./7sref_ca.pem ];
 
       environment.systemPackages = [
-        inputs.ghostty.packages.${pkgs.system}.default.terminfo
+        inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default.terminfo
       ];
 
       nix = {
