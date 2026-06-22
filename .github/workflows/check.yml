@@ -20,6 +20,10 @@ jobs:
           ssh-private-key: ${{ secrets.SECRETS_DEPLOY_KEY }}
 
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            extra-substituters = https://calamari.cachix.org
+            extra-trusted-public-keys = calamari.cachix.org-1:EktyeEyKRL+4q0JC0ejzBBgjVE3gHEu2COnrp6qgvBQ=
 
       - uses: nix-community/cache-nix-action@v6
         with:

@@ -11,6 +11,7 @@
       zram
       callum
       tailscale
+      zed
 
       audio
       desktop

@@ -43,9 +43,11 @@
           download-buffer-size = 524288000;
           extra-substituters = [
             "https://ghostty.cachix.org"
+            "https://calamari.cachix.org"
           ];
           extra-trusted-public-keys = [
             "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+            "calamari.cachix.org-1:EktyeEyKRL+4q0JC0ejzBBgjVE3gHEu2COnrp6qgvBQ="
           ];
         };
       };
