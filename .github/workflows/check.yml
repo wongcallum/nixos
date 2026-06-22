@@ -49,4 +49,11 @@ jobs:
           purge-last-accessed: 86400
           purge-primary-key: never
 
+      - name: debug substituters + prefetch zed eval source
+        run: |
+          echo "=== /etc/nix/nix.conf ==="; sudo cat /etc/nix/nix.conf 2>/dev/null || true
+          echo "=== effective substituters ==="; nix config show 2>/dev/null | grep -iE "substituters|trusted-public" || true
+          echo "=== calamari reachable? ==="; nix path-info --store https://calamari.cachix.org /nix/store/v1wijhc4p24hs15a2in8gr0pmyacws3p-source 2>&1 || echo CANNOT_REACH
+          echo "=== copy eval source from calamari ==="; nix copy --from https://calamari.cachix.org /nix/store/v1wijhc4p24hs15a2in8gr0pmyacws3p-source 2>&1 && echo COPY_OK || echo COPY_FAIL
+
       - run: nix flake check --no-build --show-trace
