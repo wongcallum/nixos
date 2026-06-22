@@ -20,10 +20,15 @@ jobs:
           ssh-private-key: ${{ secrets.SECRETS_DEPLOY_KEY }}
 
       - uses: DeterminateSystems/nix-installer-action@main
-
-      - uses: cachix/cachix-action@v15
         with:
-          name: calamari
+          # Upstream Nix (not Determinate): Determinate manages /etc/nix/nix.conf
+          # itself and drops extra-conf, so the calamari substituter never reaches
+          # the daemon that does IFD realisation. Upstream writes extra-conf to the
+          # system nix.conf, so calamari is used just like cache.nixos.org.
+          determinate: false
+          extra-conf: |
+            extra-substituters = https://calamari.cachix.org
+            extra-trusted-public-keys = calamari.cachix.org-1:EktyeEyKRL+4q0JC0ejzBBgjVE3gHEu2COnrp6qgvBQ=
 
       - uses: nix-community/cache-nix-action@v6
         with:
