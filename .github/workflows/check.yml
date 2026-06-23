@@ -22,9 +22,6 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
         with:
           determinate: false
-          extra-conf: |
-            extra-substituters = https://calamari.cachix.org
-            extra-trusted-public-keys = calamari.cachix.org-1:EktyeEyKRL+4q0JC0ejzBBgjVE3gHEu2COnrp6qgvBQ=
 
       - uses: nix-community/cache-nix-action@v6
         with:
@@ -42,13 +39,5 @@ jobs:
           purge-created: 0
           purge-last-accessed: 86400
           purge-primary-key: never
-
-      # `nix flake check --no-build` does not substitute crane's IFD
-      # cleanCargoSource output during eval (cache.nixos.org paths substitute, but
-      # the calamari one does not, even with calamari trusted). Pull it from
-      # calamari explicitly first so the findCargoFiles readDir finds it valid.
-      # The path is per zed rev -- regenerate ci/zed-eval-source.txt when bumping
-      # the zed input (see the push recipe in scripts / the project notes).
-      - run: nix copy --from https://calamari.cachix.org "$(cat ci/zed-eval-source.txt)"
 
       - run: nix flake check --no-build --show-trace
