@@ -20,13 +20,22 @@ jobs:
           ssh-private-key: ${{ secrets.SECRETS_DEPLOY_KEY }}
 
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          determinate: false
 
       - uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: nix-${{ runner.os }}-check-${{ hashFiles('flake.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-check-
+          primary-key: nix-${{ runner.os }}-check-v2-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-check-v2-
+          # Restrict to the store + db only. The default ("/nix") also grabs the
+          # installer's root-owned files, whose restore fails tar (exit 2) and
+          # leaves paths registered-but-invalid. -v2- abandons the poisoned caches.
+          paths: |
+            /nix/store
+            /nix/var/nix/db/db.sqlite
+            ~/.cache/nix
           purge: true
-          purge-prefixes: nix-${{ runner.os }}-check-
+          purge-prefixes: nix-${{ runner.os }}-check-v2-
           purge-created: 0
           purge-last-accessed: 86400
           purge-primary-key: never

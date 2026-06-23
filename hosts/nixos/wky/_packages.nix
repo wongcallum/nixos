@@ -34,7 +34,7 @@
     neovim
     tree-sitter
     vscode
-    zed-editor
+    # zed-editor comes from the `zed` module (my fork + blur patch)
 
     # lsp/format
     nixd
