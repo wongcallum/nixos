@@ -24,6 +24,7 @@
 
     # fix rpool import failure on qemu
     zfs.devNodes = "/dev";
+    zfs.forceImportRoot = false;
   };
 
   systemd.network = {

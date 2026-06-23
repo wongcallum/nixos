@@ -8,7 +8,7 @@
       bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
       ibm-olympiad = pkgs.callPackage ../packages/fonts/ibm-olympiad-ttf { };
       harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
-      apple-fonts = inputs.apple-fonts.packages.${pkgs.system};
+      apple-fonts = inputs.apple-fonts.packages.${pkgs.stdenv.hostPlatform.system};
     in
     {
       modules.fonts.enable = lib.mkDefault true;
