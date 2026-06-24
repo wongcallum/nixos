@@ -1,6 +1,6 @@
 {
   flake.modules.nixos.desktop =
-    { pkgs, ... }:
+    { pkgs, lib, ... }:
     {
       programs = {
         dms-shell = {
@@ -13,7 +13,15 @@
 
         niri.enable = true;
 
-        kdeconnect.enable = true;
+        kdeconnect = {
+          enable = true;
+          # https://bugs.kde.org/show_bug.cgi?id=513536
+          package = pkgs.kdePackages.kdeconnect-kde.overrideAttrs (old: {
+            cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+              (lib.cmakeBool "BLUETOOTH_ENABLED" false)
+            ];
+          });
+        };
       };
 
       services.displayManager.dms-greeter = {
