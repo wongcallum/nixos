@@ -6,18 +6,19 @@
 
 stdenvNoCC.mkDerivation rec {
   pname = "ioskeley-mono";
-  version = "2025.10.09-6";
+  version = "v2.0.0";
   meta.sourceProvenance = [ lib.sourceTypes.binaryBytecode ];
 
   src = fetchzip {
-    url = "https://github.com/ahatem/IoskeleyMono/releases/download/${version}/IoskeleyMono-TTF-Hinted.zip";
-    sha256 = "sha256-K1JpF4PLA81o9OHMDbmWBd2otbqc2XpB9J7/vHn5718=";
+    url = "https://github.com/ahatem/IoskeleyMono/releases/download/${version}/IoskeleyMono.zip";
+    sha256 = "sha256-EJDlA18XZPq7vhtpw/74n5s1NmTy0/DLu2oYB7OuvbA=";
+    stripRoot = false;
   };
 
   installPhase = ''
     runHook preInstall
 
-    install -D -m444 -t $out/share/fonts/truetype *.ttf
+    install -D -m444 -t $out/share/fonts/truetype Normal/Hinted/*.ttf
 
     runHook postInstall
   '';

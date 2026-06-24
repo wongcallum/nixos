@@ -3,7 +3,7 @@
   flake.modules.nixos.fonts =
     { lib, pkgs, ... }:
     let
-      comic-mono-nf = pkgs.callPackage ../packages/fonts/comic-mono-nf { };
+      comic-mono-nf = pkgs.callPackage ../packages/fonts/comic-mono-nf-v1 { };
       ioskeley-mono = pkgs.callPackage ../packages/fonts/ioskeley-mono { };
       bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
       ibm-olympiad = pkgs.callPackage ../packages/fonts/ibm-olympiad-ttf { };
