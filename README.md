@@ -12,11 +12,11 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 ## Deploy (rebuild)
 
-`nix run nixpkgs#deploy-rs -- .#{{host}}`
+`deploy .#{{host}}`
 
 ## Deploy (install)
 
-`nix run nixpkgs#nixos-anywhere -- --flake .#{{host}} --target-host {{user@hostname}}`
+`nixos-anywhere --flake .#{{host}} --target-host {{user@hostname}}`
 
 or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 
@@ -46,22 +46,22 @@ chmod 0600 "$temp/persist/etc/ssh/ssh_host_ed25519_key"
 [Add new sops host](#add-new-sops-host)
 
 ```bash
-nix run nixpkgs#nixos-anywhere -- --flake .#{{host}} --extra-files "$temp" --target-host {{user@hostname}}
+nixos-anywhere --flake .#{{host}} --extra-files "$temp" --target-host {{user@hostname}}
 rm -r "$temp"
 ```
 
 ## Edit secrets
 
-`nix run nixpkgs#sops ../nixos-secrets/secrets.yaml`
+`sops ../nixos-secrets/secrets.yaml`
 
 Remember to `nix flake update secrets`
 
 ## Add new sops host
 
 ```bash
-nix run nixpkgs#ssh-to-age -- -i /path/to/new/host/.ssh/id_ed25519.pub
+ssh-to-age -i /path/to/new/host/.ssh/id_ed25519.pub
 nvim ../nixos-secrets/.sops.yaml # add the new key
-nix run nixpkgs#sops -- updatekeys ../nixos-secrets/secrets.yaml
+sops updatekeys ../nixos-secrets/secrets.yaml
 ```
 
 Remember to `nix flake update secrets`

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S nix shell nixpkgs#nushell nixpkgs#sops nixpkgs#ssh-to-age nixpkgs#openssh nixpkgs#git --command nu
+#!/usr/bin/env -S nix shell nixpkgs#nushell nixpkgs#sops nixpkgs#ssh-to-age nixpkgs#openssh nixpkgs#git nixpkgs#nixos-anywhere --command nu
 
 def interactive []: nothing -> bool {
     is-terminal --stdin
@@ -303,7 +303,7 @@ def main [
         let ok = (try {
             do {
                 cd $flake_dir
-                ^nix run nixpkgs#nixos-anywhere -- --flake $".#($hostname)" --extra-files $tmp --target-host $target
+                ^nixos-anywhere --flake $".#($hostname)" --extra-files $tmp --target-host $target
             }
             true
         } catch { false })
@@ -312,7 +312,7 @@ def main [
             print -e "done."
         } else {
             let cmd = (
-                ["nix" "run" "nixpkgs#nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" $target]
+                ["nixos-anywhere" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" $target]
                 | str join " "
             )
             print -e $"(ansi red)deploy failed.(ansi reset) the host key is kept at ($tmp)"
@@ -320,7 +320,7 @@ def main [
         }
     } else {
         let cmd = (
-            ["nix" "run" "nixpkgs#nixos-anywhere" "--" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" ($target | default "<user@host>")]
+            ["nixos-anywhere" "--flake" $".#($hostname)" "--extra-files" $tmp "--target-host" ($target | default "<user@host>")]
             | str join " "
         )
         print -e $"to deploy, run \(from ($flake_dir)\):"
