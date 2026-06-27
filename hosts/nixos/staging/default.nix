@@ -28,6 +28,7 @@
 
       audio
       desktop
+      niri
       fonts
       firefox
       ghostty

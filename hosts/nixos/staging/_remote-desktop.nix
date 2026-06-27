@@ -82,11 +82,9 @@
     # nobody to type into a greeter. initial_session (first boot) and
     # default_session (every start after) point at the same session, so greetd
     # never shows a greeter and respawns niri if it ever exits. This is for
-    # staging only; wky keeps the shared desktop module's dms-greeter for
-    # interactive login.
-    displayManager.dms-greeter.enable = lib.mkForce false;
-    # dms-greeter is what enabled greetd; turn it on directly now that it is off.
-    greetd.enable = true;
+    # staging only; wky keeps the shared desktop module's tuigreet for
+    # interactive login. The desktop base already enables greetd, so just
+    # override its tuigreet default_session with the niri auto-login session.
     greetd.settings =
       let
         niriSession = {
@@ -96,7 +94,7 @@
       in
       {
         initial_session = niriSession;
-        default_session = niriSession;
+        default_session = lib.mkForce niriSession;
       };
 
     # Sunshine: KMS capture + NVENC. Pair from Moonlight via https://staging:47990.

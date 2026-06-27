@@ -94,6 +94,21 @@
     },
     "crane_2": {
       "locked": {
+        "lastModified": 1780532242,
+        "narHash": "sha256-D+BsdpxmtUwtqGoY0IXPhHgTlmqgcZKCEo1oMyn7ep0=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "59a82a1222dd3b2080b5cc52a1a2e8d5f1b77f37",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
+    "crane_3": {
+      "locked": {
         "lastModified": 1769737823,
         "narHash": "sha256-DrBaNpZ+sJ4stXm+0nBX7zqZT9t9P22zbk6m5YhQxS4=",
         "owner": "ipetkov",
@@ -588,12 +603,34 @@
         "quadlet-nix": "quadlet-nix",
         "secrets": "secrets",
         "sops-nix": "sops-nix",
+        "tuigreet": "tuigreet",
         "unstable": "unstable",
         "unstable-upstream": "unstable-upstream",
         "zed": "zed"
       }
     },
     "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "tuigreet",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782184651,
+        "narHash": "sha256-4XHdXp3MRa++XiGkltJChCtdbCmSlNTwQRfWQOhqbRw=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "f59bc28dd0b89e9c0240d1b80195559fc79c2471",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "rust-overlay_2": {
       "inputs": {
         "nixpkgs": [
           "zed",
@@ -782,6 +819,28 @@
         "type": "github"
       }
     },
+    "tuigreet": {
+      "inputs": {
+        "crane": "crane_2",
+        "nixpkgs": [
+          "unstable"
+        ],
+        "rust-overlay": "rust-overlay"
+      },
+      "locked": {
+        "lastModified": 1782196692,
+        "narHash": "sha256-vkci6lC9aGRLbQsBpr+rTjkpJ1G7h7JzsV4SK2mfCew=",
+        "owner": "NotAShelf",
+        "repo": "tuigreet",
+        "rev": "2412c8f18d191fdc6c4bb202da77794cdd9c3165",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NotAShelf",
+        "repo": "tuigreet",
+        "type": "github"
+      }
+    },
     "unstable": {
       "locked": {
         "lastModified": 1782121692,
@@ -834,10 +893,10 @@
     },
     "zed": {
       "inputs": {
-        "crane": "crane_2",
+        "crane": "crane_3",
         "flake-parts": "flake-parts_3",
         "nixpkgs": "nixpkgs_4",
-        "rust-overlay": "rust-overlay"
+        "rust-overlay": "rust-overlay_2"
       },
       "locked": {
         "lastModified": 1782045908,

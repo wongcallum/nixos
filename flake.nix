@@ -26,6 +26,7 @@
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
     zed.url = "github:wongcallum/zed/wayland-ext-background-effect-blur";
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
+    tuigreet.url = "github:NotAShelf/tuigreet";
 
     flux = {
       url = "github:IogaMaster/flux";
@@ -42,6 +43,7 @@
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
     apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
+    tuigreet.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =

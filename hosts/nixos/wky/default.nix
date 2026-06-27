@@ -15,6 +15,8 @@
 
       audio
       desktop
+      niri
+      plasma
       libvirt
       docker
       fonts
