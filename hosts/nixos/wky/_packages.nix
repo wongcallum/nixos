@@ -72,7 +72,7 @@
     blueman
 
     # bloat
-    vesktop
+    equibop
     feishin
     jetbrains-toolbox
   ];
