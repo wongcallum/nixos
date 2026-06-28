@@ -18,6 +18,7 @@
     gh
 
     ## general purpose
+    nushell
     jq
     ripgrep
     wl-clipboard
@@ -28,6 +29,8 @@
     ncdu
     btop
     nix-output-monitor
+    nix-search-cli
+    nix-your-shell
     nh
 
     # editors
@@ -71,5 +74,6 @@
     # bloat
     vesktop
     feishin
+    jetbrains-toolbox
   ];
 }
