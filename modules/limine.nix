@@ -1,6 +1,6 @@
 {
   flake.modules.nixos.limine =
-    { pkgs, ... }:
+    { pkgs, config, ... }:
     let
       aixoid9-f20 = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/viler-int10h/vga-text-mode-fonts/ab3965599eb3d0de9834fa9c26942b4e4843a42b/FONTS/AIXOID9.F20";
@@ -21,6 +21,7 @@
 
           # from https://github.com/diegons490/cachyos-limine-theme
           style = {
+            interface.branding = config.networking.hostName;
             wallpapers = [ pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt.gnomeFilePath ];
             graphicalTerminal = {
               palette = "1e1e2e;f38ba8;a6e3a1;f9e2af;89b4fa;f5c2e7;94e2d5;cdd6f4";
