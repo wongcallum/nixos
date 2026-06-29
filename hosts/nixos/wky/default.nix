@@ -8,6 +8,7 @@
       ./_packages.nix
     ]
     ++ (with config.flake.modules.nixos; [
+      limine
       zram
       callum
       tailscale
