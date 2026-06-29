@@ -1,4 +1,7 @@
 { pkgs, ... }:
+let
+  lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
+in
 {
   environment.systemPackages = with pkgs; [
     # terminal tools
@@ -75,5 +78,6 @@
     equibop
     feishin
     jetbrains-toolbox
+    lobehub-desktop
   ];
 }
