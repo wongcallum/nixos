@@ -6,7 +6,7 @@
 - Run `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` during iterative changes.
 - Run `nix flake check --no-build` at the very end before finishing.
 - Do not run `nix flake check` without `--no-build`: it realises every host's `toplevel` and can unnecessarily copy multi-gigabyte closures back to the local store.
-- Run the lint commands at the very end before committing: `nix run nixpkgs#nixfmt-tree` (format), `nix run nixpkgs#statix -- check .`, `nix run nixpkgs#deadnix -- --fail .`.
+- Run the lint commands at the very end before committing: `nix develop --command bash -c 'nixfmt-tree; statix check .; deadnix --fail .`
 - Run `git add <untracked files>` whenever a new Nix file is created, flakes ignore untracked files.
 - Use idiomatic Nix, be inspired by nixpkgs.
 - Don't grep from the entire /nix/store.
