@@ -23,7 +23,8 @@ appimageTools.wrapType2 {
       -t $out/share/applications
     substituteInPlace $out/share/applications/lobehub-desktop.desktop \
       --replace-fail 'Exec=AppRun --no-sandbox %U' 'Exec=lobehub-desktop --no-sandbox %U'
-    cp -r ${appimageContents}/usr/share/icons $out/share/icons
+    install -Dm444 ${appimageContents}/usr/share/icons/hicolor/514x514/apps/lobehub-desktop.png \
+      $out/share/pixmaps/lobehub-desktop.png
   '';
 
   meta = {
