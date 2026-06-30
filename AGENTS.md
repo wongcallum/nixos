@@ -4,6 +4,7 @@
 - Do not commit your changes unless explicitly asked.
 - Do not touch the secrets repository or input, just prompt the user to modify them when necessary.
 - Run `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` during iterative changes.
+- After building, verify the change is realised in the built system at `result/`. Inspect the relevant generated unit/file and/or compare `nix eval` of the affected option before and after.
 - Run `nix flake check --no-build` at the very end before finishing.
 - Do not run `nix flake check` without `--no-build`: it realises every host's `toplevel` and can unnecessarily copy multi-gigabyte closures back to the local store.
 - Run the lint commands at the very end before committing: `nix develop --command bash -c 'nixfmt-tree; statix check .; deadnix --fail .`
