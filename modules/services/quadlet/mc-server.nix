@@ -53,5 +53,8 @@
               };
             }
           );
+
+      networking.firewall.allowedTCPPorts =
+        lib.mkIf config.modules.containers.minecraft-server [ 25565 ];
     };
 }

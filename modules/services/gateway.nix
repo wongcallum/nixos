@@ -74,6 +74,12 @@
         systemd.services.technitium-dns-server.serviceConfig.WorkingDirectory =
           "/var/lib/technitium-dns-server";
 
+        networking.firewall.allowedTCPPorts = [
+          53
+          80
+          443
+        ];
+
         services.caddy = {
           enable = true;
           user = "caddy";

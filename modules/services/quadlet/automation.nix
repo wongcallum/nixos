@@ -65,6 +65,15 @@
           }
         );
       };
+
+      networking.firewall.allowedTCPPorts = lib.mkMerge [
+        (lib.mkIf config.modules.containers.homeassistant [ 8123 ])
+        (lib.mkIf config.modules.containers.evcc [
+          7070
+          8887
+        ])
+        (lib.mkIf config.modules.containers.mongo [ 27017 ])
+      ];
     };
 
   flake.modules.nixos.gateway =

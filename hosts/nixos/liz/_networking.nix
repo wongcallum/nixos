@@ -7,16 +7,6 @@ in
     firewall = {
       enable = true;
       allowPing = true;
-      allowedTCPPorts = [
-        22
-        53
-        80
-        443
-        8123
-        7070
-        8887
-        27017
-      ];
     };
     nat.externalInterface = netInterface;
     useNetworkd = true;
