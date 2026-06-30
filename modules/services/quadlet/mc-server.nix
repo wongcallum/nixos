@@ -54,7 +54,6 @@
             }
           );
 
-      networking.firewall.allowedTCPPorts =
-        lib.mkIf config.modules.containers.minecraft-server [ 25565 ];
+      networking.firewall.allowedTCPPorts = lib.mkIf config.modules.containers.minecraft-server [ 25565 ];
     };
 }
