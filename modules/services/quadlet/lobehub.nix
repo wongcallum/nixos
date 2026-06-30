@@ -151,9 +151,9 @@ in
                   S3_SECRET_ACCESS_KEY = "minioadmin";
                   LLM_VISION_IMAGE_USE_BASE64 = "1";
 
-                  # self-hosted OnlyBoxes sandbox (see ./onlyboxes.nix). The
-                  # console shares the lobehub network at 172.28.0.6. The
-                  # matching ONLYBOXES_JIT_SIGNING_KEY lives in the sops env file.
+                  # allow login from LobeHub Desktop app
+                  ENABLE_OIDC = "1";
+
                   SANDBOX_PROVIDER = "onlyboxes";
                   ONLYBOXES_BASE_URL = "http://172.28.0.6:8089";
 
