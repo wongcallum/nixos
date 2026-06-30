@@ -21,6 +21,7 @@
       logs
 
       quadlet-lobehub
+      quadlet-onlyboxes
     ]);
   };
 }
