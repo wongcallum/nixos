@@ -11,14 +11,24 @@ in
         enable = true;
         profileDir = "${config.utils.dataDir "qbittorrent"}/";
         serverConfig = {
-          Preferences = {
-            WebUI = {
-              AlternativeUIEnabled = true;
-              RootFolder = "${pkgs.vuetorrent}/share/vuetorrent";
-              HostHeaderValidation = false;
-              CSRFProtection = false;
-              LocalHostAuth = false;
-            };
+          BitTorrent.Session = {
+            DefaultSavePath = "/tank/torrents";
+            AnonymousModeEnabled = true;
+            GlobalMaxRatio = 2;
+            GlobalMaxSeedingMinutes = 10080;
+            AlternativeGlobalDLSpeedLimit = 20000;
+            AlternativeGlobalUPSpeedLimit = 5000;
+            IgnoreSlowTorrentsForQueueing = true;
+            MaxActiveTorrents = 20;
+            MaxActiveUploads = 10;
+          };
+          Network.PortForwardingEnabled = false;
+          Preferences.WebUI = {
+            AlternativeUIEnabled = true;
+            RootFolder = "${pkgs.vuetorrent}/share/vuetorrent";
+            HostHeaderValidation = false;
+            CSRFProtection = false;
+            LocalHostAuth = false;
           };
         };
       };
