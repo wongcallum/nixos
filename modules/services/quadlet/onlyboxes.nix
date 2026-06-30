@@ -32,10 +32,6 @@ in
 
       modules.containers.onlyboxes = lib.mkDefault true;
 
-      systemd.tmpfiles.rules = [
-        "d ${config.utils.dataDir "onlyboxes/db"} 0755 root root -"
-      ];
-
       # CONSOLE_HASH_KEY, CONSOLE_JIT_SIGNING_KEY and the first-run admin
       # credentials (CONSOLE_DASHBOARD_USERNAME / CONSOLE_DASHBOARD_PASSWORD).
       sops.secrets."docker/onlyboxes_env" = {
@@ -79,40 +75,64 @@ in
         }
       );
 
-      systemd.services.onlyboxes-worker = lib.mkIf config.modules.containers.onlyboxes {
-        description = "OnlyBoxes worker (docker runtime)";
-        wantedBy = [ "multi-user.target" ];
-        after = [
-          "network-online.target"
-          "onlyboxes-console.service"
+      systemd = {
+        tmpfiles.rules = [
+          "d ${config.utils.dataDir "onlyboxes/db"} 0755 root root -"
         ];
-        wants = [ "network-online.target" ];
-        path = [
-          podman
-          dockerShim
-          pkgs.iptables
-          pkgs.iproute2
-          pkgs.util-linux
-        ];
-        environment = {
-          WORKER_CONSOLE_INSECURE = "true";
-          WORKER_CONSOLE_GRPC_TARGET = "127.0.0.1:50051";
-          WORKER_NODE_NAME = "salt";
-          # LobeHub-specific terminal runtime image and raised per-session limits.
-          WORKER_TERMINAL_EXEC_DOCKER_IMAGE = runtimeImage;
-          WORKER_TERMINAL_EXEC_MEMORY_MIB = "2048";
-          WORKER_TERMINAL_EXEC_CPUS = "2";
-          WORKER_TERMINAL_EXEC_MAX_PROCESSES = "1024";
+
+        # Pull the ~1GiB runtime image once, out of the worker's start path. As a
+        # oneshot it gets its own long timeout (the pull blew past the worker's
+        # default 90s TimeoutStartSec and crash-looped without ever caching).
+        services.onlyboxes-runtime-pull = lib.mkIf config.modules.containers.onlyboxes {
+          description = "Pull OnlyBoxes LobeHub runtime image";
+          wantedBy = [ "multi-user.target" ];
+          after = [ "network-online.target" ];
+          wants = [ "network-online.target" ];
+          path = [ podman ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            TimeoutStartSec = "3600";
+            ExecStart = "${dockerShim}/bin/docker pull ${runtimeImage}";
+          };
         };
-        serviceConfig = {
-          EnvironmentFile = config.sops.secrets."docker/onlyboxes_worker_env".path;
-          # Pre-pull the (large) runtime image so the first session isn't blocked
-          # on the download; non-fatal so the worker still starts when offline.
-          ExecStartPre = "-${dockerShim}/bin/docker pull ${runtimeImage}";
-          ExecStart = lib.getExe worker;
-          Restart = "always";
-          RestartSec = "10";
-          Delegate = "yes";
+
+        services.onlyboxes-worker = lib.mkIf config.modules.containers.onlyboxes {
+          description = "OnlyBoxes worker (docker runtime)";
+          wantedBy = [ "multi-user.target" ];
+          after = [
+            "network-online.target"
+            "onlyboxes-console.service"
+            "onlyboxes-runtime-pull.service"
+          ];
+          wants = [
+            "network-online.target"
+            "onlyboxes-runtime-pull.service"
+          ];
+          path = [
+            podman
+            dockerShim
+            pkgs.iptables
+            pkgs.iproute2
+            pkgs.util-linux
+          ];
+          environment = {
+            WORKER_CONSOLE_INSECURE = "true";
+            WORKER_CONSOLE_GRPC_TARGET = "127.0.0.1:50051";
+            WORKER_NODE_NAME = "salt";
+            # LobeHub-specific terminal runtime image and raised per-session limits.
+            WORKER_TERMINAL_EXEC_DOCKER_IMAGE = runtimeImage;
+            WORKER_TERMINAL_EXEC_MEMORY_MIB = "2048";
+            WORKER_TERMINAL_EXEC_CPUS = "2";
+            WORKER_TERMINAL_EXEC_MAX_PROCESSES = "1024";
+          };
+          serviceConfig = {
+            EnvironmentFile = config.sops.secrets."docker/onlyboxes_worker_env".path;
+            ExecStart = lib.getExe worker;
+            Restart = "always";
+            RestartSec = "10";
+            Delegate = "yes";
+          };
         };
       };
     };
