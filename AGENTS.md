@@ -7,7 +7,7 @@
 - After building, verify the change is realised in the built system at `result/`. Inspect the relevant generated unit/file and/or compare `nix eval` of the affected option before and after.
 - Run `nix flake check --no-build` at the very end before finishing.
 - Do not run `nix flake check` without `--no-build`: it realises every host's `toplevel` and can unnecessarily copy multi-gigabyte closures back to the local store.
-- Run the lint commands at the very end before committing: `nix develop --command bash -c 'nixfmt-tree; statix check .; deadnix --fail .`
+- Run the lint commands at the very end before committing: `nix develop --command bash -c 'treefmt; statix check .; deadnix --fail .'`
 - Run `git add <untracked files>` whenever a new Nix file is created, flakes ignore untracked files.
 - Use idiomatic Nix, be inspired by nixpkgs.
 - Don't grep from the entire /nix/store.
