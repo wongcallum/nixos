@@ -73,6 +73,7 @@ in
     adwaita-icon-theme
     pavucontrol
     blueman
+    efibootmgr
 
     # bloat
     equibop

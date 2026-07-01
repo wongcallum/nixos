@@ -26,6 +26,9 @@
           protocol: efi
           path: guid(cf90b43d-bb12-4ef9-9fde-8e5c7c3adcff):/EFI/Microsoft/Boot/bootmgfw.efi
     '';
+
+    # allow limine to take over the world
+    loader.efi.canTouchEfiVariables = true;
   };
 
   hardware = {
