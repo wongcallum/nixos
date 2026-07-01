@@ -11,6 +11,7 @@
       limine
       zram
       callum
+      ssh
       tailscale
       zed
 
