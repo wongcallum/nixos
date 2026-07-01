@@ -19,6 +19,13 @@
       "usbhid"
       "sd_mod"
     ];
+
+    # chainload the Windows bootloader on the separate Windows ESP
+    loader.limine.extraEntries = ''
+      /Windows
+          protocol: efi
+          path: guid(cf90b43d-bb12-4ef9-9fde-8e5c7c3adcff):/EFI/Microsoft/Boot/bootmgfw.efi
+    '';
   };
 
   hardware = {
