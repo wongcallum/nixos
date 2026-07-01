@@ -3,11 +3,7 @@
 { inputs, ... }:
 {
   flake.modules.nixos.impermanence-btrfs =
-    {
-      config,
-      pkgs,
-      ...
-    }:
+    { config, ... }:
     {
       imports = [ inputs.impermanence.nixosModules.impermanence ];
 
@@ -18,12 +14,6 @@
         before = [ "sysroot.mount" ];
         unitConfig.DefaultDependencies = "no";
         serviceConfig.Type = "oneshot";
-        path = [
-          pkgs.btrfs-progs
-          pkgs.util-linux
-          pkgs.coreutils
-          pkgs.findutils
-        ];
         script = ''
           mkdir /btrfs_tmp
           mount ${config.fileSystems."/".device} /btrfs_tmp
