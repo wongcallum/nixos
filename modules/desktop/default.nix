@@ -31,6 +31,12 @@
         settings.default_session.command = "${lib.getExe tuigreet} --asterisks --time --remember --remember-session --sessions ${sessions}/share/wayland-sessions --xsessions ${sessions}/share/xsessions --cmd niri-session";
       };
 
+      services.gnome.gnome-keyring.enable = true;
+      security.pam.services.greetd.kwallet = {
+        enable = true;
+        package = pkgs.kdePackages.kwallet-pam;
+      };
+
       environment.systemPackages = [
         pkgs.adw-gtk3
         pkgs.qt6Packages.qt6ct
