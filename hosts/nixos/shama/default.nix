@@ -24,6 +24,7 @@
       desktop
       niri
       plasma
+      keyd
       libvirt
       docker
       fonts
@@ -56,7 +57,6 @@
 
     networking.networkmanager.enable = true;
     services.resolved.enable = true;
-    services.xserver.xkb.options = "caps:escape";
     documentation.man.cache.enable = false;
 
     modules.syncthing-desktop.user = "callum";
