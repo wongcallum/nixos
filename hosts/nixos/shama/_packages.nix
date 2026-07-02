@@ -67,6 +67,7 @@ in
     nemo
     nnn
     doublecmd
+    file-roller
 
     # system
     kdePackages.qttools
