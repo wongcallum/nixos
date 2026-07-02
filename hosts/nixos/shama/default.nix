@@ -29,6 +29,7 @@
       fonts
       bluetooth
       firefox
+      ungoogled-chromium
       ghostty
       laptop
       nix-ld
