@@ -45,6 +45,7 @@
           extraConfig = ''
             term_font: boot():/limine/fonts/AIXOID9.F20
             term_font_size: 8x20
+            remember_last_entry: yes
           '';
 
           # from https://github.com/diegons490/cachyos-limine-theme
