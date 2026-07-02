@@ -50,5 +50,8 @@
     uinput.enable = true;
   };
 
+  # crashes if service starts before DISPLAY/WAYLAND_DISPLAY are set
+  systemd.user.services.opentabletdriver.after = [ "graphical-session.target" ];
+
   environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
 }
