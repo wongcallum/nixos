@@ -151,6 +151,12 @@ in
                   S3_SECRET_ACCESS_KEY = "minioadmin";
                   LLM_VISION_IMAGE_USE_BASE64 = "1";
 
+                  # allow login from LobeHub Desktop app
+                  ENABLE_OIDC = "1";
+
+                  SANDBOX_PROVIDER = "onlyboxes";
+                  ONLYBOXES_BASE_URL = "http://172.28.0.6:8089";
+
                   # api keys defined in nixos-secrets
                   SEARCH_PROVIDERS = "tavily,exa";
                   CRAWLER_IMPLS = "exa,naive";

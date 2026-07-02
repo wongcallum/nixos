@@ -80,6 +80,7 @@
         immich = lib.mkEnableOption "Immich";
 
         lobehub = lib.mkEnableOption "LobeHub";
+        onlyboxes = lib.mkEnableOption "OnlyBoxes";
       };
     };
 
