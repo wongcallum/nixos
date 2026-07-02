@@ -413,6 +413,26 @@
         "type": "github"
       }
     },
+    "nix-monitored": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778497292,
+        "narHash": "sha256-vodUt55p0PXOaKK5xE1dldTxdtyuttbdGy0LvP8cCxQ=",
+        "owner": "ners",
+        "repo": "nix-monitored",
+        "rev": "4a7e1e7dcd0c1f7c2d063928511ebd72afea7e58",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ners",
+        "repo": "nix-monitored",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1757347588,
@@ -597,6 +617,7 @@
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "microvm": "microvm",
+        "nix-monitored": "nix-monitored",
         "nixpkgs": "nixpkgs_3",
         "picolimbo": "picolimbo",
         "prism-tower": "prism-tower",

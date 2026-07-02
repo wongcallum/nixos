@@ -17,6 +17,7 @@
       callum
       tailscale
       zed
+      nix-monitored
 
       impermanence-btrfs
 

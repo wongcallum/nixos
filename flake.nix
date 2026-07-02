@@ -27,6 +27,7 @@
     zed.url = "github:wongcallum/zed/wayland-ext-background-effect-blur";
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
     tuigreet.url = "github:NotAShelf/tuigreet";
+    nix-monitored.url = "github:ners/nix-monitored";
 
     flux = {
       url = "github:IogaMaster/flux";
@@ -44,6 +45,7 @@
     microvm.inputs.nixpkgs.follows = "nixpkgs";
     apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
     tuigreet.inputs.nixpkgs.follows = "unstable";
+    nix-monitored.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
