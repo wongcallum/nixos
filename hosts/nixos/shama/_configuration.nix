@@ -10,7 +10,10 @@
   boot = {
     # arrow lake needs very recent kernel
     kernelPackages = pkgs.linuxPackages_latest;
-    kernelModules = [ "kvm-intel" ];
+    kernelModules = [
+      "kvm-intel"
+      "uinput"
+    ];
     initrd.availableKernelModules = [
       "nvme"
       "xhci_pci"
@@ -42,6 +45,9 @@
         vpl-gpu-rt
       ];
     };
+
+    opentabletdriver.enable = true;
+    uinput.enable = true;
   };
 
   environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
