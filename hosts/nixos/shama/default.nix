@@ -40,7 +40,11 @@
       zoxide
     ]);
 
-    environment.variables.EDITOR = "nvim";
+    environment.variables = {
+      EDITOR = "nvim";
+      GOPATH = "~/.local/share/go";
+      GOBIN = "~/.local/bin";
+    };
 
     nixpkgs.overlays = [
       (final: prev: {
