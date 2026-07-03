@@ -37,6 +37,7 @@
   hardware = {
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+    cpu.intel.npu.enable = true;
 
     graphics = {
       enable = true;
@@ -53,5 +54,10 @@
   # crashes if service starts before DISPLAY/WAYLAND_DISPLAY are set
   systemd.user.services.opentabletdriver.after = [ "graphical-session.target" ];
 
-  environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
+  environment.sessionVariables = {
+    LIBVA_DRIVER_NAME = "iHD";
+
+    # needed for openvino npu device
+    ZE_ENABLE_ALT_DRIVERS = "/run/opengl-driver/lib/libze_intel_npu.so.1";
+  };
 }
