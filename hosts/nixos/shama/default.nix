@@ -16,6 +16,7 @@
 
       callum
       tailscale
+      autofs
       zed
       nix-monitored
 
