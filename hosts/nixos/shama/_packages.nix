@@ -8,6 +8,7 @@ in
     zellij
     chezmoi
     mise
+    devenv
     android-tools
 
     ## fish plugins
