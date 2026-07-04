@@ -18,6 +18,7 @@
       tailscale
       autofs
       zed
+      disk-utils
       nix-monitored
 
       impermanence-btrfs
