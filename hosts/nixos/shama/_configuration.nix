@@ -15,11 +15,16 @@
       "uinput"
     ];
 
-    # F6 speaker-mute / F9 mic-mute keyboard LEDs
-    # https://wiki.archlinux.org/title/HP_OmniBook_7_AI_14-fr0220nw
-    extraModprobeConfig = ''
-      options snd-sof-intel-hda-generic hda_model=103c:876e
-    '';
+    kernelPatches = [
+      {
+        name = "cs35l41-omnibook7-8e3b";
+        patch = ./cs35l41-omnibook7-8e3b.patch;
+      }
+      {
+        name = "alc245-omnibook7-8e3b";
+        patch = ./alc245-omnibook7-8e3b.patch;
+      }
+    ];
 
     initrd.availableKernelModules = [
       "nvme"
