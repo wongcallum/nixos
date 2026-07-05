@@ -44,8 +44,8 @@
 
     environment.variables = {
       EDITOR = "nvim";
-      GOPATH = "~/.local/share/go";
-      GOBIN = "~/.local/bin";
+      GOPATH = "/home/callum/.local/share/go";
+      GOBIN = "/home/callum/.local/bin";
     };
 
     nixpkgs.overlays = [
