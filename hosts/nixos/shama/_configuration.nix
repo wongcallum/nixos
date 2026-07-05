@@ -14,6 +14,13 @@
       "kvm-intel"
       "uinput"
     ];
+
+    # F6 speaker-mute / F9 mic-mute keyboard LEDs
+    # https://wiki.archlinux.org/title/HP_OmniBook_7_AI_14-fr0220nw
+    extraModprobeConfig = ''
+      options snd-sof-intel-hda-generic hda_model=103c:876e
+    '';
+
     initrd.availableKernelModules = [
       "nvme"
       "xhci_pci"
