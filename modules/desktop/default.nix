@@ -25,10 +25,9 @@
         );
       };
 
-      services.greetd = {
+      security.pam.services.greetd.kwallet = {
         enable = true;
-        useTextGreeter = true;
-        settings.default_session.command = "${lib.getExe tuigreet} --asterisks --time --remember --remember-session --sessions ${sessions}/share/wayland-sessions --xsessions ${sessions}/share/xsessions --cmd niri-session";
+        package = pkgs.kdePackages.kwallet-pam;
       };
 
       environment.systemPackages = [
@@ -40,6 +39,14 @@
       xdg.portal.enable = true;
 
       services = {
+        greetd = {
+          enable = true;
+          useTextGreeter = true;
+          settings.default_session.command = "${lib.getExe tuigreet} --asterisks --time --remember --remember-session --sessions ${sessions}/share/wayland-sessions --xsessions ${sessions}/share/xsessions --cmd niri-session";
+        };
+
+        gnome.gnome-keyring.enable = true;
+
         avahi = {
           enable = true;
           nssmdns4 = true;

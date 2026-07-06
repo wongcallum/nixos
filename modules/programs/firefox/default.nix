@@ -64,10 +64,6 @@
             };
             "{446900e4-71c2-419f-a6a7-df9c091e268b}" = {
               install_url = "https://addons.mozilla.org/firefox/downloads/latest/bitwarden-password-manager/latest.xpi";
-              installation_mode = "force_installed";
-            };
-            "{9063c2e9-e07c-4c2c-9646-cfe7ca8d0498}" = {
-              install_url = "https://addons.mozilla.org/firefox/downloads/latest/old-reddit-redirect/latest.xpi";
               installation_mode = "normal_installed";
             };
             "pywalfox@frewacom.org" = {

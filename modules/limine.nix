@@ -8,6 +8,34 @@
       };
     in
     {
+      systemd.services.limine-branding = {
+        description = "Set Limine branding from local file";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "local-fs.target" ];
+        unitConfig.RequiresMountsFor = "/boot";
+        path = with pkgs; [
+          coreutils
+          gnugrep
+        ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+        script = ''
+          conf=/boot/limine/limine.conf
+          brand=/var/lib/limine-branding
+          [ -r "$brand" ] && [ -w "$conf" ] || exit 0
+          val=$(head -n1 "$brand")
+          tmp=$(mktemp)
+          {
+            printf 'interface_branding: %s\n' "$val"
+            grep -v '^interface_branding:' "$conf"
+          } > "$tmp"
+          cat "$tmp" > "$conf"
+          rm -f "$tmp"
+        '';
+      };
+
       boot.loader = {
         timeout = 10;
         limine = {
@@ -17,6 +45,7 @@
           extraConfig = ''
             term_font: boot():/limine/fonts/AIXOID9.F20
             term_font_size: 8x20
+            remember_last_entry: yes
           '';
 
           # from https://github.com/diegons490/cachyos-limine-theme

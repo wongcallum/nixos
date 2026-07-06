@@ -11,7 +11,7 @@
       ./_disko.nix
       ./_configuration.nix
       ./_remote-desktop.nix
-      ../wky/_packages.nix
+      ../shama/_packages.nix
 
       inputs.disko.nixosModules.default
     ]

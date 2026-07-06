@@ -8,6 +8,7 @@ in
     zellij
     chezmoi
     mise
+    devenv
     android-tools
 
     ## fish plugins
@@ -67,12 +68,14 @@ in
     nemo
     nnn
     doublecmd
+    file-roller
 
     # system
     kdePackages.qttools
     adwaita-icon-theme
     pavucontrol
     blueman
+    efibootmgr
 
     # bloat
     equibop

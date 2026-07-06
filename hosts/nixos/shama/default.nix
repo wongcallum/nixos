@@ -1,28 +1,40 @@
-{ config, ... }:
+{ config, inputs, ... }:
 {
-  flake.nixpkgs.wky = "unstable";
+  flake.nixpkgs.shama = "unstable";
 
-  flake.modules.nixos."hosts/nixos/wky" = {
+  flake.modules.nixos."hosts/nixos/shama" = {
     imports = [
       ./_configuration.nix
+      ./_disko.nix
       ./_packages.nix
+
+      inputs.disko.nixosModules.default
     ]
     ++ (with config.flake.modules.nixos; [
       limine
+      console-font
       zram
+
       callum
       tailscale
+      autofs
       zed
+      disk-utils
+      nix-monitored
+
+      impermanence-btrfs
 
       audio
       desktop
       niri
       plasma
+      keyd
       libvirt
       docker
       fonts
       bluetooth
       firefox
+      ungoogled-chromium
       ghostty
       laptop
       nix-ld
@@ -33,8 +45,8 @@
 
     environment.variables = {
       EDITOR = "nvim";
-      GOPATH = "~/.local/share/go";
-      GOBIN = "~/.local/bin";
+      GOPATH = "/home/callum/.local/share/go";
+      GOBIN = "/home/callum/.local/bin";
     };
 
     nixpkgs.overlays = [
@@ -53,7 +65,6 @@
 
     networking.networkmanager.enable = true;
     services.resolved.enable = true;
-    services.xserver.xkb.options = "caps:escape";
     documentation.man.cache.enable = false;
 
     modules.syncthing-desktop.user = "callum";
@@ -63,6 +74,6 @@
       "adbusers"
     ];
 
-    system.stateVersion = "25.11";
+    system.stateVersion = "26.05";
   };
 }
