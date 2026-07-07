@@ -10,6 +10,7 @@ let
     "BmPlus_AST_PremiumExec"
     "Bm437_ToshibaTxL1_8x16"
     "Bm437_DOS-V_re_JPN24"
+    "Bm437_IBM_PS-55_re"
   ];
 in
 stdenvNoCC.mkDerivation rec {

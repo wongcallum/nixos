@@ -7,7 +7,7 @@
     {
       console = {
         earlySetup = true;
-        font = "${pkgs.runCommand "BmPlus_ToshibaSat_8x16.psf"
+        font = "${pkgs.runCommand "Bm437_IBM_PS-55_re.psf"
           {
             nativeBuildInputs = [
               pkgs.fontforge
@@ -18,7 +18,7 @@
             export HOME="$TMPDIR"
             fontforge -lang=py -c \
               'import fontforge, sys; fontforge.open(sys.argv[1]).generate("font.bdf")' \
-              ${bitmap-fonts}/share/fonts/misc/BmPlus_ToshibaSat_8x16.otb
+              ${bitmap-fonts}/share/fonts/misc/Bm437_IBM_PS-55_re.otb
 
             sets=${pkgs.bdf2psf}/share/bdf2psf
 
