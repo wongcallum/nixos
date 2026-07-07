@@ -143,7 +143,7 @@ in
           media-slskd = lib.mkIf config.modules.containers.media-slskd (
             config.utils.mkContainer {
               containerConfig = {
-                image = "slskd/slskd:latest";
+                image = "ghcr.io/wongcallum/slskd:browse-enhancements";
                 environmentFiles = [ config.sops.secrets."docker/slskd_env".path ];
                 environments = {
                   SLSKD_REMOTE_CONFIGURATION = "false";
