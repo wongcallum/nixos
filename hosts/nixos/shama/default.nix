@@ -29,7 +29,6 @@ in
         autofs
         zed
         disk-utils
-        nix-monitored
         nix-discord-rpc
 
         impermanence-btrfs
