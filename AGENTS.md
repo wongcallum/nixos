@@ -27,7 +27,7 @@ For full pattern catalog (Simple, Multi-Context, Inheritance, Conditional, Colle
 
 A host module is itself a Dendritic feature that **imports other features** (e.g. `persistence`, `sops`, `ssh`, `tailscale`, `gateway`, …) from `config.flake.modules.nixos.<name>`. See `hosts/nixos/liz/default.nix` for the canonical example.
 
-Per-host files prefixed with `_` (e.g. `_configuration.nix`, `_disko.nix`, `_networking.nix`, `_home.nix`) are **regular NixOS modules**, not flake-parts modules — convention is to keep host-specific config out of the flake module graph.
+Per-host files prefixed with `_` (e.g. `_disko.nix`, `_networking.nix`, `_packages.nix`, `_remote-desktop.nix`) are **regular NixOS modules**, not flake-parts modules — they hold self-contained host-specific concerns (disk layout, networking, package lists) imported by the host's `default.nix`. General per-host system configuration lives directly in the host module in `default.nix`. When that config needs NixOS module args, write the host module as a function (`{ config, lib, pkgs, ... }: { … }`) and capture the feature list in the outer flake-parts scope with `let inherit (config.flake.modules) nixos;` so `with nixos; [ … ]` still resolves inside the shadowed `config` (see `hosts/nixos/liz/default.nix`).
 
 A host can opt into `unstable` (or any other input) by setting `flake.nixpkgs.<hostname> = "unstable"` in its `default.nix`. `hosts/default.nix` reads this to pick which `inputs.<name>.lib.nixosSystem` builds the host. Default is `nixpkgs` (stable).
 
