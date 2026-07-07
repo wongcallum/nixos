@@ -413,6 +413,26 @@
         "type": "github"
       }
     },
+    "nix-discord-rpc": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783352853,
+        "narHash": "sha256-Z3y/njAWVukgmgFw8x5MPay0DhkLo3fEkHoBvI5QsJk=",
+        "owner": "wongcallum",
+        "repo": "nix-discord-rpc",
+        "rev": "48b180d28ae845f71dc9a4890c7ba2a841e26a46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wongcallum",
+        "repo": "nix-discord-rpc",
+        "type": "github"
+      }
+    },
     "nix-monitored": {
       "inputs": {
         "nixpkgs": [
@@ -617,6 +637,7 @@
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "microvm": "microvm",
+        "nix-discord-rpc": "nix-discord-rpc",
         "nix-monitored": "nix-monitored",
         "nixpkgs": "nixpkgs_3",
         "picolimbo": "picolimbo",

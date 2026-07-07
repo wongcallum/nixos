@@ -28,6 +28,7 @@
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
     tuigreet.url = "github:NotAShelf/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
+    nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
 
     flux = {
       url = "github:IogaMaster/flux";
@@ -46,6 +47,7 @@
     apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
     tuigreet.inputs.nixpkgs.follows = "unstable";
     nix-monitored.inputs.nixpkgs.follows = "nixpkgs";
+    nix-discord-rpc.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
