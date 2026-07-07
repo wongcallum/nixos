@@ -7,6 +7,17 @@
 {
   nixpkgs.config.allowUnfree = true;
 
+  # NixOS automatically creates with `btrfs filesystem mkswapfile`
+  # priority is automatically set below zram
+  swapDevices = [
+    {
+      device = "/persist/swapfile";
+      size = 32 * 1024; # MiB
+    }
+  ];
+
+  modules.laptop.suspendThenHibernate.enable = true;
+
   boot = {
     # arrow lake needs very recent kernel
     kernelPackages = pkgs.linuxPackages_latest;
@@ -32,14 +43,20 @@
       }
     ];
 
-    initrd.availableKernelModules = [
-      "nvme"
-      "xhci_pci"
-      "thunderbolt"
-      "usb_storage"
-      "usbhid"
-      "sd_mod"
-    ];
+    initrd = {
+      availableKernelModules = [
+        "nvme"
+        "xhci_pci"
+        "thunderbolt"
+        "usb_storage"
+        "usbhid"
+        "sd_mod"
+      ];
+
+      systemd.services.impermanence-root-rollback.after = [
+        "systemd-hibernate-resume.service"
+      ];
+    };
 
     # chainload the Windows bootloader on the separate Windows ESP
     loader.limine.extraEntries = ''
