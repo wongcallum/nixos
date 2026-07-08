@@ -12,6 +12,7 @@ in
         ./_disko.nix
         ./_remote-desktop.nix
         ./_audio-dummy.nix
+        ./_dotfiles.nix
         ../shama/_packages.nix
 
         (modulesPath + "/profiles/qemu-guest.nix")
