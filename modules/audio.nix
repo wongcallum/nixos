@@ -1,5 +1,5 @@
 {
-  flake.modules.nixos.audio = {
+  flake.modules.nixos.audio = { pkgs, ... }: {
     security.rtkit.enable = true;
 
     services.pipewire = {
@@ -14,5 +14,7 @@
         };
       };
     };
+
+    environment.systemPackages = [ pkgs.pulseaudio ]; # for pactl
   };
 }
