@@ -15,6 +15,8 @@
       flake = false;
     };
 
+    dms.url = "github:wongcallum/DankMaterialShell/refactor/shared-cc-modal";
+
     deploy-rs.url = "github:serokell/deploy-rs";
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
@@ -45,9 +47,11 @@
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
     apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
-    tuigreet.inputs.nixpkgs.follows = "unstable";
     nix-monitored.inputs.nixpkgs.follows = "nixpkgs";
     nix-discord-rpc.inputs.nixpkgs.follows = "nixpkgs";
+
+    dms.inputs.nixpkgs.follows = "unstable";
+    tuigreet.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =

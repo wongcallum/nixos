@@ -1,11 +1,14 @@
+{ inputs, ... }:
 {
   flake.modules.nixos.niri =
     { pkgs, ... }:
     {
+      imports = [ inputs.dms.nixosModules.dank-material-shell ];
+
       programs = {
         niri.enable = true;
 
-        dms-shell = {
+        dank-material-shell = {
           enable = true;
           # in niri config: `spawn-at-startup "dms" "run"`
           systemd.enable = false;
