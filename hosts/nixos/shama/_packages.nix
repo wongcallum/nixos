@@ -63,6 +63,7 @@ in
     xnviewmp
     scrcpy
     mpv
+    moonlight-qt
 
     # file manager
     nemo
