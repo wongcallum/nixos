@@ -3,5 +3,6 @@
     { pkgs, ... }:
     {
       packages.lobehub-desktop = pkgs.callPackage ../../packages/lobehub-desktop { };
+      packages.kinochrome = pkgs.callPackage ../../packages/kinochrome { };
     };
 }
