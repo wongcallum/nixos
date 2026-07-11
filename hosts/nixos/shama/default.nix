@@ -46,6 +46,7 @@ in
         firefox
         ungoogled-chromium
         ghostty
+        thunderbird
         laptop
         nix-ld
         syncthing-desktop
