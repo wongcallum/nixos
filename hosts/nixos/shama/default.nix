@@ -27,6 +27,7 @@ in
         callum
         tailscale
         autofs
+        cryptomatord
         zed
         disk-utils
         nix-monitored

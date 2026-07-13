@@ -31,6 +31,7 @@
     tuigreet.url = "github:NotAShelf/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
+    cryptomatord.url = "github:wongcallum/cryptomatord";
 
     flux = {
       url = "github:IogaMaster/flux";
@@ -52,6 +53,7 @@
 
     dms.inputs.nixpkgs.follows = "unstable";
     tuigreet.inputs.nixpkgs.follows = "unstable";
+    cryptomatord.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =
