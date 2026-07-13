@@ -1,8 +1,11 @@
 { inputs, ... }:
 {
-  flake.modules.nixos.cryptomatord = {
+  flake.modules.nixos.cryptomatord = { pkgs, ... }: {
     imports = [ inputs.cryptomatord.nixosModules.default ];
 
-    services.cryptomatord.enable = true;
+    services.cryptomatord = {
+      enable = true;
+      extraPackages = [ pkgs.zenity ];
+    };
   };
 }
