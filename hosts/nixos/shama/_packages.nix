@@ -1,6 +1,7 @@
 { pkgs, ... }:
 let
   lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
+  chainner = pkgs.callPackage ../../../packages/chainner { };
 in
 {
   environment.systemPackages = with pkgs; [
@@ -83,5 +84,6 @@ in
     feishin
     jetbrains-toolbox
     lobehub-desktop
+    chainner
   ];
 }
