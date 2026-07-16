@@ -1,0 +1,21 @@
+https://github.com/ghostty-org/ghostty/discussions/13267
+
+--- a/src/os/open.zig
++++ b/src/os/open.zig
+@@ -82,14 +82,13 @@ fn openThread(exe_: std.process.Child) void {
+         var stream = stderr.readerStreaming(&buffer);
+         const reader = &stream.interface;
+         while (true) {
+-            const line = reader.takeDelimiterExclusive('\n') catch |outer| switch (outer) {
+-                error.EndOfStream => break,
++            const line = reader.takeDelimiter('\n') catch |outer| switch (outer) {
+                 error.ReadFailed => break,
+                 error.StreamTooLong => reader.take(buffer.len) catch |inner| switch (inner) {
+                     error.ReadFailed => break,
+                     error.EndOfStream => break,
+                 },
+-            };
++            } orelse break;
+             log.warn("open stderr={s}", .{line});
+         }
+     }
