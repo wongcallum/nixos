@@ -92,6 +92,10 @@ in
       modules = {
         syncthing-desktop.user = "callum";
         laptop.suspendThenHibernate.enable = true;
+        firefox.transparency = {
+          enableToolbox = true;
+          enablePage = true;
+        };
       };
 
       users.users.callum.extraGroups = [

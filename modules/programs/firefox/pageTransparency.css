@@ -1,0 +1,59 @@
+/*
+ * Last tested on Firefox 152.
+ *
+ * Allows pages with explicitly transparent backgrounds to show through the window.
+ * Clears the background on about: pages.
+ * Requires browser.tabs.allow_transparent_browser = true.
+ *
+ * It is imperative that the XHTML namespace is declared before these rules:
+ * @namespace html url("http://www.w3.org/1999/xhtml");
+ */
+
+@-moz-document url("chrome://browser/content/browser.xhtml") {
+
+    /* This layer shows through whenever the page itself is transparent, and also while a page is loading. */
+    #browser {
+        background-color: color-mix(in srgb, var(--toolbar-bgcolor, rgb(28, 27, 34)) var(--tint-opacity), transparent) !important;
+    }
+
+    /* This is nested inside #browser, does not need a tint */
+    .browserContainer {
+        background: transparent !important;
+    }
+}
+
+/* Give regular pages an opaque fallback so text doesn't become unreadable */
+@-moz-document url-prefix("http://"), url-prefix("https://"), url-prefix("file:") {
+    html|html {
+        background-color: Canvas;
+    }
+}
+
+@-moz-document url("about:blank") {
+
+    :root,
+    html|html,
+    html|body {
+        background-color: transparent !important;
+    }
+}
+
+/* I don't even use this but whatever */
+@-moz-document url("about:newtab"), url("about:home") {
+
+    :root,
+    html|html,
+    html|body {
+        --newtab-background-color: transparent !important;
+    }
+}
+
+@-moz-document url-prefix("about:preferences"), url-prefix("about:settings"), url-prefix("about:config") {
+
+    :root,
+    html|html,
+    html|body {
+        --background-color-canvas: transparent !important;
+        background-color: transparent !important;
+    }
+}

@@ -1,0 +1,35 @@
+/*
+ * Last tested on Firefox 152.
+ *
+ * Removes the opaque backgrounds that apply by default to the tab bar and toolbox,
+ * and add a translucent tint layer behind the toolbox, following the theme colour.
+ *
+ * Does NOT require setting browser.tabs.allow_transparent_browser.
+ *
+ * It is imperative that the XHTML namespace is declared before these rules:
+ * @namespace html url("http://www.w3.org/1999/xhtml");
+ */
+
+@-moz-document url("chrome://browser/content/browser.xhtml") {
+    html|html {
+        /* Replaced by Nix */
+        --tint-opacity: 80%;
+    }
+
+    html|body {
+        background: transparent !important;
+    }
+
+    #titlebar,
+    #toolbar-menubar,
+    #TabsToolbar,
+    #tabbrowser-tabs,
+    #nav-bar,
+    #PersonalToolbar {
+        background: transparent !important;
+    }
+
+    #navigator-toolbox {
+        background-color: color-mix(in srgb, var(--toolbar-bgcolor, rgb(28, 27, 34)) var(--tint-opacity), transparent) !important;
+    }
+}
