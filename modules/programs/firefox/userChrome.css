@@ -1,4 +1,5 @@
 @namespace "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+@namespace html url("http://www.w3.org/1999/xhtml");
 
 @-moz-document url("chrome://browser/content/browser.xhtml") {
     * {
@@ -10,10 +11,14 @@
     }
 
     /* reduce right-click menu padding */
-    menupopup:not(.in-menulist) > menuitem, 
-    menupopup:not(.in-menulist) > menu {
-        padding-block: 2px !important; 
+    menupopup:not(.in-menulist)>menuitem,
+    menupopup:not(.in-menulist)>menu {
+        padding-block: 2px !important;
         min-height: unset !important;
     }
-}
 
+    /* remove minimise, maximise, close buttons */
+    .titlebar-buttonbox-container {
+        display: none
+    }
+}
