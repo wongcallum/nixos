@@ -4,7 +4,10 @@
       enable = true;
       keyboards.default = {
         ids = [ "*" ];
-        settings.main.capslock = "esc";
+        settings.main = {
+          capslock = "esc";
+          rightshift = "overload(shift, rightshift)";
+        };
       };
     };
   };
