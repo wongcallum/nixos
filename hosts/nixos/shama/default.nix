@@ -30,6 +30,7 @@ in
         autofs
         cryptomatord
         zed
+        freesmlauncher
         disk-utils
         nix-monitored
         nix-discord-rpc

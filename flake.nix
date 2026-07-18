@@ -32,6 +32,7 @@
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
     cryptomatord.url = "github:wongcallum/cryptomatord";
     weegspkgs.url = "git+https://codeberg.org/weegs710/pkgs";
+    freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
 
     flux = {
       url = "github:IogaMaster/flux";
@@ -54,6 +55,7 @@
     tuigreet.inputs.nixpkgs.follows = "unstable";
     cryptomatord.inputs.nixpkgs.follows = "unstable";
     weegspkgs.inputs.nixpkgs.follows = "unstable";
+    freesmlauncher.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =

@@ -322,6 +322,29 @@
         "type": "github"
       }
     },
+    "freesmlauncher": {
+      "inputs": {
+        "libnbtplusplus": "libnbtplusplus",
+        "nix-filter": "nix-filter",
+        "nixpkgs": [
+          "unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784349204,
+        "narHash": "sha256-/CroJahFxG9NmYi2qmImuCT4BCV/wCn9TCqnhyUXDC0=",
+        "owner": "wongcallum",
+        "repo": "FreesmLauncher",
+        "rev": "616e09203e258d2e803d002bb3ba1660e1da0525",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wongcallum",
+        "ref": "multi-modrinth",
+        "repo": "FreesmLauncher",
+        "type": "github"
+      }
+    },
     "ghostty": {
       "inputs": {
         "flake-compat": "flake-compat_3",
@@ -444,6 +467,22 @@
         "type": "github"
       }
     },
+    "libnbtplusplus": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772016279,
+        "narHash": "sha256-7itkptyjoRcXfGLwg1/jxajetZ3a4mDc66+w4X6yW8s=",
+        "owner": "FreesmTeam",
+        "repo": "libnbtplusplus",
+        "rev": "687e43031df0dc641984b4256bcca50d5b3f7de3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "FreesmTeam",
+        "repo": "libnbtplusplus",
+        "type": "github"
+      }
+    },
     "mcman": {
       "inputs": {
         "crane": "crane",
@@ -502,6 +541,21 @@
       "original": {
         "owner": "wongcallum",
         "repo": "nix-discord-rpc",
+        "type": "github"
+      }
+    },
+    "nix-filter": {
+      "locked": {
+        "lastModified": 1757882181,
+        "narHash": "sha256-+cCxYIh2UNalTz364p+QYmWHs0P+6wDhiWR4jDIKQIU=",
+        "owner": "numtide",
+        "repo": "nix-filter",
+        "rev": "59c44d1909c72441144b93cf0f054be7fe764de5",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "nix-filter",
         "type": "github"
       }
     },
@@ -711,6 +765,7 @@
         "dms": "dms",
         "flake-parts": "flake-parts",
         "flux": "flux",
+        "freesmlauncher": "freesmlauncher",
         "ghostty": "ghostty",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
