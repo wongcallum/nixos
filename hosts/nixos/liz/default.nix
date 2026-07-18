@@ -21,10 +21,6 @@ in
           n = 1;
           hostname = "vm-gallery";
         })
-        (microvmLib.mkHostNetworking {
-          n = 2;
-          hostname = "vm-jenkins";
-        })
       ]
       ++ (with nixos; [
         uefi
@@ -55,11 +51,6 @@ in
       ]);
 
       microvm.vms.vm-gallery = {
-        flake = inputs.self;
-        restartIfChanged = true;
-      };
-
-      microvm.vms.vm-jenkins = {
         flake = inputs.self;
         restartIfChanged = true;
       };
@@ -107,15 +98,6 @@ in
         immich.externalLibraries = {
           photo = "/tank/photo";
           DCIM = "/tank/callum/syncthing/DCIM/Camera";
-        };
-
-        # TODO: find a way to move this somewhere else
-        gateway.services.development-jenkins = {
-          name = "Jenkins";
-          domainName = "jenkins";
-          addr = "10.0.0.3:8080";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jenkins.png";
-          category = "Development";
         };
       };
     };
