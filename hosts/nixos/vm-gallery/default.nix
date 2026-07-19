@@ -17,7 +17,6 @@ in
         sops
 
         ssh
-        tailscale
 
         cloudflared
         quadlet-gallery
