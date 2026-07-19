@@ -87,10 +87,8 @@
     config.modules = {
       hostAddrs = {
         liz = "100.103.248.5";
-        milk = "100.83.57.121";
         salt = "100.83.198.98";
         staging = "100.103.202.124";
-        vm-gallery = "100.93.214.80";
       };
 
       metrics.hosts = {
@@ -100,7 +98,6 @@
           "smartctl"
           "cadvisor"
         ];
-        milk.exporters = [ "node" ];
         salt.exporters = [
           "node"
           "cadvisor"
