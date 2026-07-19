@@ -113,7 +113,7 @@ in
                   WEBUI_PORTS = "11090/tcp";
                 };
                 volumes = [
-                  "/mnt/media/torrents:/data/torrents:rw"
+                  "/mnt/media:/data:rw"
                   "${config.utils.dataDir "media/qbittorrent"}:/config:rw"
                 ];
                 networks = [ networks.${networkName}.ref ];
