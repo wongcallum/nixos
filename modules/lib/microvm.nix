@@ -72,6 +72,25 @@
       let
         addr = addressing n;
         vmDir = "/persist/microvms/${hostname}";
+
+        blockedDestinations = [
+          "10.0.0.0/8"
+          "172.16.0.0/12"
+          "192.168.0.0/16"
+          "100.64.0.0/10" # tailnet (CGNAT)
+          "169.254.0.0/16" # link-local, incl. cloud metadata
+        ];
+
+        forwardDrop = op: dest: "iptables -${op} FORWARD -i ${hostname} -d ${dest} -j DROP";
+
+        addForwardDrops = lib.concatMapStringsSep "\n" (dest: ''
+          ${forwardDrop "D" dest} 2>/dev/null || true
+          ${forwardDrop "I" dest}
+        '') blockedDestinations;
+
+        delForwardDrops = lib.concatMapStringsSep "\n" (
+          dest: "${forwardDrop "D" dest} 2>/dev/null || true"
+        ) blockedDestinations;
       in
       {
         systemd.network.networks."10-${hostname}" = {
@@ -92,12 +111,15 @@
             internalInterfaces = [ hostname ];
           };
 
-          # Block guest-initiated connections to the host
+          # Block guest-initiated connections to the host, and forwarded
+          # guest traffic to anything on the LAN or the tailnet.
           firewall.extraCommands = ''
             iptables -I nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP
+            ${addForwardDrops}
           '';
           firewall.extraStopCommands = ''
             iptables -D nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP 2>/dev/null || true
+            ${delForwardDrops}
           '';
         };
 
