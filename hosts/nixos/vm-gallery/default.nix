@@ -30,8 +30,10 @@ in
 
       virtualisation.quadlet.containers.gallery-app.containerConfig.publishPorts = [ "3000:3000" ];
 
-      # set tunnelId once created
-      modules.cloudflared.ingress."gallery.callumwong.com" = "http://127.0.0.1:3000";
+      modules.cloudflared = {
+        tunnelId = "9b0e8012-83b7-4b5f-a336-d0edd86ec586";
+        ingress."gallery.callumwong.com" = "http://127.0.0.1:3000";
+      };
 
       sops.secrets."passwords/vm-gallery-root" = {
         owner = "root";
