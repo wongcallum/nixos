@@ -45,7 +45,6 @@ in
         fonts
         bluetooth
         firefox
-        ungoogled-chromium
         ghostty
         thunderbird
         laptop
