@@ -1,34 +1,29 @@
 { inputs, ... }:
 {
-  # Zed from my fork (Wayland ext-background-effect blur patch), built on top of
-  # nixpkgs' zed-editor rather than the fork's own crane flake. crane's
-  # cleanCargoSource does a readDir IFD at eval time that `nix flake check
-  # --no-build` refuses to substitute; buildRustPackage has no such IFD, so eval
-  # stays cheap and CI needs no binary-cache prefetch.
+  # Zed from my fork (Wayland ext-background-effect blur patch), built via the
+  # fork's own crane flake (its nix/build.nix) instead of nixpkgs' buildRustPackage.
   #
-  # On every zed input bump, recompute the vendor hash (the fork's Cargo.lock
-  # differs from upstream's) by building with lib.fakeHash:
-  #   nix build --impure --expr 'let f = builtins.getFlake (toString ./.); in
-  #     f.inputs.unstable.legacyPackages.x86_64-linux.rustPlatform.fetchCargoVendor {
-  #       src = f.inputs.zed; name = "zed-editor-blur-vendor"; hash = f.inputs.unstable.legacyPackages.x86_64-linux.lib.fakeHash; }'
-  # and copy the "got:" hash here.
+  # Why crane: it splits the build into a cached `buildDepsOnly` derivation and the
+  # final `buildPackage`. Editing the fork's own source without touching Cargo.lock
+  # reuses the compiled dependency artifacts instead of recompiling every crate --
+  # which the previous buildRustPackage approach did on every source change.
+  #
+  # Why this is safe for `nix flake check --no-build` on CI: this crane version is
+  # IFD-free. Its git-dependency vendoring resolves crate names at *build* time
+  # (`cargo metadata` inside `downloadCargoPackageFromGit`) rather than reading them
+  # from a fetched derivation output at eval time, and `mkDummySrc`'s `readDir` only
+  # touches the already-realized flake-input source. Verified on a clean store that
+  #   nix eval --option allow-import-from-derivation false \
+  #     .#nixosConfigurations.shama.config.system.build.toplevel.drvPath
+  # succeeds, i.e. evaluation never forces a build.
+  #
+  # The overlay's `mkZed final` builds against our own nixpkgs (shama's `unstable`),
+  # pulling crane/rust-overlay from the zed flake's locked inputs. No vendor hash to
+  # maintain -- crane vendors straight from the fork's Cargo.lock.
   flake.modules.nixos.zed =
     { pkgs, ... }:
     {
-      environment.systemPackages = [
-        (pkgs.zed-editor.overrideAttrs (old: {
-          version = "${old.version}-blur";
-          src = inputs.zed;
-          # Build a fresh vendor dir from the fork's Cargo.lock. We can't reuse
-          # `old.cargoDeps.overrideAttrs { src = ...; }` -- fetchCargoVendor's
-          # staging stage is a fixed store reference, so that silently re-vendors
-          # the upstream deps instead of the fork's.
-          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
-            src = inputs.zed;
-            name = "zed-editor-blur-vendor";
-            hash = "sha256-Nwg29Mfn/Ij+7F/kh7a/gD85AysOYyWYK2LRVrMpe7g=";
-          };
-        }))
-      ];
+      nixpkgs.overlays = [ inputs.zed.overlays.default ];
+      environment.systemPackages = [ pkgs.zed-editor ];
     };
 }
