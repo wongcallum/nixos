@@ -53,6 +53,8 @@ in
         syncthing-desktop
         direnv
         zoxide
+        helium
+        trilium-desktop
       ]);
 
       system.stateVersion = "26.05";

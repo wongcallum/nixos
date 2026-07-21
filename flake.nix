@@ -32,6 +32,8 @@
     nix-monitored.url = "github:ners/nix-monitored";
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
     cryptomatord.url = "github:wongcallum/cryptomatord";
+    weegspkgs.url = "git+https://codeberg.org/weegs710/pkgs";
+    trilium-next.url = "github:TriliumNext/Trilium";
 
     flux = {
       url = "github:IogaMaster/flux";
@@ -54,6 +56,8 @@
     dms.inputs.nixpkgs.follows = "unstable";
     tuigreet.inputs.nixpkgs.follows = "unstable";
     cryptomatord.inputs.nixpkgs.follows = "unstable";
+    weegspkgs.inputs.nixpkgs.follows = "unstable";
+    trilium-next.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =

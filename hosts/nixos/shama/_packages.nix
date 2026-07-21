@@ -65,6 +65,8 @@ in
     scrcpy
     mpv
     moonlight-qt
+    obs-studio
+    picard
 
     # file manager
     nemo
@@ -83,6 +85,7 @@ in
     equibop
     feishin
     jetbrains-toolbox
+    ayugram-desktop
     lobehub-desktop
     chainner
   ];
