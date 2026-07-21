@@ -25,7 +25,6 @@
     microvm.url = "github:astro/microvm.nix";
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
     zed.url = "github:wongcallum/zed/wayland-ext-background-effect-blur";
-    apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
     dms.url = "github:AvengeMedia/DankMaterialShell";
     tuigreet.url = "github:NotAShelf/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
@@ -47,7 +46,6 @@
     prism-tower.inputs.nixpkgs.follows = "nixpkgs";
     picolimbo.inputs.nixpkgs.follows = "nixpkgs";
     microvm.inputs.nixpkgs.follows = "nixpkgs";
-    apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
     nix-monitored.inputs.nixpkgs.follows = "nixpkgs";
     nix-discord-rpc.inputs.nixpkgs.follows = "nixpkgs";
 
