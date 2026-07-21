@@ -1056,11 +1056,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1784614391,
-        "narHash": "sha256-y0HwiS58PE7Dw7ATV2WPpXJELyiBpgr4NyecnqCXRL0=",
+        "lastModified": 1784631936,
+        "narHash": "sha256-/klkRsUndclC1a6EFCslG8ck2hEGD3DDgwbEVR9kDbQ=",
         "owner": "wongcallum",
         "repo": "zed",
-        "rev": "77b7296700371a0040df25fc9f834246b3fc37a0",
+        "rev": "7913036f08e0519bbbc7b768d3172be1e0ba5a43",
         "type": "github"
       },
       "original": {
