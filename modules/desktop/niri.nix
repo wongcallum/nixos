@@ -21,6 +21,14 @@
         fira-code
       ];
 
-      environment.systemPackages = [ pkgs.xwayland-satellite ];
+      environment.systemPackages = with pkgs; [
+        xwayland-satellite
+
+        # for dms-quick-capture
+        imagemagick
+        img2pdf
+        tesseract
+        zbar
+      ];
     };
 }
