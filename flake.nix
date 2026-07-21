@@ -15,8 +15,6 @@
       flake = false;
     };
 
-    dms.url = "github:wongcallum/DankMaterialShell/refactor/shared-cc-modal";
-
     deploy-rs.url = "github:serokell/deploy-rs";
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
@@ -28,6 +26,7 @@
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
     zed.url = "github:wongcallum/zed/wayland-ext-background-effect-blur";
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
+    dms.url = "github:AvengeMedia/DankMaterialShell";
     tuigreet.url = "github:NotAShelf/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";

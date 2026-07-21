@@ -143,6 +143,22 @@
         "type": "github"
       }
     },
+    "dank-qml-common": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784591373,
+        "narHash": "sha256-oChgAprzgLrpMXDI/AyVt1lJ+S9ayErRZw+1j9d8Sbg=",
+        "owner": "AvengeMedia",
+        "repo": "dank-qml-common",
+        "rev": "1451ac603844f2b686e58fa062b1456373693c22",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AvengeMedia",
+        "repo": "dank-qml-common",
+        "type": "github"
+      }
+    },
     "deploy-rs": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -187,22 +203,22 @@
     },
     "dms": {
       "inputs": {
+        "dank-qml-common": "dank-qml-common",
         "flake-compat": "flake-compat_2",
         "nixpkgs": [
           "unstable"
         ]
       },
       "locked": {
-        "lastModified": 1783561488,
-        "narHash": "sha256-dKNxJIHmTThQnGvsEjfqhj9fDo92+EwfN1DSY8i+9yk=",
-        "owner": "wongcallum",
+        "lastModified": 1784593260,
+        "narHash": "sha256-+p4m1oyMBIx+Ufq5tCOyE/rUg6H3w0pRUu2IFLR6FPg=",
+        "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "c6dea3e978a617346752441524517a10e632c888",
+        "rev": "fa6c36ad570f3d1b2a8a7f93aebbd38df1c5bd16",
         "type": "github"
       },
       "original": {
-        "owner": "wongcallum",
-        "ref": "refactor/shared-cc-modal",
+        "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
         "type": "github"
       }
