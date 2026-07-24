@@ -17,6 +17,7 @@ in
         ./_disko.nix
         ./_packages.nix
 
+        inputs.chaotic.nixosModules.default
         inputs.disko.nixosModules.default
       ]
       ++ (with nixos; [
@@ -114,29 +115,29 @@ in
       ];
 
       boot = {
-        # arrow lake needs very recent kernel
-        kernelPackages = pkgs.linuxPackages_latest;
+        # LTO+BORE kernel
+        kernelPackages = pkgs.linuxPackages_cachyos;
         kernelModules = [
           "kvm-intel"
           "uinput"
         ];
 
-        kernelPatches = [
-          {
-            name = "cs35l41-omnibook7-8e3b";
-            patch = pkgs.fetchpatch {
-              url = "https://lore.kernel.org/linux-sound/0108019f32ada4d0-8ff2c576-8eb9-4ac4-803e-8ff4e1ce57d3-000000@ap-southeast-2.amazonses.com/raw";
-              hash = "sha256-oN9tNA0jeRLel1Rv8gjjNc7iLTBTaYxTZ8ibRhuEjCI=";
-            };
-          }
-          {
-            name = "alc245-omnibook7-8e3b";
-            patch = pkgs.fetchpatch {
-              url = "https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/raw";
-              hash = "sha256-VnzxUqQZGyTrkLcGXCU7/6xPLz/U4Pf9svUu1upNcF8=";
-            };
-          }
-        ];
+        # kernelPatches = [
+        #   {
+        #     name = "cs35l41-omnibook7-8e3b";
+        #     patch = pkgs.fetchpatch {
+        #       url = "https://lore.kernel.org/linux-sound/0108019f32ada4d0-8ff2c576-8eb9-4ac4-803e-8ff4e1ce57d3-000000@ap-southeast-2.amazonses.com/raw";
+        #       hash = "sha256-oN9tNA0jeRLel1Rv8gjjNc7iLTBTaYxTZ8ibRhuEjCI=";
+        #     };
+        #   }
+        #   {
+        #     name = "alc245-omnibook7-8e3b";
+        #     patch = pkgs.fetchpatch {
+        #       url = "https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/raw";
+        #       hash = "sha256-VnzxUqQZGyTrkLcGXCU7/6xPLz/U4Pf9svUu1upNcF8=";
+        #     };
+        #   }
+        # ];
 
         initrd = {
           availableKernelModules = [

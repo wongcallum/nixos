@@ -9,6 +9,7 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     unstable-upstream.url = "github:nixos/nixpkgs/nixos-unstable";
     unstable.url = "github:wongcallum/nixpkgs/patched";
+    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
     secrets = {
       url = "git+ssh://git@github.com/wongcallum/nixos-secrets.git?shallow=1";
