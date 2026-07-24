@@ -1,6 +1,7 @@
 {
   flake.modules.nixos.plasma = { pkgs, ... }: {
     services.desktopManager.plasma6.enable = true;
+    services.geoclue2.enable = false;
     environment.plasma6.excludePackages = with pkgs.kdePackages; [
       plasma-browser-integration
       konsole
