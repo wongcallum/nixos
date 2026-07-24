@@ -165,6 +165,11 @@ in
         loader.efi.canTouchEfiVariables = true;
       };
 
+      # backup kernel
+      specialisation.latest.configuration = {
+        boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
+      };
+
       hardware = {
         enableRedistributableFirmware = true;
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
