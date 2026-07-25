@@ -166,7 +166,7 @@ in
       };
 
       # backup kernel
-      specialisation.latest.configuration = {
+      specialisation.LinuxLatest.configuration = {
         boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
       };
 
