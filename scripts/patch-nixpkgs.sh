@@ -9,5 +9,6 @@ ghcherry --target wongcallum/nixpkgs@patched \
   wongcallum/nixpkgs/6532eb6b9d9afa0911e333ee197eb30d9716fdf9 \
   NixOS/nixpkgs#546004
   # ^ include commits, branches, or PRs https://github.com/PerchunPak/ghcherry
+  # remember to include backslashes and never cherry-pick a merge commit!
 
 nix flake update unstable

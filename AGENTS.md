@@ -38,7 +38,8 @@ The `unstable` input points to `wongcallum/nixpkgs@patched`, a fork branch maint
 To add or update patches, update the script at `scripts/patch-nixpkgs.sh` and run it locally.
 The `update-flake-lock` workflow automates this on weekly runs (requires `NIXPKGS_PAT` secret).
 
-When cherry-picking from upstream nixpkgs PRs, use the individual commit hash, **not** the merge commit — merge commit messages contain `NixOS#NNNNN` which makes GitHub cross-reference the upstream PR on every push to the fork.
+Prefer applying a suitable upstream nixpkgs fix through `scripts/patch-nixpkgs.sh` and updating `flake.lock` rather than vendoring a local overlay. Use a local overlay only when no suitable upstream fix exists or cannot be cherry-picked.
+When cherry-picking from upstream nixpkgs PRs, use the PR reference with `ghcherry` or the individual commit hashes — never the merge commit. `ghcherry` expands PR references to their individual commits; merge commit messages contain `NixOS#NNNNN`, which makes GitHub cross-reference the upstream PR on every push to the fork.
 
 ### Shared options and helpers
 
