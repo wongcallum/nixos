@@ -7,6 +7,7 @@
         shares = {
           callum = "/media/callum";
           media = "/media/media";
+          torrents = "/media/torrents";
         };
 
         mountOpts = "soft,uid=callum,gid=users,file_mode=0700,dir_mode=0700,vers=3.0,credentials=/etc/samba/callum";
