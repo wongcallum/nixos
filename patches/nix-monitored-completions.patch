@@ -1,0 +1,18 @@
+diff --git a/monitored.cc b/monitored.cc
+index 7d1ef6c..d0f6e1d 100644
+--- a/monitored.cc
++++ b/monitored.cc
+@@ -192,6 +192,13 @@ int main(int argc, char* argv[])
+ 	// Defer to Nix early if we're not in an interactive shell or if the user
+ 	// asks for it
+ 	auto const nix_monitor = view_env("NIX_MONITOR");
++	// Nix's shell-completion protocol relies on the original argv and the
++	// NIX_GET_COMPLETIONS index. Monitoring rewrites some commands, which can
++	// invalidate that index before invoking Nix again.
++	if (getenv("NIX_GET_COMPLETIONS") != nullptr)
++	{
++		execvp_array(argv);
++	}
+ 	if ((!isatty(fileno(stderr)) || argc < 2 || nix_monitor == "disable") &&
+ 	    nix_monitor != "force")
+ 	{
