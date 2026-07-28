@@ -895,11 +895,11 @@
     },
     "unstable": {
       "locked": {
-        "lastModified": 1785156456,
-        "narHash": "sha256-w93BeGjWznfeK/xwG+6BSJjS9ZNfwsVEAf6X8qTC564=",
+        "lastModified": 1785252822,
+        "narHash": "sha256-drrbgCaN2wMwrsBg4uFhxmouR72xP895CEc1mAMstCg=",
         "owner": "wongcallum",
         "repo": "nixpkgs",
-        "rev": "5caf43e0e06c574833a45df62da001666350f361",
+        "rev": "26931f7ed5fbd1537a2a0e96f15d6c20627621fc",
         "type": "github"
       },
       "original": {

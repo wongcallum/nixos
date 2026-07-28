@@ -86,6 +86,7 @@ in
     feishin
     jetbrains-toolbox
     ayugram-desktop
+    faugus-launcher
     lobehub-desktop
     chainner
   ];
