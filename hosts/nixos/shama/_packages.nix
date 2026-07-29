@@ -73,6 +73,15 @@ in
     nnn
     doublecmd
     file-roller
+    kdePackages.dolphin
+    kdePackages.kio
+    kdePackages.kio-admin
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
+    kdePackages.baloo
+    kdePackages.baloo-widgets
+    kdePackages.dolphin-plugins
+    kdePackages.kdegraphics-thumbnailers
 
     # system
     kdePackages.qttools

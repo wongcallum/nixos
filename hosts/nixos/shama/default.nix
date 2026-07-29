@@ -39,7 +39,6 @@ in
         audio
         desktop
         niri
-        plasma
         keyd
         libvirt
         docker
