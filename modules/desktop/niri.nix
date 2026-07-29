@@ -15,6 +15,11 @@
         };
       };
 
+      # fix dolphin file associations
+      # https://github.com/NixOS/nixpkgs/issues/409986
+      environment.etc."xdg/menus/applications.menu".source =
+        "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
+
       # not sure if these are used
       fonts.packages = with pkgs; [
         material-symbols
