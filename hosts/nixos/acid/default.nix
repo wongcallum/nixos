@@ -36,6 +36,16 @@ in
 
       system.stateVersion = "26.05";
 
+      systemd.user.services.niri.environment.NIRI_CONFIG = "/etc/niri/acid.kdl";
+      environment.etc."niri/acid.kdl".text = ''
+        include optional=true "/home/callum/.config/niri/config.kdl";
+
+        debug {
+          render-drm-device "/dev/dri/by-path/pci-0000:04:00.0-render"
+          ignore-drm-device "/dev/dri/by-path/pci-0000:07:00.0-render"
+        }
+      '';
+
       nixpkgs.config.allowUnfree = true;
 
       networking.networkmanager.enable = true;
@@ -51,6 +61,10 @@ in
       };
 
       boot = {
+        # Keep the text console (and tuigreet) on the 1060's framebuffer.
+        # fb0 is the CUDA-only 3060; fb1 is the display 1060.
+        kernelParams = [ "fbcon=map:1" ];
+
         loader.efi.canTouchEfiVariables = true;
 
         initrd.availableKernelModules = [
@@ -69,6 +83,7 @@ in
         graphics.enable = true;
 
         nvidia = {
+          package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
           modesetting.enable = true;
           open = false;
         };
