@@ -116,8 +116,8 @@ in
 
       boot = {
         # Keep the text console (and tuigreet) on the 1060's framebuffer.
-        # fb0 is the CUDA-only 3060; fb1 is the display 1060.
-        kernelParams = [ "fbcon=map:1" ];
+        # The GTX 1060 currently exposes fb0; the CUDA-only 3060 has no fbdev.
+        kernelParams = [ "fbcon=map:0" ];
 
         loader.efi.canTouchEfiVariables = true;
 
