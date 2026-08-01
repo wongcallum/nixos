@@ -92,6 +92,7 @@ in
       documentation.man.cache.enable = false;
 
       modules = {
+        limine.rememberLastEntry = true;
         syncthing-desktop.user = "callum";
         laptop.suspendThenHibernate.enable = true;
         firefox.transparency = {
