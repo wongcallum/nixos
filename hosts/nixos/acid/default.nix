@@ -27,62 +27,87 @@ in
         callum
         ssh
         tailscale
+        autofs
+        cryptomatord
+        zed
+        freesmlauncher
+        disk-utils
+        nix-monitored
+        nix-discord-rpc
 
         impermanence-btrfs
 
         audio
         desktop
         niri
+        keyd
+        libvirt
+        docker
         fonts
         bluetooth
         firefox
         ghostty
+        thunderbird
+        nix-ld
+        syncthing-desktop
+        direnv
+        zoxide
+        helium
+        trilium-desktop
       ]);
 
       system.stateVersion = "26.05";
 
-      services.llama-cpp = {
-        enable = true;
-        package = pkgs.llama-cpp.override { cudaSupport = true; };
-        settings = {
-          host = "127.0.0.1";
-          port = 8080;
+      services = {
+        llama-cpp = {
+          enable = true;
+          package = pkgs.llama-cpp.override { cudaSupport = true; };
+          settings = {
+            host = "127.0.0.1";
+            port = 8080;
 
-          hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q6_K_XL";
-          alias = "qwen3.6-35b-a3b";
+            hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q6_K_XL";
+            alias = "qwen3.6-35b-a3b";
 
-          n-cpu-moe = 64;
-          n-gpu-layers = 99;
-          kv-offload = true;
-          threads = 12;
-          threads-batch = 12;
-          ctx-size = 262144;
-          flash-attn = "on";
-          cache-type-k = "q8_0";
-          cache-type-v = "q8_0";
-          spec-draft-type-k = "q8_0";
-          spec-draft-type-v = "q8_0";
-          parallel = 1;
+            n-cpu-moe = 64;
+            n-gpu-layers = 99;
+            kv-offload = true;
+            threads = 12;
+            threads-batch = 12;
+            ctx-size = 262144;
+            flash-attn = "on";
+            cache-type-k = "q8_0";
+            cache-type-v = "q8_0";
+            spec-draft-type-k = "q8_0";
+            spec-draft-type-v = "q8_0";
+            parallel = 1;
 
-          # https://unsloth.ai/docs/models/qwen3.6#llama.cpp-mtp-guide
-          temp = 0.6;
-          top-p = 0.95;
-          top-k = 20;
-          min-p = 0.00;
-          spec-type = "draft-mtp";
-          spec-draft-n-max = 2;
+            # https://unsloth.ai/docs/models/qwen3.6#llama.cpp-mtp-guide
+            temp = 0.6;
+            top-p = 0.95;
+            top-k = 20;
+            min-p = 0.00;
+            spec-type = "draft-mtp";
+            spec-draft-n-max = 2;
+          };
         };
+
+        resolved.enable = true;
+        xserver.videoDrivers = [ "nvidia" ];
+      };
+      systemd = {
+        services.llama-cpp.serviceConfig = {
+          Environment = lib.mkForce [
+            "CUDA_VISIBLE_DEVICES=GPU-41a667ec-3e58-e64c-1eeb-fb916f0b286f"
+            "LLAMA_CACHE=/var/lib/llama-cpp/cache"
+          ];
+          TimeoutStartSec = "infinity";
+        };
+
+        user.services.niri.environment.NIRI_CONFIG = "/etc/niri/acid.kdl";
+        user.services.opentabletdriver.after = [ "graphical-session.target" ];
       };
 
-      systemd.services.llama-cpp.serviceConfig = {
-        Environment = lib.mkForce [
-          "CUDA_VISIBLE_DEVICES=GPU-41a667ec-3e58-e64c-1eeb-fb916f0b286f"
-          "LLAMA_CACHE=/var/lib/llama-cpp/cache"
-        ];
-        TimeoutStartSec = "infinity";
-      };
-
-      systemd.user.services.niri.environment.NIRI_CONFIG = "/etc/niri/acid.kdl";
       environment.etc."niri/acid.kdl".text = ''
         include optional=true "/home/callum/.config/niri/config.kdl";
 
@@ -92,13 +117,42 @@ in
         }
       '';
 
+      environment.variables = {
+        EDITOR = "nvim";
+        GOPATH = "/home/callum/.local/share/go";
+        GOBIN = "/home/callum/.local/bin";
+      };
+
       nixpkgs.config.allowUnfree = true;
+      nixpkgs.overlays = [
+        (final: prev: {
+          nnn = prev.nnn.overrideAttrs {
+            version = "5.3-unstable-2026-05-29";
+            src = final.fetchFromGitHub {
+              owner = "jarun";
+              repo = "nnn";
+              rev = "2f1d36273ac256723781be82088d6f95edbbe2e5";
+              sha256 = "sha256-u77QZOlzLZ4CDjZmuGnyEF9avOoMbLxnRO7M2JHTb1g=";
+            };
+          };
+        })
+      ];
 
       networking.networkmanager.enable = true;
-      services.resolved.enable = true;
-      services.xserver.videoDrivers = [ "nvidia" ];
+      documentation.man.cache.enable = false;
 
-      users.users.callum.extraGroups = [ "networkmanager" ];
+      modules = {
+        syncthing-desktop.user = "callum";
+        firefox.transparency = {
+          enableToolbox = true;
+          enablePage = true;
+        };
+      };
+
+      users.users.callum.extraGroups = [
+        "networkmanager"
+        "adbusers"
+      ];
       users.users.callum.initialPassword = lib.mkForce null;
 
       fileSystems."/games" = {
@@ -122,6 +176,10 @@ in
         ];
       };
 
+      specialisation.LinuxLatest.configuration = {
+        boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
+      };
+
       hardware = {
         enableRedistributableFirmware = true;
         cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
@@ -138,7 +196,5 @@ in
         };
       };
 
-      # The daemon needs the graphical session environment.
-      systemd.user.services.opentabletdriver.after = [ "graphical-session.target" ];
     };
 }
