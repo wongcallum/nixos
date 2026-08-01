@@ -128,11 +128,17 @@ in
 
         graphics.enable = true;
 
+        opentabletdriver.enable = true;
+        uinput.enable = true;
+
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
           modesetting.enable = true;
           open = false;
         };
       };
+
+      # The daemon needs the graphical session environment.
+      systemd.user.services.opentabletdriver.after = [ "graphical-session.target" ];
     };
 }
