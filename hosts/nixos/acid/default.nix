@@ -38,23 +38,15 @@ in
 
         impermanence-btrfs
 
-        audio
         desktop
-        niri
         opentabletdriver
 
         keyd
         libvirt
         docker
-        fonts
         bluetooth
-        firefox
-        ghostty
         thunderbird
-        nix-ld
         syncthing-desktop
-        direnv
-        zoxide
         helium
         trilium-desktop
       ]);

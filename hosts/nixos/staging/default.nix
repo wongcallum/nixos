@@ -30,15 +30,7 @@ in
         ssh
         tailscale
 
-        audio
         desktop
-        niri
-        fonts
-        firefox
-        ghostty
-        nix-ld
-        direnv
-        zoxide
       ]);
 
       system.stateVersion = "25.11";
