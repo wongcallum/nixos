@@ -144,6 +144,7 @@ in
           package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
           modesetting.enable = true;
           open = false;
+          powerManagement.enable = true;
         };
       };
 
