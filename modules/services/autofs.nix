@@ -23,7 +23,14 @@
       in
       {
         environment.systemPackages = [ pkgs.cifs-utils ];
-        systemd.services.autofs.path = [ pkgs.cifs-utils ];
+        systemd.services.autofs = {
+          path = [ pkgs.cifs-utils ];
+          serviceConfig = {
+            # Detach CIFS mounts before autofs tries a graceful, network-dependent unmount.
+            ExecStop = "-${pkgs.util-linux}/bin/umount --lazy ${lib.concatStringsSep " " (lib.attrValues shares)}";
+            TimeoutStopSec = "5s";
+          };
+        };
 
         systemd.tmpfiles.rules = map (dir: "d ${dir} 0755 root root -") (
           lib.unique (map dirOf (lib.attrValues shares))
