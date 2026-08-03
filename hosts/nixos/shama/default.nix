@@ -37,22 +37,16 @@ in
 
         impermanence-btrfs
 
-        audio
         desktop
-        niri
+        opentabletdriver
+
         keyd
         libvirt
         docker
-        fonts
         bluetooth
-        firefox
-        ghostty
         thunderbird
         laptop
-        nix-ld
         syncthing-desktop
-        direnv
-        zoxide
         helium
         trilium-desktop
       ]);
@@ -92,6 +86,7 @@ in
       documentation.man.cache.enable = false;
 
       modules = {
+        limine.rememberLastEntry = true;
         syncthing-desktop.user = "callum";
         laptop.suspendThenHibernate.enable = true;
         firefox.transparency = {
@@ -191,11 +186,7 @@ in
           ];
         };
 
-        opentabletdriver.enable = true;
-        uinput.enable = true;
       };
 
-      # crashes if service starts before DISPLAY/WAYLAND_DISPLAY are set
-      systemd.user.services.opentabletdriver.after = [ "graphical-session.target" ];
     };
 }

@@ -1,0 +1,101 @@
+{ pkgs, ... }:
+let
+  lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
+  chainner = pkgs.callPackage ../../../packages/chainner { };
+in
+{
+  environment.systemPackages = with pkgs; [
+    # terminal tools
+    zellij
+    chezmoi
+    mise
+    devenv
+    android-tools
+
+    ## fish plugins
+    fishPlugins.tide
+    fishPlugins.autopair
+
+    ## git
+    git
+    delta
+    lazygit
+    gh
+
+    ## general purpose
+    nushell
+    jq
+    ripgrep
+    wl-clipboard
+    wget
+    unzip
+
+    ## informational/helper
+    ncdu
+    btop
+    nix-output-monitor
+    nix-search-cli
+    nix-your-shell
+    nh
+
+    # editors
+    neovim
+    tree-sitter
+    vscode
+
+    # lsp/format
+    nixd
+    nil
+    nixfmt
+    lua-language-server
+    markdown-oxide
+    typst
+    tinymist
+    websocat # for typst-preview.nvim
+
+    # productivity
+    xournalpp
+    libreoffice-fresh
+    qalculate-gtk
+    foliate
+    kdePackages.okular
+    zathura
+    xnviewmp
+    scrcpy
+    mpv
+    moonlight-qt
+    obs-studio
+    picard
+
+    # file manager
+    nemo
+    nnn
+    doublecmd
+    file-roller
+    kdePackages.dolphin
+    kdePackages.kio
+    kdePackages.kio-admin
+    kdePackages.kio-extras
+    kdePackages.kio-fuse
+    kdePackages.baloo
+    kdePackages.baloo-widgets
+    kdePackages.dolphin-plugins
+    kdePackages.kdegraphics-thumbnailers
+
+    # system
+    kdePackages.qttools
+    adwaita-icon-theme
+    pavucontrol
+    blueman
+    efibootmgr
+
+    # bloat
+    equibop
+    feishin
+    jetbrains-toolbox
+    ayugram-desktop
+    faugus-launcher
+    lobehub-desktop
+    chainner
+  ];
+}

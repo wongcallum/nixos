@@ -1,6 +1,11 @@
 {
   flake.modules.nixos.limine =
-    { pkgs, config, ... }:
+    {
+      lib,
+      pkgs,
+      config,
+      ...
+    }:
     let
       aixoid9-f20 = pkgs.fetchurl {
         url = "https://raw.githubusercontent.com/viler-int10h/vga-text-mode-fonts/ab3965599eb3d0de9834fa9c26942b4e4843a42b/FONTS/AIXOID9.F20";
@@ -8,57 +13,65 @@
       };
     in
     {
-      systemd.services.limine-branding = {
-        description = "Set Limine branding from local file";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "local-fs.target" ];
-        unitConfig.RequiresMountsFor = "/boot";
-        path = with pkgs; [
-          coreutils
-          gnugrep
-        ];
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-        };
-        script = ''
-          conf=/boot/limine/limine.conf
-          brand=/var/lib/limine-branding
-          [ -r "$brand" ] && [ -w "$conf" ] || exit 0
-          val=$(head -n1 "$brand")
-          tmp=$(mktemp)
-          {
-            printf 'interface_branding: %s\n' "$val"
-            grep -v '^interface_branding:' "$conf"
-          } > "$tmp"
-          cat "$tmp" > "$conf"
-          rm -f "$tmp"
-        '';
+      options.modules.limine.rememberLastEntry = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Remember the last Limine entry";
       };
 
-      boot.loader = {
-        timeout = 10;
-        limine = {
-          enable = true;
-
-          additionalFiles."fonts/AIXOID9.F20" = aixoid9-f20;
-          extraConfig = ''
-            term_font: boot():/limine/fonts/AIXOID9.F20
-            term_font_size: 8x20
-            remember_last_entry: yes
+      config = {
+        systemd.services.limine-branding = {
+          description = "Set Limine branding from local file";
+          wantedBy = [ "multi-user.target" ];
+          after = [ "local-fs.target" ];
+          unitConfig.RequiresMountsFor = "/boot";
+          path = with pkgs; [
+            coreutils
+            gnugrep
+          ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+          };
+          script = ''
+            conf=/boot/limine/limine.conf
+            brand=/var/lib/limine-branding
+            [ -r "$brand" ] && [ -w "$conf" ] || exit 0
+            val=$(head -n1 "$brand")
+            tmp=$(mktemp)
+            {
+              printf 'interface_branding: %s\n' "$val"
+              grep -v '^interface_branding:' "$conf"
+            } > "$tmp"
+            cat "$tmp" > "$conf"
+            rm -f "$tmp"
           '';
+        };
 
-          # from https://github.com/diegons490/cachyos-limine-theme
-          style = {
-            interface.branding = config.networking.hostName;
-            wallpapers = [ pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt.gnomeFilePath ];
-            graphicalTerminal = {
-              palette = "1e1e2e;f38ba8;a6e3a1;f9e2af;89b4fa;f5c2e7;94e2d5;cdd6f4";
-              brightPalette = "585b70;f38ba8;a6e3a1;f9e2af;89b4fa;f5c2e7;94e2d5;cdd6f4";
-              background = "ffffffff";
-              foreground = "cdd6f4";
-              brightBackground = "ffffffff";
-              brightForeground = "cdd6f4";
+        boot.loader = {
+          timeout = 10;
+          limine = {
+            enable = true;
+
+            additionalFiles."fonts/AIXOID9.F20" = aixoid9-f20;
+            extraConfig = ''
+              term_font: boot():/limine/fonts/AIXOID9.F20
+              term_font_size: 8x20
+              remember_last_entry: ${if config.modules.limine.rememberLastEntry then "yes" else "no"}
+            '';
+
+            # from https://github.com/diegons490/cachyos-limine-theme
+            style = {
+              interface.branding = config.networking.hostName;
+              wallpapers = [ pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt.gnomeFilePath ];
+              graphicalTerminal = {
+                palette = "1e1e2e;f38ba8;a6e3a1;f9e2af;89b4fa;f5c2e7;94e2d5;cdd6f4";
+                brightPalette = "585b70;f38ba8;a6e3a1;f9e2af;89b4fa;f5c2e7;94e2d5;cdd6f4";
+                background = "ffffffff";
+                foreground = "cdd6f4";
+                brightBackground = "ffffffff";
+                brightForeground = "cdd6f4";
+              };
             };
           };
         };

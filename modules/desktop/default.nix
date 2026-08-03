@@ -12,6 +12,17 @@
       sessions = config.services.displayManager.sessionData.desktops;
     in
     {
+      imports = with inputs.self.modules.nixos; [
+        audio
+        niri
+        fonts
+        firefox
+        ghostty
+        nix-ld
+        direnv
+        zoxide
+      ];
+
       programs.kdeconnect = {
         enable = true;
         # https://bugs.kde.org/show_bug.cgi?id=513536
