@@ -25,7 +25,7 @@
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
-    zed.url = "github:wongcallum/zed/wayland-ext-background-effect-blur";
+
     dms.url = "github:AvengeMedia/DankMaterialShell";
     tuigreet.url = "github:NotAShelf/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
