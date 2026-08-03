@@ -36,7 +36,7 @@ in
         in
         inputs.${baseName}.lib.nixosSystem {
           inherit system;
-          specialArgs = inputs;
+          specialArgs = lib.recursiveUpdate inputs { inherit inputs; };
           modules = [
             { networking.hostName = hostname; }
             config.flake.modules.nixos.base

@@ -1,8 +1,8 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 let
   lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
   chainner = pkgs.callPackage ../../../packages/chainner { };
-  openscq30 = pkgs.callPackage ../../../packages/openscq30 { };
+  openscq30-cli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.openscq30-cli;
 in
 {
   environment.systemPackages = with pkgs; [
@@ -100,6 +100,6 @@ in
     faugus-launcher
     lobehub-desktop
     chainner
-    openscq30
+    openscq30-cli
   ];
 }

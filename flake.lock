@@ -23,6 +23,22 @@
     },
     "crane": {
       "locked": {
+        "lastModified": 1784564969,
+        "narHash": "sha256-TkTWNhJV/8Wk3czlbz4bwHZkFCaCHPsOy+oJe4PUiXg=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "7930f6c291de6f83c257839d434592aa085f290a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "7930f6c291de6f83c257839d434592aa085f290a",
+        "type": "github"
+      }
+    },
+    "crane_2": {
+      "locked": {
         "lastModified": 1757183466,
         "narHash": "sha256-kTdCCMuRE+/HNHES5JYsbRHmgtr+l9mOtf5dpcMppVc=",
         "owner": "ipetkov",
@@ -36,7 +52,7 @@
         "type": "github"
       }
     },
-    "crane_2": {
+    "crane_3": {
       "locked": {
         "lastModified": 1784564969,
         "narHash": "sha256-TkTWNhJV/8Wk3czlbz4bwHZkFCaCHPsOy+oJe4PUiXg=",
@@ -452,7 +468,7 @@
     },
     "mcman": {
       "inputs": {
-        "crane": "crane",
+        "crane": "crane_2",
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
@@ -636,6 +652,23 @@
         "type": "github"
       }
     },
+    "openscq30": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1784701150,
+        "narHash": "sha256-mUHepCw7sHBXbJpWMEz3wDIIpAoX9ce2lIRlDCzx+ms=",
+        "owner": "Oppzippy",
+        "repo": "OpenSCQ30",
+        "rev": "409460e16c44324b35aeb5c99ea9acb7896726f4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Oppzippy",
+        "repo": "OpenSCQ30",
+        "rev": "409460e16c44324b35aeb5c99ea9acb7896726f4",
+        "type": "github"
+      }
+    },
     "picolimbo": {
       "inputs": {
         "nixpkgs": [
@@ -695,6 +728,7 @@
     "root": {
       "inputs": {
         "chaotic": "chaotic",
+        "crane": "crane",
         "cryptomatord": "cryptomatord",
         "deploy-rs": "deploy-rs",
         "disko": "disko",
@@ -709,6 +743,7 @@
         "nix-discord-rpc": "nix-discord-rpc",
         "nix-monitored": "nix-monitored",
         "nixpkgs": "nixpkgs_4",
+        "openscq30": "openscq30",
         "picolimbo": "picolimbo",
         "prism-tower": "prism-tower",
         "quadlet-nix": "quadlet-nix",
@@ -842,7 +877,7 @@
     },
     "tuigreet": {
       "inputs": {
-        "crane": "crane_2",
+        "crane": "crane_3",
         "nixpkgs": [
           "unstable"
         ],

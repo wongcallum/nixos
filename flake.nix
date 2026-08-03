@@ -33,6 +33,11 @@
     cryptomatord.url = "github:wongcallum/cryptomatord";
     weegspkgs.url = "git+https://codeberg.org/weegs710/pkgs";
     freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
+    crane.url = "github:ipetkov/crane/7930f6c291de6f83c257839d434592aa085f290a";
+    openscq30 = {
+      url = "github:Oppzippy/OpenSCQ30/409460e16c44324b35aeb5c99ea9acb7896726f4";
+      flake = false;
+    };
 
     flux = {
       url = "github:IogaMaster/flux";

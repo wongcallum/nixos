@@ -1,9 +1,9 @@
 {
   lib,
-  rustPlatform,
-  fetchFromGitHub,
-  makeWrapper,
+  craneLib,
+  src,
   pkg-config,
+  makeWrapper,
   dbus,
   sqlite,
   wayland,
@@ -17,32 +17,30 @@
   vulkan-loader,
   cosmic-icons,
 }:
-rustPlatform.buildRustPackage {
-  pname = "openscq30";
-  version = "2.10.1";
 
-  src = fetchFromGitHub {
-    owner = "Oppzippy";
-    repo = "OpenSCQ30";
-    rev = "0dc9b2b0a98fb5ded4f1dcc38d18381112031014";
-    hash = "sha256-YIUQ3bWj3CQl1iYpaOnGjM8oH5q9xhPtKDuXseat+fQ=";
+let
+  # Keep the source files embedded by the CLI and GUI builds. The workspace
+  # contains resources outside the files selected by crane's Cargo filter.
+  source = lib.cleanSourceWith {
+    src = lib.cleanSource src;
+    filter =
+      path: type:
+      (craneLib.filterCargoSources path type)
+      || lib.hasSuffix ".ftl" path
+      || lib.hasSuffix ".sql" path
+      || lib.hasSuffix ".svg" path
+      || lib.hasSuffix ".png" path
+      || lib.hasSuffix ".ico" path
+      || lib.hasSuffix ".desktop" path
+      || lib.hasSuffix ".metainfo.xml" path;
   };
 
-  cargoHash = "sha256-M+7YgmSxKuWIb7Y2d9HySePvUb6CeCHZdZTVnR7ED0Y=";
-  cargoBuildFlags = [
-    "--package"
-    "openscq30-gui"
-  ];
-  doCheck = false;
-
-  nativeBuildInputs = [
-    makeWrapper
-    pkg-config
-  ];
-
-  buildInputs = [
+  commonBuildInputs = [
     dbus
     sqlite
+  ];
+
+  guiOnlyBuildInputs = [
     wayland
     libxkbcommon
     libGL
@@ -54,16 +52,39 @@ rustPlatform.buildRustPackage {
     vulkan-loader
   ];
 
-  postInstall = ''
-    wrapProgram "$out/bin/openscq30-gui" \
-      --prefix XDG_DATA_DIRS : "${cosmic-icons}/share"
-  '';
+  commonArgs = {
+    src = source;
+    pname = "openscq30";
+    nativeBuildInputs = [
+      pkg-config
+      makeWrapper
+    ];
+    buildInputs = commonBuildInputs ++ guiOnlyBuildInputs;
+  };
 
-  meta = {
-    description = "Control settings for Soundcore headphones and earbuds";
-    homepage = "https://github.com/Oppzippy/OpenSCQ30";
-    license = lib.licenses.gpl3Only;
-    mainProgram = "openscq30-gui";
-    platforms = lib.platforms.linux;
+  cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+  mkPackage = args: craneLib.buildPackage (lib.recursiveUpdate commonArgs args);
+in
+{
+  openscq30-cli = mkPackage {
+    inherit cargoArtifacts;
+    version = "2.10.1";
+    pname = "openscq30-cli";
+    cargoExtraArgs = "--package openscq30-cli";
+    buildInputs = commonBuildInputs;
+    meta.mainProgram = "openscq30";
+  };
+
+  openscq30-gui = mkPackage {
+    inherit cargoArtifacts;
+    version = "2.10.1";
+    pname = "openscq30-gui";
+    cargoExtraArgs = "--package openscq30-gui";
+    meta.mainProgram = "openscq30-gui";
+    postInstall = ''
+      wrapProgram "$out/bin/openscq30-gui" \
+        --prefix XDG_DATA_DIRS : "${cosmic-icons}/share"
+    '';
   };
 }
