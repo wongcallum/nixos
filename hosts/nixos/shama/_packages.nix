@@ -2,6 +2,7 @@
 let
   lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
   chainner = pkgs.callPackage ../../../packages/chainner { };
+  openscq30 = pkgs.callPackage ../../../packages/openscq30 { };
 in
 {
   environment.systemPackages = with pkgs; [
@@ -98,5 +99,6 @@ in
     faugus-launcher
     lobehub-desktop
     chainner
+    openscq30
   ];
 }
