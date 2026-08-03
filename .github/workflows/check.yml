@@ -23,13 +23,13 @@ jobs:
         with:
           determinate: false
 
-      - uses: nix-community/cache-nix-action@v6
+      - uses: nix-community/cache-nix-action@v7
         with:
           primary-key: nix-${{ runner.os }}-check-v2-${{ hashFiles('flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-check-v2-
-          # Restrict to the store + db only. The default ("/nix") also grabs the
-          # installer's root-owned files, whose restore fails tar (exit 2) and
-          # leaves paths registered-but-invalid. -v2- abandons the poisoned caches.
+          # nix: true includes /nix by default; paths below are additive,
+          # not restrictive. Keep the key namespace versioned when changing
+          # cache contents or restore behavior.
           paths: |
             /nix/store
             /nix/var/nix/db/db.sqlite
