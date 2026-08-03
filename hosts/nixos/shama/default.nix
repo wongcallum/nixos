@@ -88,7 +88,6 @@ in
       modules = {
         limine.rememberLastEntry = true;
         syncthing-desktop.user = "callum";
-        laptop.suspendThenHibernate.enable = true;
         firefox.transparency = {
           enableToolbox = true;
           enablePage = true;
@@ -98,15 +97,6 @@ in
       users.users.callum.extraGroups = [
         "networkmanager"
         "adbusers"
-      ];
-
-      # NixOS automatically creates with `btrfs filesystem mkswapfile`
-      # priority is automatically set below zram
-      swapDevices = [
-        {
-          device = "/persist/swapfile";
-          size = 32 * 1024; # MiB
-        }
       ];
 
       boot = {
