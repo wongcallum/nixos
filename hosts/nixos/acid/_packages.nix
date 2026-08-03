@@ -63,6 +63,7 @@ in
     zathura
     xnviewmp
     scrcpy
+    ffmpeg
     mpv
     moonlight-qt
     obs-studio
