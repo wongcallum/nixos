@@ -14,6 +14,7 @@ in
     }:
     {
       imports = [
+        ./_audio-always-on.nix
         ./_disko.nix
         ./_packages.nix
 
