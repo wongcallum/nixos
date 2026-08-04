@@ -35,6 +35,11 @@
         };
       };
 
+      systemd.services.llama-cpp.unitConfig = {
+        Requires = [ "dev-nvidia1.device" ];
+        After = [ "dev-nvidia1.device" ];
+      };
+
       systemd.services.llama-cpp.serviceConfig = {
         Environment = lib.mkForce [
           "CUDA_VISIBLE_DEVICES=GPU-41a667ec-3e58-e64c-1eeb-fb916f0b286f"
