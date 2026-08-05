@@ -11,7 +11,7 @@
         enable = true;
         package = pkgs.llama-cpp.override { cudaSupport = true; };
         settings = {
-          host = "127.0.0.1";
+          host = "0.0.0.0";
           port = 8080;
 
           hf-repo = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q6_K_XL";
