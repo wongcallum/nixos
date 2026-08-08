@@ -94,7 +94,6 @@ in
       ];
 
       networking.networkmanager.enable = true;
-      documentation.man.cache.enable = false;
 
       modules = {
         syncthing-desktop.user = "callum";

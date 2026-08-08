@@ -83,7 +83,6 @@ in
 
       networking.networkmanager.enable = true;
       services.resolved.enable = true;
-      documentation.man.cache.enable = false;
 
       modules = {
         limine.rememberLastEntry = true;

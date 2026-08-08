@@ -52,11 +52,7 @@
         };
       };
 
-      documentation = {
-        enable = false;
-        doc.enable = false;
-        info.enable = false;
-      };
+      documentation.man.cache.enable = false;
 
       services.journald.extraConfig = ''
         SystemMaxUse=100M
