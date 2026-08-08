@@ -66,7 +66,7 @@ in
     ffmpeg
     mpv
     moonlight-qt
-    obs-studio
+    (obs-studio.override { cudaSupport = true; })
     picard
 
     # file manager
