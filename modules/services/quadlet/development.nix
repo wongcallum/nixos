@@ -16,7 +16,7 @@ in
       ];
 
       modules.containers = {
-        forgejo = lib.mkDefault true;
+        gitea = lib.mkDefault true;
       };
 
       virtualisation.quadlet = {
@@ -27,10 +27,10 @@ in
           };
         };
 
-        containers.forgejo = lib.mkIf config.modules.containers.forgejo (
+        containers.gitea = lib.mkIf config.modules.containers.gitea (
           config.utils.mkContainer {
             containerConfig = {
-              image = "codeberg.org/forgejo/forgejo:15";
+              image = "docker.io/gitea/gitea:1.24";
               environments = {
                 USER_UID = "1000";
                 USER_GID = "1000";
@@ -52,11 +52,11 @@ in
     { config, lib, ... }:
     {
       modules.gateway.services = {
-        development-forgejo = lib.mkIf config.modules.containers.forgejo {
-          name = "Forgejo";
+        development-gitea = lib.mkIf config.modules.containers.gitea {
+          name = "Gitea";
           domainName = "git";
           addr = "172.23.0.3:3000";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/forgejo.png";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gitea.png";
           category = "Development";
         };
       };

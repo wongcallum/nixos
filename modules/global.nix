@@ -67,7 +67,7 @@
         evcc = lib.mkEnableOption "evcc";
         mongo = lib.mkEnableOption "MongoDB";
 
-        forgejo = lib.mkEnableOption "Forgejo";
+        gitea = lib.mkEnableOption "Gitea";
 
         ai-searxng = lib.mkEnableOption "SearXNG";
         ai-openwebui = lib.mkEnableOption "Open WebUI";
