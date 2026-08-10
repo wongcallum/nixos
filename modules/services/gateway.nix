@@ -5,6 +5,7 @@
     { config, pkgs, ... }:
     let
       caddyDataDir = config.utils.dataDir "caddy";
+      technitiumDataDir = config.utils.dataDir "technitium";
       fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
     in
     {
@@ -55,6 +56,7 @@
 
         systemd.tmpfiles.rules = [
           "d ${caddyDataDir} 0750 caddy caddy -"
+          "d ${technitiumDataDir} 0750 technitium-dns-server technitium-dns-server -"
         ];
 
         sops.secrets."caddy/ca.pem" = {
@@ -70,9 +72,30 @@
         };
 
         services.technitium-dns-server.enable = true;
-        # make sure we don't watch the entire root with inotify
-        systemd.services.technitium-dns-server.serviceConfig.WorkingDirectory =
-          "/var/lib/technitium-dns-server";
+
+        # upstream runs the server as a DynamicUser with a StateDirectory, which
+        # puts its state in /var/lib/private/technitium-dns-server. Swap to a
+        # static system user so the state can live under persistDir/data.
+        users.users.technitium-dns-server = {
+          isSystemUser = true;
+          group = "technitium-dns-server";
+        };
+        users.groups.technitium-dns-server = { };
+
+        systemd.services.technitium-dns-server.serviceConfig = {
+          DynamicUser = lib.mkForce false;
+          User = "technitium-dns-server";
+          Group = "technitium-dns-server";
+          # empty value resets the list, so no /var/lib entry is created
+          StateDirectory = lib.mkForce "";
+          ExecStart = lib.mkForce (
+            "${config.services.technitium-dns-server.package}/bin/technitium-dns-server " + technitiumDataDir
+          );
+          # ProtectSystem = "strict" leaves persistDir read-only otherwise
+          ReadWritePaths = [ technitiumDataDir ];
+          # make sure we don't watch the entire root with inotify
+          WorkingDirectory = technitiumDataDir;
+        };
 
         networking.firewall.allowedTCPPorts = [
           53
@@ -147,16 +170,5 @@
             };
         };
       };
-    };
-
-  # /var/lib/technitium-dns-server is a symlink to /var/lib/private/technitium-dns-server
-  flake.modules.nixos.persistence =
-    { config, ... }:
-    {
-      environment.persistence.${config.modules.persistence.persistDir}.directories =
-        lib.mkIf config.services.technitium-dns-server.enable
-          [
-            "/var/lib/private/technitium-dns-server"
-          ];
     };
 }
