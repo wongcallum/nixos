@@ -14,13 +14,11 @@ in
       systemd.tmpfiles.rules = [
         "d ${config.utils.dataDir "searxng"} 0755 root root -"
         "d ${config.utils.dataDir "open-webui"} 0755 root root -"
-        "d ${config.utils.dataDir "silverbullet"} 0755 root root -"
       ];
 
       modules.containers = {
         ai-searxng = lib.mkDefault true;
         ai-openwebui = lib.mkDefault true;
-        silverbullet = lib.mkDefault true;
       };
 
       virtualisation.quadlet = {
@@ -73,29 +71,6 @@ in
 
         };
       };
-
-      sops.secrets."docker/silverbullet_env" = {
-        owner = "root";
-        group = "root";
-        mode = "0440";
-        restartUnits = [ "silverbullet.service" ];
-      };
-
-      virtualisation.quadlet.containers.silverbullet = lib.mkIf config.modules.containers.silverbullet (
-        config.utils.mkContainer {
-          containerConfig = {
-            image = "ghcr.io/silverbulletmd/silverbullet:latest";
-            notify = "healthy";
-            healthStartPeriod = "30s";
-            environmentFiles = [ config.sops.secrets."docker/silverbullet_env".path ];
-            networks = [ networks.${networkName}.ref ];
-            ip = "172.22.0.4";
-            volumes = [
-              "${config.utils.dataDir "silverbullet"}:/space"
-            ];
-          };
-        }
-      );
     };
 
   flake.modules.nixos.gateway =
@@ -107,14 +82,6 @@ in
           domainName = "chat";
           addr = "172.22.0.2:8080";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/open-webui.png";
-          category = "Productivity";
-        };
-
-        productivity-silverbullet = lib.mkIf config.modules.containers.silverbullet {
-          name = "SilverBullet";
-          domainName = "notes";
-          addr = "172.22.0.4:3000";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/silverbullet.png";
           category = "Productivity";
         };
 

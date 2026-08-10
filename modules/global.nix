@@ -71,7 +71,6 @@
 
         ai-searxng = lib.mkEnableOption "SearXNG";
         ai-openwebui = lib.mkEnableOption "Open WebUI";
-        silverbullet = lib.mkEnableOption "SilverBullet";
 
         minecraft-server = lib.mkEnableOption "Minecraft Server";
 
