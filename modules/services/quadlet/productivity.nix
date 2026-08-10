@@ -16,7 +16,7 @@ in
       ];
 
       modules.containers = {
-        ai-searxng = lib.mkDefault true;
+        searxng = lib.mkDefault true;
       };
 
       virtualisation.quadlet = {
@@ -28,7 +28,7 @@ in
         };
 
         containers = {
-          ai-searxng = lib.mkIf config.modules.containers.ai-searxng (
+          searxng = lib.mkIf config.modules.containers.searxng (
             config.utils.mkContainer {
               containerConfig = {
                 image = "searxng/searxng:latest";
@@ -54,7 +54,7 @@ in
     { config, lib, ... }:
     {
       modules.gateway.services = {
-        productivity-searxng = lib.mkIf config.modules.containers.ai-searxng {
+        productivity-searxng = lib.mkIf config.modules.containers.searxng {
           name = "SearXNG";
           domainName = "search";
           addr = "172.22.0.3:8080";
