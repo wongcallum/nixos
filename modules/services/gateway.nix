@@ -97,11 +97,15 @@
           WorkingDirectory = technitiumDataDir;
         };
 
-        networking.firewall.allowedTCPPorts = [
-          53
-          80
-          443
-        ];
+        networking.firewall = {
+          allowedTCPPorts = [
+            53
+            80
+            443
+          ];
+          # plain DNS is UDP first, TCP only for truncated/large responses
+          allowedUDPPorts = [ 53 ];
+        };
 
         services.caddy = {
           enable = true;
