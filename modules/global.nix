@@ -70,7 +70,6 @@
         gitea = lib.mkEnableOption "Gitea";
 
         ai-searxng = lib.mkEnableOption "SearXNG";
-        ai-openwebui = lib.mkEnableOption "Open WebUI";
 
         minecraft-server = lib.mkEnableOption "Minecraft Server";
 
