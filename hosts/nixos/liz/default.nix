@@ -49,6 +49,7 @@ in
         quadlet-development
         quadlet-immich
         quadlet-new-api
+        quadlet-hermes
       ]);
 
       microvm.vms.vm-gallery = {

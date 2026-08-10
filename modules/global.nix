@@ -82,6 +82,7 @@
         lobehub = lib.mkEnableOption "LobeHub";
         onlyboxes = lib.mkEnableOption "OnlyBoxes";
         new-api = lib.mkEnableOption "New-API";
+        hermes = lib.mkEnableOption "Hermes Agent";
       };
     };
 
