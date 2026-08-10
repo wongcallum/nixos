@@ -34,6 +34,7 @@ in
               environments = {
                 USER_UID = "1000";
                 USER_GID = "1000";
+                GITEA__server__SSH_PORT = "222";
               };
               networks = [ networks.${networkName}.ref ];
               ip = "172.23.0.3";
