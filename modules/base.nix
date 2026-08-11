@@ -10,6 +10,12 @@
 
       security.pki.certificateFiles = [ ./7sref_ca.pem ];
 
+      environment.variables = {
+        SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"; # python httpx/aiohttp/ssl
+        REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"; # python requests
+        NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt"; # unpatched node (electron)
+      };
+
       environment.systemPackages = [
         inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default.terminfo
       ];
