@@ -3,6 +3,9 @@ let
   lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
   chainner = pkgs.callPackage ../../../packages/chainner { };
   openscq30-cli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.openscq30-cli;
+  hermes-desktop = pkgs.callPackage ../../../packages/hermes-desktop {
+    hermesSrc = inputs.hermes-agent;
+  };
 in
 {
   environment.systemPackages = with pkgs; [
@@ -101,5 +104,6 @@ in
     lobehub-desktop
     chainner
     openscq30-cli
+    hermes-desktop
   ];
 }

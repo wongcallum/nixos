@@ -351,6 +351,22 @@
         "type": "github"
       }
     },
+    "hermes-agent": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786434937,
+        "narHash": "sha256-ct9dSIWYN7Ti4csC+6+H4hfHkvIvJDDXYZDN/NqSi9k=",
+        "owner": "NousResearch",
+        "repo": "hermes-agent",
+        "rev": "c0106e50e7ecedb3ce34e785d949725dc4e0e457",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NousResearch",
+        "repo": "hermes-agent",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -737,6 +753,7 @@
         "flux": "flux",
         "freesmlauncher": "freesmlauncher",
         "ghostty": "ghostty",
+        "hermes-agent": "hermes-agent",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "microvm": "microvm",

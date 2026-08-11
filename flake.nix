@@ -38,6 +38,10 @@
       url = "github:Oppzippy/OpenSCQ30/409460e16c44324b35aeb5c99ea9acb7896726f4";
       flake = false;
     };
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      flake = false;
+    };
 
     flux = {
       url = "github:IogaMaster/flux";
