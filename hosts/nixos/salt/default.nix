@@ -24,8 +24,9 @@ in
         metrics
         logs
 
-        quadlet-lobehub
-        quadlet-onlyboxes
+        # quadlet-lobehub
+        # quadlet-onlyboxes
+        mc-server
       ]);
 
       system.stateVersion = "25.11";

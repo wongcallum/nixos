@@ -33,7 +33,7 @@
                   TYPE = "FORGE";
                   # PACKWIZ_URL = "https://asphodel.cc/packwiz/Ports/Curse/Raspberry-Server/pack.toml";
                   MODRINTH_PROJECTS = ''
-                    proxy-compatible-forge
+                    # proxy-compatible-forge
                     # proxy-protocol-support:1.1.0-forge
                     spark
                     chunky
