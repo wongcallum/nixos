@@ -1,9 +1,12 @@
 {
+  config,
   inputs,
   lib,
   ...
 }:
 let
+  inherit (config.flake) keys;
+
   mkIso =
     nixpkgs: isoPath:
     nixpkgs.lib.nixosSystem {
@@ -36,6 +39,26 @@ let
               enable = true;
               settings = {
                 PasswordAuthentication = true;
+              };
+            };
+
+            # nixos-anywhere drives the install over SSH as root. The upstream
+            # installation-device profile gives root an *empty* password and OpenSSH
+            # refuses to authenticate those, so PasswordAuthentication alone can never
+            # let anyone in — a key is the only way. On a target with no display (liz
+            # loses its iGPU with the Ryzen board) there is also no console on which to
+            # run `passwd`, so this has to be baked into the image.
+            users.users.root.openssh.authorizedKeys.keys = keys.callum;
+
+            # Publish over mDNS so a headless target is reachable at `nixos.local`
+            # instead of having to be found in the router's DHCP leases.
+            services.avahi = {
+              enable = true;
+              nssmdns4 = true;
+              publish = {
+                enable = true;
+                addresses = true;
+                workstation = true;
               };
             };
 
