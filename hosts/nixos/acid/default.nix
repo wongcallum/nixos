@@ -58,20 +58,6 @@ in
         resolved.enable = true;
         xserver.videoDrivers = [ "nvidia" ];
       };
-      systemd = {
-
-        user.services.niri.environment.NIRI_CONFIG = "/etc/niri/acid.kdl";
-      };
-
-      environment.etc."niri/acid.kdl".text = ''
-        include optional=true "/home/callum/.config/niri/config.kdl";
-
-        debug {
-          render-drm-device "/dev/dri/by-path/pci-0000:04:00.0-render"
-          ignore-drm-device "/dev/dri/by-path/pci-0000:07:00.0-render"
-        }
-      '';
-
       environment.variables = {
         EDITOR = "nvim";
         GOPATH = "/home/callum/.local/share/go";
@@ -109,16 +95,7 @@ in
       ];
       users.users.callum.initialPassword = lib.mkForce null;
 
-      fileSystems."/games" = {
-        device = "/dev/disk/by-uuid/6d374cf5-77a0-4d97-8f25-86622c9e74f0";
-        fsType = "ext4";
-      };
-
       boot = {
-        # Keep the text console (and tuigreet) on the 1060's framebuffer.
-        # The GTX 1060 currently exposes fb0; the CUDA-only 3060 has no fbdev.
-        kernelParams = [ "fbcon=map:0" ];
-
         loader.efi.canTouchEfiVariables = true;
 
         initrd.availableKernelModules = [
@@ -136,7 +113,7 @@ in
 
       hardware = {
         enableRedistributableFirmware = true;
-        cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+        cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
         graphics.enable = true;
 

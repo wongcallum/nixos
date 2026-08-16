@@ -6,6 +6,7 @@
 }:
 let
   inherit (config.flake.modules) nixos;
+  inherit (config.flake) keys;
 in
 {
   flake.modules.nixos."hosts/nixos/liz" =
@@ -14,6 +15,8 @@ in
       imports = [
         ./_disko.nix
         ./_networking.nix
+        ./_console.nix
+        ./_vfio.nix
 
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
@@ -56,6 +59,8 @@ in
         restartIfChanged = true;
       };
 
+      _module.args.sshKeys = keys.callum;
+
       system.stateVersion = "25.11";
       networking.hostId = "19550836";
 
@@ -69,19 +74,31 @@ in
           "usb_storage"
           "sd_mod"
         ];
-        kernelModules = [ "kvm-intel" ];
+        kernelModules = [ "kvm-amd" ];
         supportedFilesystems = [ "zfs" ];
-        zfs.extraPools = [ "tank" ];
+        zfs.extraPools = [
+          "tank"
+          "scratch"
+        ];
         zfs.forceImportRoot = false;
+
+        # Demand misses barely improved between the previous 4.7 GiB ARC and 28 GiB;
+        # 8 GiB leaves headroom while preserving RAM for page cache and the Windows VM.
+        # ZFS first loads in the initrd, so the cap must be a modprobe option.
+        extraModprobeConfig = "options zfs zfs_arc_max=8589934592";
       };
 
       services.zfs.autoScrub = {
         enable = true;
         interval = "monthly";
-        pools = [ "tank" ];
+        pools = [
+          "tank"
+          "scratch"
+        ];
       };
 
-      hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+      hardware.enableRedistributableFirmware = true;
+      hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       fileSystems."/mnt/media" = {
         device = "/dev/disk/by-uuid/0b878ab4-2310-4b8e-92e8-7ef5f47f75f8";
         fsType = "ext4";

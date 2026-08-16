@@ -1,6 +1,6 @@
 {
   disko.devices.disk.main = {
-    device = "/dev/disk/by-id/nvme-Samsung_SSD_980_PRO_1TB_S5GXNX0T913718H";
+    device = "/dev/disk/by-id/ata-TOSHIBA_KSG60ZMV512G_M.2_2280_512GB_882B7015K5TP";
     type = "disk";
     content = {
       type = "gpt";

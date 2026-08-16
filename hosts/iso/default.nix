@@ -1,9 +1,12 @@
 {
+  config,
   inputs,
   lib,
   ...
 }:
 let
+  inherit (config.flake) keys;
+
   mkIso =
     nixpkgs: isoPath:
     nixpkgs.lib.nixosSystem {
@@ -36,6 +39,18 @@ let
               enable = true;
               settings = {
                 PasswordAuthentication = true;
+              };
+            };
+
+            users.users.root.openssh.authorizedKeys.keys = keys.callum;
+
+            services.avahi = {
+              enable = true;
+              nssmdns4 = true;
+              publish = {
+                enable = true;
+                addresses = true;
+                workstation = true;
               };
             };
 

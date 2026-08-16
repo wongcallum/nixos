@@ -1,6 +1,22 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
-  netInterface = "eno1";
+  # Stable across PCI topology changes that rename predictable interfaces.
+  netInterface = "lan0";
+  netMac = "50:eb:f6:97:a1:6a";
+
+  netAddress = "192.168.0.2/24";
+  netGateway = "192.168.0.1";
+
+  linkUnit = {
+    matchConfig.MACAddress = netMac;
+    linkConfig.Name = netInterface;
+  };
+
+  networkUnit = {
+    matchConfig.Name = netInterface;
+    address = [ netAddress ];
+    routes = [ { Gateway = netGateway; } ];
+  };
 in
 {
   networking = {
@@ -12,19 +28,20 @@ in
     useNetworkd = true;
   };
 
-  boot.initrd.systemd.network.wait-online.enable = false;
+  boot.initrd.systemd.network = {
+    wait-online.enable = false;
+    links."10-lan" = linkUnit;
+    networks."10-lan" = networkUnit;
+  };
 
   systemd.network = {
     wait-online.enable = false;
     enable = true;
-    networks."10-eth" = {
-      matchConfig.Name = netInterface;
-      address = [ "192.168.0.2/24" ];
-      routes = [
-        { Gateway = "192.168.0.1"; }
-      ];
-      linkConfig.RequiredForOnline = "routable";
-    };
+    links."10-lan" = linkUnit;
+    networks."10-eth" = lib.mkMerge [
+      networkUnit
+      { linkConfig.RequiredForOnline = "routable"; }
+    ];
   };
 
   services.resolved.settings.Resolve.DNSStubListener = "no";
