@@ -165,10 +165,13 @@ let
         -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on"
         -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1"
 
-        # Kept permanently, disabled inside Windows' Device Manager. Windows
-        # ignores it for rendering, but VNC still shows UEFI, the boot manager
-        # and early boot — the only Windows-side console on a host with no
-        # display and no serial cable.
+        # Kept permanently, and left *enabled* in Windows. Apollo's virtual
+        # display is set primary and isolated in the display layout, so the
+        # desktop, games and the pointer all stay on it and this adapter goes
+        # unused — without being switched off. That keeps VNC showing UEFI, the
+        # boot manager and the live Windows desktop, which is the only console
+        # into a host with no display and no serial cable. Disabling it in
+        # Device Manager would buy nothing and throw that console away.
         -vga none
         -device "VGA,id=vga0,addr=0x1"
         -display none
@@ -254,6 +257,13 @@ in
         description = "Windows 11 guest (RTX 3060 passthrough)";
 
         # No wantedBy: on demand only, via `systemctl start windows-vm`.
+
+        # A rebuild that touches this unit must not yank a live desktop
+        # session out from under whoever is using it. Changes here land on the
+        # next manual restart instead, which for a machine started by hand is
+        # no real deferral.
+        restartIfChanged = false;
+
         requires = [
           "windows-vm-volumes.service"
           "windows-vm-swtpm.service"
