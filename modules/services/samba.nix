@@ -5,8 +5,29 @@
     {
       options.modules.samba = {
         shares = lib.mkOption {
-          type = lib.types.attrsOf lib.types.str;
           default = { };
+          description = ''
+            SMB shares, keyed by share name. A bare string is shorthand for
+            `{ path = <string>; }`, which is all most shares need.
+          '';
+          type = lib.types.attrsOf (
+            lib.types.coercedTo lib.types.str (path: { inherit path; }) (
+              lib.types.submodule {
+                options = {
+                  path = lib.mkOption {
+                    type = lib.types.str;
+                    description = "Filesystem path exported by the share.";
+                  };
+
+                  readOnly = lib.mkOption {
+                    type = lib.types.bool;
+                    default = false;
+                    description = "Export the share read-only.";
+                  };
+                };
+              }
+            )
+          );
         };
       };
 
@@ -23,10 +44,10 @@
 
             settings =
               let
-                shares = builtins.mapAttrs (_: path: {
-                  inherit path;
+                shares = builtins.mapAttrs (_: share: {
+                  inherit (share) path;
                   browseable = true;
-                  "read only" = false;
+                  "read only" = share.readOnly;
                   "guest ok" = false;
                   "follow symlinks" = true;
                   "wide links" = true;
