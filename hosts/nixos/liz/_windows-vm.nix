@@ -138,7 +138,8 @@ let
         # re-detecting hardware and re-running activation. Anything added here
         # needs its own addr= too:
         #
-        #   0x1 VGA   0x2 gpu-port   0x3 virtio-scsi   0x4 virtio-net   0x5 xhci
+        #   0x1 VGA   0x2 gpu-port   0x3 virtio-scsi
+        #   0x4 virtio-net   0x5 xhci   0x6 hda
         #
         # rotation_rate=1 makes Windows treat the volumes as SSDs and issue
         # TRIM, without which discard=unmap never fires and the sparse zvols
@@ -179,6 +180,17 @@ let
         -device "qemu-xhci,id=xhci,addr=0x5"
         -device "usb-tablet,bus=xhci.0"
         -device "usb-kbd,bus=xhci.0"
+
+        # The only real audio hardware here is the passed-through HDMI
+        # function, and HDMI endpoints exist only while a monitor is plugged
+        # into the card — so on a headless 3060 Windows boots with no playback
+        # device whatsoever and Apollo has nothing to loopback-capture. An
+        # emulated codec gives it a permanent default endpoint. audiodev=none
+        # discards the stream host-side, which is what we want: the audio
+        # leaves over Moonlight, and liz has no speakers.
+        -audiodev "none,id=snd0"
+        -device "ich9-intel-hda,id=hda,addr=0x6"
+        -device "hda-duplex,bus=hda.0,audiodev=snd0"
 
         -qmp "unix:${qmpSocket},server=on,wait=off"
       )
