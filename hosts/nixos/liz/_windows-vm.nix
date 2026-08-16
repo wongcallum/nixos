@@ -130,17 +130,27 @@ let
         -tpmdev "emulator,id=tpm0,chardev=chrtpm"
         -device "tpm-crb,tpmdev=tpm0"
 
+        # Every pcie.0 address below is pinned. Left to itself QEMU hands out
+        # the next free slot in device-creation order, so adding or reordering
+        # one device silently renumbers the others and collides with whatever
+        # slot the GPU port asked for. Pinning also keeps the guest-visible
+        # topology stable across config edits, which is what stops Windows
+        # re-detecting hardware and re-running activation. Anything added here
+        # needs its own addr= too:
+        #
+        #   0x1 VGA   0x2 gpu-port   0x3 virtio-scsi   0x4 virtio-net   0x5 xhci
+        #
         # rotation_rate=1 makes Windows treat the volumes as SSDs and issue
         # TRIM, without which discard=unmap never fires and the sparse zvols
         # creep towards their full provisioned size and never come back.
-        -device "virtio-scsi-pci,id=scsi0,num_queues=4"
+        -device "virtio-scsi-pci,id=scsi0,num_queues=4,addr=0x3"
         -drive "file=${zvolPath "win11"},if=none,id=drv-win11,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
         -device "scsi-hd,drive=drv-win11,bus=scsi0.0,bootindex=1,rotation_rate=1"
         -drive "file=${zvolPath "games"},if=none,id=drv-games,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
         -device "scsi-hd,drive=drv-games,bus=scsi0.0,rotation_rate=1"
 
         -netdev "tap,id=net0,ifname=${tap},script=no,downscript=no,vhost=on"
-        -device "virtio-net-pci,netdev=net0,mac=${guestMac}"
+        -device "virtio-net-pci,netdev=net0,mac=${guestMac},addr=0x4"
 
         # Already vfio-bound at boot, so no bind/unbind is needed here.
         #
@@ -151,7 +161,7 @@ let
         #
         # No x-vga=on: that is the legacy-VGA path SeaBIOS needed, and under
         # OVMF it only fights the emulated adapter kept below.
-        -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x3,chassis=1,multifunction=on"
+        -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
         -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on"
         -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1"
 
@@ -159,10 +169,11 @@ let
         # ignores it for rendering, but VNC still shows UEFI, the boot manager
         # and early boot — the only Windows-side console on a host with no
         # display and no serial cable.
-        -vga std
+        -vga none
+        -device "VGA,id=vga0,addr=0x1"
         -display none
         -vnc "127.0.0.1:1"
-        -device "qemu-xhci,id=xhci"
+        -device "qemu-xhci,id=xhci,addr=0x5"
         -device "usb-tablet,bus=xhci.0"
         -device "usb-kbd,bus=xhci.0"
 
