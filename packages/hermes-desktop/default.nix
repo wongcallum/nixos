@@ -13,6 +13,7 @@
 let
   repoRoot = /. + builtins.unsafeDiscardStringContext (toString hermesSrc);
   rootPackageJson = builtins.fromJSON (builtins.readFile (repoRoot + "/package.json"));
+  rootPackageLock = builtins.fromJSON (builtins.readFile (repoRoot + "/package-lock.json"));
 
   expandWorkspace =
     pattern:
@@ -70,7 +71,11 @@ let
     inherit (packageJson) version;
     inherit src;
 
-    npmDeps = importNpmLock { npmRoot = src; };
+    npmDeps = importNpmLock {
+      npmRoot = src;
+      package = rootPackageJson;
+      packageLock = rootPackageLock;
+    };
     inherit (importNpmLock) npmConfigHook;
 
     dontNpmBuild = true;
