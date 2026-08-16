@@ -17,6 +17,7 @@ in
         ./_networking.nix
         ./_console.nix
         ./_vfio.nix
+        ./_windows-vm.nix
 
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
@@ -111,6 +112,11 @@ in
           photo = "/tank/photo";
           media = "/mnt/media";
           torrents = "/tank/torrents";
+
+          # Staging area for filling the Windows guest's games zvol. Writable
+          # because the share schema exports writable by default and the
+          # library exists in more than one place.
+          games = "/scratch/games";
         };
 
         immich.externalLibraries = {
