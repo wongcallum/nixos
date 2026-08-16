@@ -58,8 +58,6 @@ in
         resolved.enable = true;
         xserver.videoDrivers = [ "nvidia" ];
       };
-      # The 3060 has moved to liz, so there is no second card to referee and no
-      # need to pin niri to a specific render node — the 1060 is the only GPU.
       environment.variables = {
         EDITOR = "nvim";
         GOPATH = "/home/callum/.local/share/go";
@@ -97,12 +95,7 @@ in
       ];
       users.users.callum.initialPassword = lib.mkForce null;
 
-      # /games is gone: that partition is now acid's root, and the library lives
-      # on liz for the streaming VM.
-
       boot = {
-        # fbcon=map:0 existed only to keep the console off the CUDA-only 3060.
-        # With one GPU there is nothing to map away from.
         loader.efi.canTouchEfiVariables = true;
 
         initrd.availableKernelModules = [
@@ -120,7 +113,6 @@ in
 
       hardware = {
         enableRedistributableFirmware = true;
-        # acid takes liz's Z370 HD3 + i5-8400 in the swap.
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
         graphics.enable = true;
