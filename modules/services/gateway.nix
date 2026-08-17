@@ -94,7 +94,7 @@
           # ProtectSystem = "strict" leaves persistDir read-only otherwise
           ReadWritePaths = [ technitiumDataDir ];
           # make sure we don't watch the entire root with inotify
-          WorkingDirectory = technitiumDataDir;
+          WorkingDirectory = lib.mkForce technitiumDataDir;
         };
 
         networking.firewall = {
