@@ -17,6 +17,7 @@ in
         ./_networking.nix
         ./_console.nix
         ./_vfio.nix
+        ./_windows-vm.nix
 
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
@@ -111,6 +112,8 @@ in
           photo = "/tank/photo";
           media = "/mnt/media";
           torrents = "/tank/torrents";
+
+          games = "/scratch/games";
         };
 
         immich.externalLibraries = {
