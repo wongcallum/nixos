@@ -272,6 +272,17 @@ in
       internalInterfaces = [ tap ];
     };
 
+    #
+    #   guest 10.0.1.2 (on the tap)
+    #     |
+    #     +- to host -> nixos-fw -> windows-vm-in -+- tcp/445 ---------> ACCEPT
+    #     |                                        +- any other NEW ---> DROP
+    #     |
+    #     +- routed --> FORWARD --> windows-vm-fwd +- 10/8, 172.16/12, -> DROP
+    #                                              |  192.168/16,
+    #                                              |  100.64/10, 169.254/16
+    #                                              +- anything else ---> NAT -> internet
+    #
     firewall.extraCommands = ''
       iptables -N windows-vm-in 2>/dev/null || iptables -F windows-vm-in
       iptables -A windows-vm-in -p tcp --dport 445 -j nixos-fw-accept
