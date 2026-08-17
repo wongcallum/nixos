@@ -1,15 +1,3 @@
-# Windows 11 guest with the RTX 3060 passed through, for Adobe and light gaming.
-#
-# Deliberately raw QEMU under systemd rather than libvirt: liz rolls back
-# rpool/nixos/root@blank on every boot, so a `virsh define`d domain would not
-# survive a reboot. Generating the domain here keeps it in git and makes the
-# rollback irrelevant. `modules/libvirt.nix` stays imported for one-off VMs.
-#
-# The card is already bound to vfio-pci at boot by ./_vfio.nix, so there is no
-# bind/unbind dance here — the devices are simply handed to QEMU.
-#
-# On demand only: `systemctl start windows-vm`. Reaching it is Moonlight over
-# Tailscale, which runs *inside* the guest, so nothing is forwarded in.
 {
   config,
   lib,
@@ -25,18 +13,12 @@ let
   guestAddr = "10.0.1.2";
   guestMac = "02:00:00:00:01:02";
 
-  # liz pairs SMT siblings n and n+6, so "3-5 9-11" is cores 3, 4 and 5 in
-  # full. This is a ceiling on the guest, not a reservation away from the
-  # host: with no isolcpus and no global CPUAffinity, host services keep the
-  # run of all twelve logical CPUs. What it buys is three cores the guest can
-  # never contend for.
+  # SMT siblings are n and n+6
   guestCpus = "3-5 9-11";
   guestMemory = "24G";
 
   ovmf = pkgs.OVMFFull.fd;
   codeImage = "${ovmf}/FV/OVMF_CODE.fd";
-  # The .ms varstore ships with Microsoft's keys already enrolled, which is
-  # what lets a stock Windows ISO boot with Secure Boot on.
   varsTemplate = "${ovmf}/FV/OVMF_VARS.ms.fd";
 
   nvram = "${stateDir}/OVMF_VARS.fd";
@@ -44,10 +26,7 @@ let
   qmpSocket = "${runDir}/qmp.sock";
   swtpmSocket = "${runDir}/swtpm.sock";
 
-  # Sparse: the 450G quota on rpool/vm is the guardrail, and these sum to 440G.
-  # lz4 over the pool's inherited zstd — Windows and Adobe binaries do not
-  # repay zstd's latency on small random IO, and game assets are already
-  # compressed (the same call made for scratch/games).
+  # 450G quota
   volumes = [
     {
       name = "win11";
@@ -100,7 +79,7 @@ let
     name = "windows-vm-launch";
     runtimeInputs = [ pkgs.qemu_kvm ];
     text = ''
-      # swtpm is a separate unit; give its control socket a moment to appear.
+      # Type=exec marks swtpm active before its control socket is ready.
       for _ in $(seq 1 100); do
         [ -S "${swtpmSocket}" ] && break
         sleep 0.1
@@ -121,7 +100,7 @@ let
         -global "kvm-pit.lost_tick_policy=discard"
         -boot "menu=on"
 
-        # Secure Boot needs SMM plus a secure-flagged code image.
+        # OVMF Secure Boot requires both SMM and secure pflash.
         -global "driver=cfi.pflash01,property=secure,value=on"
         -drive "if=pflash,format=raw,unit=0,readonly=on,file=${codeImage}"
         -drive "if=pflash,format=raw,unit=1,file=${nvram}"
@@ -130,20 +109,9 @@ let
         -tpmdev "emulator,id=tpm0,chardev=chrtpm"
         -device "tpm-crb,tpmdev=tpm0"
 
-        # Every pcie.0 address below is pinned. Left to itself QEMU hands out
-        # the next free slot in device-creation order, so adding or reordering
-        # one device silently renumbers the others and collides with whatever
-        # slot the GPU port asked for. Pinning also keeps the guest-visible
-        # topology stable across config edits, which is what stops Windows
-        # re-detecting hardware and re-running activation. Anything added here
-        # needs its own addr= too:
-        #
-        #   0x1 VGA   0x2 gpu-port   0x3 virtio-scsi
-        #   0x4 virtio-net   0x5 xhci   0x6 hda
-        #
-        # rotation_rate=1 makes Windows treat the volumes as SSDs and issue
-        # TRIM, without which discard=unmap never fires and the sparse zvols
-        # creep towards their full provisioned size and never come back.
+        # Pinning avoids creation-order-dependent renumbering, which can make
+        # Windows redetect hardware and rerun activation.
+        # Exposing the zvols as SSDs lets Windows TRIM reclaim sparse space.
         -device "virtio-scsi-pci,id=scsi0,num_queues=4,addr=0x3"
         -drive "file=${zvolPath "win11"},if=none,id=drv-win11,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
         -device "scsi-hd,drive=drv-win11,bus=scsi0.0,bootindex=1,rotation_rate=1"
@@ -153,26 +121,15 @@ let
         -netdev "tap,id=net0,ifname=${tap},script=no,downscript=no,vhost=on"
         -device "virtio-net-pci,netdev=net0,mac=${guestMac},addr=0x4"
 
-        # Already vfio-bound at boot, so no bind/unbind is needed here.
-        #
-        # Behind a pcie-root-port rather than straight onto pcie.0, so the card
-        # keeps its PCIe capabilities in the guest, and pinned to one slot with
-        # matching function numbers so the GPU and its HDMI audio arrive as a
-        # single multifunction device the way they appear on the host.
-        #
-        # No x-vga=on: that is the legacy-VGA path SeaBIOS needed, and under
-        # OVMF it only fights the emulated adapter kept below.
+        # The root port preserves PCIe capabilities; matching function numbers
+        # expose the GPU and HDMI audio as one multifunction device. Both are
+        # bound by _vfio.nix before this unit starts.
         -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
         -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on"
         -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1"
 
-        # Kept permanently, and left *enabled* in Windows. Apollo's virtual
-        # display is set primary and isolated in the display layout, so the
-        # desktop, games and the pointer all stay on it and this adapter goes
-        # unused — without being switched off. That keeps VNC showing UEFI, the
-        # boot manager and the live Windows desktop, which is the only console
-        # into a host with no display and no serial cable. Disabling it in
-        # Device Manager would buy nothing and throw that console away.
+        # Keep this enabled: VNC is the only firmware and boot fallback on this
+        # headless host. Apollo's virtual display remains primary in Windows.
         -vga none
         -device "VGA,id=vga0,addr=0x1"
         -display none
@@ -181,13 +138,8 @@ let
         -device "usb-tablet,bus=xhci.0"
         -device "usb-kbd,bus=xhci.0"
 
-        # The only real audio hardware here is the passed-through HDMI
-        # function, and HDMI endpoints exist only while a monitor is plugged
-        # into the card — so on a headless 3060 Windows boots with no playback
-        # device whatsoever and Apollo has nothing to loopback-capture. An
-        # emulated codec gives it a permanent default endpoint. audiodev=none
-        # discards the stream host-side, which is what we want: the audio
-        # leaves over Moonlight, and liz has no speakers.
+        # A headless GPU has no HDMI playback endpoint. The emulated codec gives
+        # Apollo a stable loopback source; audiodev=none discards host output.
         -audiodev "none,id=snd0"
         -device "ich9-intel-hda,id=hda,addr=0x6"
         -device "hda-duplex,bus=hda.0,audiodev=snd0"
@@ -195,9 +147,6 @@ let
         -qmp "unix:${qmpSocket},server=on,wait=off"
       )
 
-      # Attach install media only while it is present, so the transition from
-      # install to steady state needs no config change. The disk holds
-      # bootindex=1, so an ISO left in place is only reached when C: is empty.
       if [ -f "${stateDir}/install.iso" ]; then
         args+=(
           -drive "file=${stateDir}/install.iso,if=none,id=cd-install,media=cdrom,readonly=on"
@@ -215,8 +164,7 @@ let
     '';
   };
 
-  # Without this a host reboot SIGKILLs QEMU and Windows comes back to a dirty
-  # NTFS volume every single time.
+  # QMP powerdown lets Windows unmount NTFS during host shutdown.
   shutdown = pkgs.writeShellApplication {
     name = "windows-vm-shutdown";
     runtimeInputs = [ pkgs.socat ];
@@ -266,14 +214,9 @@ in
       };
 
       windows-vm = {
-        description = "Windows 11 guest (RTX 3060 passthrough)";
+        description = "Windows 11 Virtual Machine";
 
-        # No wantedBy: on demand only, via `systemctl start windows-vm`.
-
-        # A rebuild that touches this unit must not yank a live desktop
-        # session out from under whoever is using it. Changes here land on the
-        # next manual restart instead, which for a machine started by hand is
-        # no real deferral.
+        # unit changes apply through systemctl restart only, not in-VM restart
         restartIfChanged = false;
 
         requires = [
@@ -283,9 +226,6 @@ in
         after = [
           "windows-vm-volumes.service"
           "windows-vm-swtpm.service"
-          # The tap is what matters, not general connectivity — and liz
-          # disables wait-online, so ordering on network-online.target would be
-          # a no-op at best and a stall at worst.
           "systemd-networkd.service"
         ];
 
@@ -294,14 +234,10 @@ in
           ExecStart = lib.getExe launch;
           ExecStop = lib.getExe shutdown;
 
-          # Windows takes its time; systemd only escalates to SIGTERM after
-          # this.
           TimeoutStopSec = "180s";
           Restart = "no";
 
-          # VFIO pins the entire guest address space into the IOMMU, so all
-          # 24 GiB is locked for the lifetime of the VM. Without this the guest
-          # refuses to start.
+          # VFIO locks the guest's entire address space in the IOMMU.
           LimitMEMLOCK = "infinity";
 
           AllowedCPUs = guestCpus;
@@ -336,15 +272,6 @@ in
       internalInterfaces = [ tap ];
     };
 
-    # Deliberately not microvmLib.mkHostNetworking: its rules go in with `-I`
-    # into nixos-fw, so layering an ACCEPT for SMB on top would depend on
-    # insertion order surviving every rebuild. A dedicated chain is ordered by
-    # construction — the guest reaches the host on 445 and nothing else, and
-    # cannot be forwarded onto the LAN or the tailnet at all.
-    #
-    # Tailscale inside the guest is unaffected: it talks to public DERP and
-    # peer endpoints, and tailnet traffic is encapsulated by the time it
-    # leaves the guest.
     firewall.extraCommands = ''
       iptables -N windows-vm-in 2>/dev/null || iptables -F windows-vm-in
       iptables -A windows-vm-in -p tcp --dport 445 -j nixos-fw-accept
@@ -374,8 +301,6 @@ in
     '';
   };
 
-  # The guest is configured statically at ${guestAddr}/24 with ${hostAddr} as
-  # its gateway; there is no DHCP server on this link.
   environment.etc."windows-vm/README".text = ''
     Guest network: ${guestAddr}/24, gateway ${hostAddr}, DNS 1.1.1.1
     VNC console:   ssh -L 5901:127.0.0.1:5901 liz  (then connect to :5901)
