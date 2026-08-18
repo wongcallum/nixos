@@ -780,11 +780,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785820796,
-        "narHash": "sha256-sZXy8mzUMi2cOGulhoW4HWAZB6JhXOAx1x8J4auZFWk=",
+        "lastModified": 1786507911,
+        "narHash": "sha256-w5aZRLbiu7H6TqsYXVMdRKg0S4DRaJpxyqxx86AwxVk=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "b6916ba032e02122d6ed3064f40cabe937363d43",
+        "rev": "39db48099ad16834af7e27485a4babf9c28b3897",
         "type": "github"
       },
       "original": {
@@ -901,15 +901,15 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1786539945,
-        "narHash": "sha256-ZDQGBQHjy1BySdYj7J2u8/pZZCXQ2P5CqSidtfFwZns=",
-        "owner": "NotAShelf",
+        "lastModified": 1786716759,
+        "narHash": "sha256-Tkxphrz49uKIxo5Ted2Y/1x8BJotHrpA643IBuTyqzs=",
+        "owner": "tuigreet",
         "repo": "tuigreet",
-        "rev": "60c1f98e4b006881a01f4910a10c519b3d8df2de",
+        "rev": "201e564b1f27c3a8d0427dd5d41de850cf529573",
         "type": "github"
       },
       "original": {
-        "owner": "NotAShelf",
+        "owner": "tuigreet",
         "repo": "tuigreet",
         "type": "github"
       }

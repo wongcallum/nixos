@@ -27,7 +27,7 @@
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
-    tuigreet.url = "github:NotAShelf/tuigreet";
+    tuigreet.url = "github:tuigreet/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
     cryptomatord.url = "github:wongcallum/cryptomatord";
