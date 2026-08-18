@@ -80,7 +80,6 @@ in
         "networkmanager"
         "adbusers"
       ];
-      users.users.callum.initialPassword = lib.mkForce null;
 
       boot = {
         loader.efi.canTouchEfiVariables = true;
