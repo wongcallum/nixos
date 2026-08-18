@@ -178,6 +178,14 @@ let
   };
 in
 {
+  modules.gateway.services.apollo = {
+    name = "Apollo";
+    domainName = "apollo";
+    addr = "https://${guestAddr}:47990";
+    tlsInsecureSkipVerify = true;
+    category = "Administration";
+  };
+
   systemd = {
     tmpfiles.rules = [
       "d ${stateDir} 0700 root root -"

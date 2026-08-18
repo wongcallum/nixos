@@ -7,6 +7,15 @@
       caddyDataDir = config.utils.dataDir "caddy";
       technitiumDataDir = config.utils.dataDir "technitium";
       fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
+      reverseProxyConfig =
+        service:
+        lib.optionalString service.tlsInsecureSkipVerify ''
+          {
+            transport http {
+              tls_insecure_skip_verify
+            }
+          }
+        '';
     in
     {
       options.modules.gateway = {
@@ -22,6 +31,11 @@
                 };
                 addr = lib.mkOption {
                   type = lib.types.str;
+                };
+                tlsInsecureSkipVerify = lib.mkOption {
+                  type = lib.types.bool;
+                  default = false;
+                  description = "Disable TLS certificate verification for this reverse-proxy upstream";
                 };
                 iconUrl = lib.mkOption {
                   type = lib.types.str;
@@ -137,7 +151,7 @@
                         ca 7sref_ca
                       }
                     }
-                    reverse_proxy ${service.addr}
+                    reverse_proxy ${service.addr}${reverseProxyConfig service}
                   '';
                 };
               }) (builtins.attrValues config.modules.gateway.services)
