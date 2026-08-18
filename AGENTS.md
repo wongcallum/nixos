@@ -12,6 +12,10 @@
 - Use idiomatic Nix, be inspired by nixpkgs.
 - Don't grep from the entire /nix/store.
 
+### Flake source and build-result paths
+
+- `result` is a symlink to the built system closure, not a mirror of `/nix/store`. When a generated file references `/nix/store/...`, inspect that absolute path directly rather than `result/nix/store/...`.
+
 ## Architecture
 
 This is a **Dendritic pattern** flake built on **flake-parts** + **import-tree**. Every `.nix` file under `modules/` and `hosts/` is auto-imported as a flake-parts module.
