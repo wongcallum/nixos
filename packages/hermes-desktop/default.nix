@@ -48,6 +48,7 @@ let
       npmWorkspaceFiles
       (repoRoot + "/apps/desktop")
       (repoRoot + "/apps/shared")
+      (repoRoot + "/tests/fixtures/session-resume-active-turn.json")
       (repoRoot + "/hermes_cli/linux_desktop_entry.py")
     ];
   };
