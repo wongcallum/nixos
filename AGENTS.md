@@ -1,77 +1,48 @@
 # AGENTS.md
 
-- Do NOT deploy automatically, unless explicitly authorised.
-- Do not commit your changes unless explicitly asked.
-- Do not touch the secrets repository or input, just prompt the user to modify them when necessary.
-- Run `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` during iterative changes.
-- After building, verify the change is realised in the built system at `result/`. Inspect the relevant generated unit/file and/or compare `nix eval` of the affected option before and after.
-- Run `nix flake check --no-build` at the very end before finishing.
-- Do not run `nix flake check` without `--no-build`: it realises every host's `toplevel` and can unnecessarily copy multi-gigabyte closures back to the local store.
-- Run the lint commands at the very end before committing: `nix develop --command bash -c 'treefmt; statix check .; deadnix --fail .'`
-- Run `git add <untracked files>` whenever a new Nix file is created, flakes ignore untracked files.
-- Use idiomatic Nix, be inspired by nixpkgs.
-- Don't grep from the entire /nix/store.
+## Guardrails
 
-### Flake source and build-result paths
+- Deploy or commit only when explicitly requested.
+- Secrets: leave `inputs.secrets` and its repository untouched. Ask the user to make any required secret changes.
+- Store inspection: follow known `/nix/store/...` paths; never scan the whole store.
 
-- `result` is a symlink to the built system closure, not a mirror of `/nix/store`. When a generated file references `/nix/store/...`, inspect that absolute path directly rather than `result/nix/store/...`.
+## Workflow
+
+1. Before evaluating the flake, stage every new `.nix` file with `git add <path>`. `import-tree` evaluates the Git source, so untracked files appear as missing attributes.
+2. For Nix changes, iterate per affected host with `nix build .#nixosConfigurations.<host>.config.system.build.toplevel`.
+3. Verify each build in `result/` by inspecting the affected generated unit/file or comparing `nix eval` of the changed option. `result` is the built system closure; follow referenced `/nix/store/...` paths directly rather than under `result/`.
+4. Before finishing, run `nix develop --command bash -c 'treefmt; statix check .; deadnix --fail .'`.
+5. Finish with `nix flake check --no-build`. `--no-build` is mandatory: omitting it realises every host's toplevel and may copy multi-gigabyte closures into the local store.
 
 ## Architecture
 
-This is a **Dendritic pattern** flake built on **flake-parts** + **import-tree**. Every `.nix` file under `modules/` and `hosts/` is auto-imported as a flake-parts module.
+This is a Dendritic flake built with flake-parts and `import-tree`. Feature files under `modules/` and `hosts/` are auto-imported and declare `flake.modules.<class>.<name>`:
 
-Features are declared as `flake.modules.<class>.<name>`:
+- `nixos` — NixOS modules.
+- `generic` — values and options reusable across classes.
 
-- `nixos` — NixOS system modules (the common case).
-- `generic` — values/options reusable across classes (e.g. `utils`).
+**Dendritic design:** before structuring a new feature or refactoring feature composition, read `.agents/skills/dendritic-aspects/SKILL.md`. Compose modules with `lib.mkMerge` rather than `//`.
 
-For full pattern catalog (Simple, Multi-Context, Inheritance, Conditional, Collector, Constants, DRY, Factory) see `.agents/skills/dendritic-aspects/SKILL.md`. Always use `lib.mkMerge`, never `//`.
+### Hosts
 
-`hosts/default.nix` scans `hosts/nixos/<hostname>/` directories and produces a `nixosConfigurations.<hostname>` for each. Every host automatically gets the `base` and `global` modules plus its own module (`flake.modules.nixos."hosts/nixos/<hostname>"`).
+`hosts/default.nix` creates a `nixosConfigurations.<hostname>` for each directory under `hosts/nixos/`. Every host receives `base`, `global`, and its own `flake.modules.nixos."hosts/nixos/<hostname>"` module.
 
-A host module is itself a Dendritic feature that **imports other features** (e.g. `persistence`, `sops`, `ssh`, `tailscale`, `gateway`, …) from `config.flake.modules.nixos.<name>`. See `hosts/nixos/liz/default.nix` for the canonical example.
+A host's `default.nix` imports reusable features from `config.flake.modules.nixos` and holds general host settings. Files prefixed with `_` are ordinary NixOS modules for self-contained host concerns; the host module imports them.
 
-Per-host files prefixed with `_` (e.g. `_disko.nix`, `_networking.nix`, `_packages.nix`, `_remote-desktop.nix`) are **regular NixOS modules**, not flake-parts modules — they hold self-contained host-specific concerns (disk layout, networking, package lists) imported by the host's `default.nix`. General per-host system configuration lives directly in the host module in `default.nix`. When that config needs NixOS module args, write the host module as a function (`{ config, lib, pkgs, ... }: { … }`) and capture the feature list in the outer flake-parts scope with `let inherit (config.flake.modules) nixos;` so `with nixos; [ … ]` still resolves inside the shadowed `config` (see `hosts/nixos/liz/default.nix`).
+- **Shadowed `config`:** when host settings need NixOS module arguments, capture `nixos` in the outer flake-parts scope with `let inherit (config.flake.modules) nixos;` before defining the module function. Follow `hosts/nixos/liz/default.nix`.
+- **Package set:** set `flake.nixpkgs.<hostname> = "<input>"` in the host's `default.nix`; the default is stable `nixpkgs`.
 
-A host can opt into `unstable` (or any other input) by setting `flake.nixpkgs.<hostname> = "unstable"` in its `default.nix`. `hosts/default.nix` reads this to pick which `inputs.<name>.lib.nixosSystem` builds the host. Default is `nixpkgs` (stable).
+### Feature conventions
 
-### Patching nixpkgs
+- **Feature toggles:** define shared `options.modules.*` toggles in `modules/global.nix`; gate features on them.
+- **Containers:** use `config.utils.mkContainer` from `modules/utils.nix` for Quadlet containers.
+- **Persistent state:** `impermanence-zfs` rolls `rpool/nixos/root@blank` back on boot. Use `config.utils.dataDir "<name>"` for service data and add other state to `environment.persistence.${config.modules.persistence.persistDir}`.
+- **microVM networking:** use `microvmLib.mkHostNetworking` and `microvmLib.mkGuestModule` from `modules/lib/microvm.nix`.
+- **Users:** use `self.factory.user <name> <isAdmin> <useSopsPassword>` from `modules/users/factory.nix` plus a per-user module.
+- **Web services:** contribute an entry to the registry exposed by `modules/services/gateway.nix`; Caddy and `prism-tower` derive their configuration from it.
 
-The `unstable` input points to `wongcallum/nixpkgs@patched`, a fork branch maintained by `gh-cherry-pick`. Patches are cherry-picked onto the upstream `nixos-unstable` rev. The upstream tracking input is `unstable-upstream`.
+### nixpkgs patches
 
-To add or update patches, update the script at `scripts/patch-nixpkgs.sh` and run it locally.
-The `update-flake-lock` workflow automates this on weekly runs (requires `NIXPKGS_PAT` secret).
+Prefer a suitable upstream fix: add its PR or commit to `scripts/patch-nixpkgs.sh` and run the script locally. Use a local overlay only when no suitable upstream fix can be cherry-picked.
 
-Prefer applying a suitable upstream nixpkgs fix through `scripts/patch-nixpkgs.sh` and updating `flake.lock` rather than vendoring a local overlay. Use a local overlay only when no suitable upstream fix exists or cannot be cherry-picked.
-When cherry-picking from upstream nixpkgs PRs, use the PR reference with `ghcherry` or the individual commit hashes — never the merge commit. `ghcherry` expands PR references to their individual commits; merge commit messages contain `NixOS#NNNNN`, which makes GitHub cross-reference the upstream PR on every push to the fork.
-
-### Shared options and helpers
-
-- `modules/global.nix` defines `options.modules.*` toggles (`ssh.enable`, `tailscale.enable`, container enable-flags, etc.) that features gate on.
-- `modules/utils.nix` exposes `config.utils`:
-  - `config.utils.persistDir` — `/persist` mount root.
-  - `config.utils.dataDir "<name>"` — `/persist/data/<name>`, the conventional location for service state.
-  - `config.utils.mkContainer { … }` — wrapper for quadlet containers with sane defaults (always-restart, PUID/PGID=1000, TZ).
-- `modules/lib/microvm.nix` adds `microvmLib` to `_module.args` with `mkHostNetworking` / `mkGuestModule` for microVM host/guest plumbing on a 10.0.0.0/24 internal net.
-- `modules/users/factory.nix` defines `self.factory.user <name> <isAdmin> <useSopsPassword>` — wire new users via this factory plus a per-user module under `modules/users/`.
-
-### Reverse-proxy + dashboard registry
-
-`modules/services/gateway.nix` exposes `modules.gateway.services.<key> = { name; domainName; addr; iconUrl; category; hidden; }`. Any feature can contribute entries to this registry (Collector pattern), and Caddy + `prism-tower` derive the reverse proxy and homepage from it. New web services should register themselves here rather than configuring Caddy directly. TLD comes from `modules.gateway.tld` (default `7sref`).
-
-### Persistence model
-
-Hosts using `impermanence-zfs` rollback `rpool/nixos/root@blank` on boot — anything outside `/persist` is wiped. Features that need state add directories/files to `environment.persistence.${config.modules.persistence.persistDir}` (see `modules/ssh.nix` and `modules/tailscale.nix` for the pattern). Service data dirs should use `config.utils.dataDir`.
-
-### Secrets
-
-`inputs.secrets` points to a private `git+ssh` sibling repo (`../nixos-secrets`). `modules/sops.nix` wires `sops-nix` with `defaultSopsFile = ${secrets}/secrets.yaml` and decrypts using each host's `ssh_host_ed25519_key` under `persistDir`. Do not modify the secrets repo or input, prompt the user.
-
-## CI
-
-GitHub Actions runs on every PR and on `master`:
-
-- `check.yml` — `nix flake check --no-build --show-trace` (needs the secrets deploy key).
-- `lint.yml` — `nixfmt-tree --ci`, `statix check .`, `deadnix --fail .`.
-- `build-iso.yml` — builds `minimal-iso` on changes to `hosts/iso/**` and publishes a release.
-- `update-flake-lock.yml` — weekly: rebases `wongcallum/nixpkgs@patched` via `gh-cherry-pick`, then updates all flake inputs and opens a PR.
+Pass `ghcherry` a PR reference or individual commit hashes, not a merge commit. Merge commit messages contain `NixOS#NNNNN`, which triggers unwanted GitHub cross-references on the fork.
