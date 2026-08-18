@@ -47,6 +47,7 @@ in
         syncthing-server
         qbittorrent
 
+        radicale
         quadlet-productivity
         quadlet-media
         quadlet-automation
