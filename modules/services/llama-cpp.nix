@@ -8,7 +8,7 @@
     }:
     {
       services.llama-cpp = {
-        enable = true;
+        enable = false;
         package = pkgs.llama-cpp.override { cudaSupport = true; };
         settings = {
           host = "0.0.0.0";
@@ -40,18 +40,19 @@
         };
       };
 
-      systemd.services.llama-cpp.unitConfig = {
-        Wants = [ "systemd-modules-load.service" ];
-        After = [ "systemd-modules-load.service" ];
-      };
+      systemd.services.llama-cpp = lib.mkIf config.services.llama-cpp.enable {
+        unitConfig = {
+          Wants = [ "systemd-modules-load.service" ];
+          After = [ "systemd-modules-load.service" ];
+        };
 
-      systemd.services.llama-cpp.serviceConfig = {
-        ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${config.hardware.nvidia.package.bin}/bin/nvidia-smi -L >/dev/null 2>&1; do ${pkgs.coreutils}/bin/sleep 1; done'";
-        Environment = lib.mkForce [
-          "CUDA_VISIBLE_DEVICES=GPU-41a667ec-3e58-e64c-1eeb-fb916f0b286f"
-          "LLAMA_CACHE=/var/lib/llama-cpp/cache"
-        ];
-        TimeoutStartSec = "infinity";
+        serviceConfig = {
+          ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${config.hardware.nvidia.package.bin}/bin/nvidia-smi -L >/dev/null 2>&1; do ${pkgs.coreutils}/bin/sleep 1; done'";
+          Environment = lib.mkForce [
+            "LLAMA_CACHE=/var/lib/llama-cpp/cache"
+          ];
+          TimeoutStartSec = "infinity";
+        };
       };
     };
 }
