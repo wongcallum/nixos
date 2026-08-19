@@ -56,6 +56,7 @@ in
         quadlet-development
         quadlet-immich
         quadlet-hermes
+        quadlet-gotosocial
       ]);
 
       microvm.vms.vm-gallery = {

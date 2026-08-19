@@ -80,6 +80,7 @@
         lobehub = lib.mkEnableOption "LobeHub";
         onlyboxes = lib.mkEnableOption "OnlyBoxes";
         hermes = lib.mkEnableOption "Hermes Agent";
+        gotosocial = lib.mkEnableOption "GoToSocial";
       };
     };
 

@@ -16,6 +16,15 @@
             }
           }
         '';
+      serviceConfig =
+        service:
+        if service.staticRoot != null then
+          ''
+            root * ${service.staticRoot}
+            file_server
+          ''
+        else
+          "reverse_proxy ${service.addr}${reverseProxyConfig service}";
     in
     {
       options.modules.gateway = {
@@ -30,7 +39,13 @@
                   type = lib.types.str;
                 };
                 addr = lib.mkOption {
-                  type = lib.types.str;
+                  type = lib.types.nullOr lib.types.str;
+                  default = null;
+                };
+                staticRoot = lib.mkOption {
+                  type = lib.types.nullOr lib.types.path;
+                  default = null;
+                  description = "Static content root for this service";
                 };
                 tlsInsecureSkipVerify = lib.mkOption {
                   type = lib.types.bool;
@@ -151,7 +166,7 @@
                         ca 7sref_ca
                       }
                     }
-                    reverse_proxy ${service.addr}${reverseProxyConfig service}
+                    ${serviceConfig service}
                   '';
                 };
               }) (builtins.attrValues config.modules.gateway.services)
