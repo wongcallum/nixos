@@ -48,6 +48,7 @@ in
         qbittorrent
 
         radicale
+        trilium
         quadlet-productivity
         quadlet-media
         quadlet-automation
