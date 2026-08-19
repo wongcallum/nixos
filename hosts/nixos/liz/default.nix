@@ -25,6 +25,10 @@ in
           n = 1;
           hostname = "vm-gallery";
         })
+        (microvmLib.mkHostNetworking {
+          n = 2;
+          hostname = "vm-coder";
+        })
       ]
       ++ (with nixos; [
         uefi
@@ -62,6 +66,11 @@ in
       ]);
 
       microvm.vms.vm-gallery = {
+        flake = inputs.self;
+        restartIfChanged = true;
+      };
+
+      microvm.vms.vm-coder = {
         flake = inputs.self;
         restartIfChanged = true;
       };
