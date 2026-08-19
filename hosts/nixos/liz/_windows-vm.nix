@@ -184,6 +184,7 @@ in
     addr = "https://${guestAddr}:47990";
     tlsInsecureSkipVerify = true;
     category = "Administration";
+    iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/sunshine.svg";
   };
 
   systemd = {
