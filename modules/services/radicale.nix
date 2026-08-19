@@ -15,7 +15,20 @@ in
         settings = {
           server.hosts = [ "127.0.0.1:${toString port}" ];
           auth.type = "none";
-          storage.filesystem_folder = storageDir;
+          storage = {
+            filesystem_folder = storageDir;
+            predefined_collections = builtins.toJSON {
+              calendar = {
+                "C:supported-calendar-component-set" = "VEVENT,VJOURNAL,VTODO";
+                "D:displayname" = "Calendar";
+                tag = "VCALENDAR";
+              };
+              contacts = {
+                "D:displayname" = "Contacts";
+                tag = "VADDRESSBOOK";
+              };
+            };
+          };
         };
       };
 
