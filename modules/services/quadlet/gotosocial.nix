@@ -25,7 +25,6 @@ in
           networkConfig = {
             subnets = [ "172.31.0.0/16" ];
             disableDns = true;
-            internal = true;
             options.isolate = "strict";
           };
         };
