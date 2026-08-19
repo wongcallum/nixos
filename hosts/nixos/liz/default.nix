@@ -49,6 +49,7 @@ in
 
         radicale
         trilium
+        memos
         quadlet-productivity
         quadlet-media
         quadlet-automation
