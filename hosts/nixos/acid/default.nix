@@ -72,7 +72,7 @@ in
         syncthing-desktop.user = "callum";
         firefox.transparency = {
           enableToolbox = true;
-          enablePage = true;
+          enablePage = false;
         };
       };
 
