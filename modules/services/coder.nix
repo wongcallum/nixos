@@ -110,6 +110,7 @@ in
           domainName = "coder";
           addr = "${addr.guestAddr}:3000";
           category = "Development";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/coder-light.svg"; # mislabelled, actually for dark
         };
       };
     }
