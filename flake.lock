@@ -916,11 +916,11 @@
     },
     "unstable": {
       "locked": {
-        "lastModified": 1786941648,
-        "narHash": "sha256-1PvN3bycI04ZRK4qDbHQhlYKs46JuIsxEdMPgEc9zlA=",
+        "lastModified": 1787214746,
+        "narHash": "sha256-294m2Svmibawdud2TZNy0wNwnfssiBLwTNldPMxOazg=",
         "owner": "wongcallum",
         "repo": "nixpkgs",
-        "rev": "79f4a14cba16c72f5a70939f4fd66661f7595a8d",
+        "rev": "fe3c6515b53b40447986b4f4db7c43436595203b",
         "type": "github"
       },
       "original": {
