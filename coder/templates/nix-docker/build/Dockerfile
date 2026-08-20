@@ -21,12 +21,16 @@ RUN apt-get update \
   && echo "${USER} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USER} \
   && chmod 0440 /etc/sudoers.d/${USER}
 
+COPY flake.nix flake.lock /etc/coder/nix-environment/
+
 USER ${USER}
 WORKDIR /home/${USER}
 
 RUN curl --proto '=https' --tlsv1.2 -L \
       "https://releases.nixos.org/nix/nix-${NIX_VERSION}/install" \
     | sh -s -- --no-daemon
+
+RUN printf '%s\n' 'eval "$(direnv hook bash)"' >> "/home/${USER}/.bashrc"
 
 ENV PATH=/home/coder/.nix-profile/bin:/home/coder/.nix-profile/sbin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENV NIX_CONFIG="experimental-features = nix-command flakes"

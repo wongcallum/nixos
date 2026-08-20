@@ -27,6 +27,7 @@ with:
 coder create --template nix-docker nix-dev
 ```
 
-Baseline tools can be added to `build/Dockerfile`. Packages installed later
-with Nix are persisted in the workspace's `/nix` volume; that volume can grow
-substantially, so remove abandoned workspaces when they are no longer needed.
+## Workspace tools
+
+The agent startup script installs the default package from `build/flake.nix`
+into the coder user's Nix profile.

@@ -35,6 +35,9 @@ resource "coder_agent" "main" {
     set -eu
     curl -fsS ${local.coder_internal_url}/healthz >/dev/null
     nix --version
+    nix profile add \
+      --profile "$HOME/.nix-profile" \
+      path:/etc/coder/nix-environment#default
   EOT
 
   metadata {
