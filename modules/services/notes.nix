@@ -7,10 +7,18 @@ in
 {
   flake.modules.nixos = {
     trilium =
-      { config, ... }:
+      {
+        config,
+        inputs,
+        pkgs,
+        ...
+      }:
       {
         services.trilium-server = {
           enable = true;
+          # Stable nixpkgs' 0.102.2 crashes during first-run setup when its
+          # hourly session cleanup queries the uninitialized database.
+          package = inputs.unstable.legacyPackages.${pkgs.system}.trilium-server;
           dataDir = config.utils.dataDir "trilium";
           inherit host port;
         };
