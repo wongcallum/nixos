@@ -76,7 +76,7 @@ in
         name = "Hermes";
         domainName = "hermes";
         addr = "172.30.0.2:9119";
-        iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/png/hermes-agent.png";
+        iconUrl = "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-png@latest/dark/hermesagent.png";
         category = "Productivity";
       };
     };

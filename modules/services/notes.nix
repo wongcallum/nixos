@@ -58,7 +58,7 @@ in
         modules.gateway.services.memos = lib.mkIf config.services.memos.enable {
           name = "Memos";
           domainName = "memos";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/memos.png";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/memos.svg";
           addr = "${memosHost}:${toString memosPort}";
           category = "Productivity";
         };
