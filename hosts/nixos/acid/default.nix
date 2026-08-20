@@ -28,6 +28,7 @@ in
         callum
         ssh
         tailscale
+        tea
         autofs
         cryptomatord
         zed

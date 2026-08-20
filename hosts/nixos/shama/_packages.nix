@@ -25,8 +25,6 @@ in
     delta
     lazygit
     gh
-    tea
-
     ## general purpose
     nushell
     jq
