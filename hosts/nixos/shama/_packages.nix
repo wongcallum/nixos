@@ -11,6 +11,7 @@ in
   ];
 
   environment.systemPackages = with pkgs; [
+    coder
     libreoffice-fresh
     trilium-desktop
     xournalpp
