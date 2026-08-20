@@ -84,6 +84,7 @@ in
           addr = null;
           staticRoot = phanpy;
           category = "Social";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/phanpy.svg";
         };
       };
     };
