@@ -29,6 +29,8 @@ in
       ++ (with nixos; [
         uefi
         zram
+        sensors
+        watchdog
         impermanence-zfs
         persistence
         sops
@@ -110,6 +112,9 @@ in
       };
 
       modules = {
+        sensors.chips = [ "nct6775" ];
+        watchdog.driver = "sp5100_tco";
+
         samba.shares = {
           tank_colin = "/tank/colin";
           callum = "/tank/callum";
