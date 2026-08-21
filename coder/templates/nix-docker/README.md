@@ -38,6 +38,33 @@ Numtide's cache only has binaries for their own nixpkgs revision, and a cache
 miss means compiling the Codex Rust tree inside the workspace. The image adds
 that substituter to `/etc/nix/nix.conf`.
 
+## Upgrading the tools
+
+The tool set is baked into the image at `/etc/coder/nix-environment`, so
+upgrading means rebuilding the workspace onto a new image. That is a rebuild,
+not a recreate: both Docker volumes outlive it, so `/home/coder` and `/nix`
+are kept.
+
+```sh
+coder templates push nix-docker
+coder update <workspace>
+```
+
+The startup script re-runs `nix profile upgrade` on every start, which is what
+actually moves the profile onto the new image.
+
+To bump a tool inside a running workspace without a rebuild, update the lock
+in place. This is discarded with the container, so treat it as a scratch
+change and fold anything worth keeping back into `build/flake.nix`:
+
+```sh
+sudo nix flake update --flake /etc/coder/nix-environment
+nix profile upgrade --profile ~/.nix-profile nix-environment
+```
+
+Note that bare `nix profile upgrade` fails with `error: No packages
+specified.` — it wants an element name, an index, or `--all`.
+
 ## Signing in to Codex
 
 `~/.codex/auth.json` is not bound to a host, so sign in once and hand the file

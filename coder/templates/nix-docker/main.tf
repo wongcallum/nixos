@@ -38,6 +38,13 @@ resource "coder_agent" "main" {
     nix profile add \
       --profile "$HOME/.nix-profile" \
       path:/etc/coder/nix-environment#default
+
+    # `nix profile add` warns and exits 0 once the element exists, so on every
+    # start after the first it leaves the profile on the image it was created
+    # from. The upgrade re-resolves the path flake against the current image.
+    nix profile upgrade \
+      --profile "$HOME/.nix-profile" \
+      nix-environment
   EOT
 
   metadata {
