@@ -30,6 +30,15 @@ RUN curl --proto '=https' --tlsv1.2 -L \
       "https://releases.nixos.org/nix/nix-${NIX_VERSION}/install" \
     | sh -s -- --no-daemon
 
+# codex is packaged by llm-agents.nix, so its store paths only exist in
+# Numtide's cache. Without this substituter a workspace would try to compile
+# the Rust source tree itself.
+RUN sudo mkdir -p /etc/nix \
+  && printf '%s\n' \
+       'extra-substituters = https://cache.numtide.com' \
+       'extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=' \
+     | sudo tee -a /etc/nix/nix.conf >/dev/null
+
 RUN printf '%s\n' 'eval "$(direnv hook bash)"' >> "/home/${USER}/.bashrc"
 
 ENV PATH=/home/coder/.nix-profile/bin:/home/coder/.nix-profile/sbin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

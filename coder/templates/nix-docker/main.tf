@@ -66,6 +66,8 @@ resource "docker_image" "workspace" {
 
   triggers = {
     dockerfile = filesha256("${path.module}/build/Dockerfile")
+    flake      = filesha256("${path.module}/build/flake.nix")
+    flake_lock = filesha256("${path.module}/build/flake.lock")
   }
 }
 
