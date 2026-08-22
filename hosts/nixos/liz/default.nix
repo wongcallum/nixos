@@ -29,6 +29,10 @@ in
           n = 2;
           hostname = "vm-coder";
         })
+        (microvmLib.mkHostNetworking {
+          n = 3;
+          hostname = "vm-gpu";
+        })
       ]
       ++ (with nixos; [
         uefi
@@ -93,6 +97,22 @@ in
         pkgs = null;
         nixpkgs = inputs.unstable;
         restartIfChanged = true;
+      };
+
+      microvm.vms.vm-gpu = {
+        flake = inputs.self;
+        autostart = false;
+        restartIfChanged = true;
+      };
+
+      # The ordering dependency makes either guest stop completely before the
+      # other starts when systemd resolves their mutual conflict.
+      systemd.services = {
+        windows-vm = {
+          conflicts = [ "microvm@vm-gpu.service" ];
+          after = [ "microvm@vm-gpu.service" ];
+        };
+        "microvm@vm-gpu".conflicts = [ "windows-vm.service" ];
       };
 
       _module.args.sshKeys = keys.callum;

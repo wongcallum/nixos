@@ -164,7 +164,7 @@ let
     '';
   };
 
-  # QMP powerdown lets Windows unmount NTFS during host shutdown.
+  # Ask Windows to unmount cleanly, then keep ExecStop alive until QEMU exits.
   shutdown = pkgs.writeShellApplication {
     name = "windows-vm-shutdown";
     runtimeInputs = [ pkgs.socat ];
@@ -174,6 +174,12 @@ let
         '{"execute":"qmp_capabilities"}' \
         '{"execute":"system_powerdown"}' \
         | socat - "UNIX-CONNECT:${qmpSocket}" >/dev/null || true
+
+      mainPid="''${MAINPID:-}"
+      [ -n "$mainPid" ] || exit 0
+      while kill -0 "$mainPid" 2>/dev/null; do
+        sleep 1
+      done
     '';
   };
 in
