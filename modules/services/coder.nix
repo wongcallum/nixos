@@ -96,7 +96,7 @@ in
             enable = true;
             listenAddress = "${addr.guestAddr}:3000";
             accessUrl = "https://coder.7sref";
-            wildcardAccessUrl = "https://*.coder.7sref";
+            wildcardAccessUrl = "*.coder.7sref";
             database.createLocally = true;
             environment.extra.CODER_TELEMETRY_ENABLE = "false";
           };
