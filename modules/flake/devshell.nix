@@ -11,6 +11,7 @@
           pkgs.sops
           pkgs.ssh-to-age
           pkgs.statix
+          pkgs.terraform
         ];
       };
     };
