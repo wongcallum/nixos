@@ -14,7 +14,6 @@
         let
           pkgs = import nixpkgs {
             inherit system;
-            config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "vscode";
           };
         in
         pkgs.buildEnv {
@@ -25,7 +24,6 @@
           ++ (with pkgs; [
             chezmoi
             zellij
-            devenv
             mise
             direnv
             git
@@ -37,7 +35,6 @@
             ripgrep
             wget
             neovim
-            vscode
 
             ghostty.terminfo
           ]);

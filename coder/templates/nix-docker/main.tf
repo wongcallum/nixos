@@ -42,12 +42,6 @@ resource "coder_agent" "main" {
       nix-environment
 
     sudo chsh --shell "$HOME/.nix-profile/bin/fish" coder
-    code serve-web \
-      --port 13338 \
-      --without-connection-token \
-      --accept-server-license-terms \
-      >/tmp/vscode-web.log 2>&1 &
-
   EOT
 
   metadata {
@@ -65,16 +59,6 @@ resource "coder_agent" "main" {
     interval     = 10
     timeout      = 1
   }
-}
-
-resource "coder_app" "vscode_web" {
-  agent_id     = coder_agent.main.id
-  slug         = "vscode-web"
-  display_name = "VS Code Web"
-  icon         = "/icon/code.svg"
-  url          = "http://localhost:13338?folder=/home/coder"
-  subdomain    = true
-  share        = "owner"
 }
 
 resource "coder_app" "zed" {
