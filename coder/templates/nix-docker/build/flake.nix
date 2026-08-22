@@ -12,7 +12,10 @@
     {
       packages.${system}.default =
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "vscode";
+          };
         in
         pkgs.buildEnv {
           name = "coder-tools";
@@ -34,6 +37,7 @@
             ripgrep
             wget
             neovim
+            vscode
 
             ghostty.terminfo
           ]);
