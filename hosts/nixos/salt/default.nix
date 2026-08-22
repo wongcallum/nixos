@@ -30,6 +30,7 @@ in
       ]);
 
       system.stateVersion = "25.11";
+      system.systemBuilderCommands = "ln -s ${inputs.self.sourceInfo.outPath} $out/src";
 
       boot.initrd.availableKernelModules = [
         "xhci_pci"

@@ -81,9 +81,5 @@
           ''}
         '';
       };
-
-      # make a symlink of flake within the generation (e.g. /run/current-system/src)
-      # thank you @iynaix
-      system.systemBuilderCommands = "ln -s ${inputs.self.sourceInfo.outPath} $out/src";
     };
 }

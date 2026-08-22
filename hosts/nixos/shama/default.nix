@@ -52,6 +52,7 @@ in
       ]);
 
       system.stateVersion = "26.05";
+      system.systemBuilderCommands = "ln -s ${inputs.self.sourceInfo.outPath} $out/src";
 
       environment.variables = {
         EDITOR = "nvim";
