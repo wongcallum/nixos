@@ -2,10 +2,6 @@
   description = "Tools provisioned into Coder workspaces";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-
-  # Deliberately not following nixpkgs: llm-agents.nix publishes binaries only
-  # for its own nixpkgs revision, and codex is a from-source Rust build that a
-  # workspace container has no business doing itself.
   inputs.llm-agents.url = "github:numtide/llm-agents.nix";
 
   outputs =
@@ -33,11 +29,13 @@
             delta
             lazygit
             gh
-            nushell
+            fish
             jq
             ripgrep
             wget
             neovim
+
+            ghostty.terminfo
           ]);
         };
     };

@@ -12,8 +12,6 @@ terraform {
 }
 
 locals {
-  # Coder's public URL is terminated by Caddy on liz. The internal URL keeps
-  # workspace containers independent of the private 7sref DNS zone and CA.
   coder_internal_url = "http://10.0.0.3:3000"
 }
 
@@ -35,16 +33,15 @@ resource "coder_agent" "main" {
     set -eu
     curl -fsS ${local.coder_internal_url}/healthz >/dev/null
     nix --version
+
     nix profile add \
       --profile "$HOME/.nix-profile" \
       path:/etc/coder/nix-environment#default
-
-    # `nix profile add` warns and exits 0 once the element exists, so on every
-    # start after the first it leaves the profile on the image it was created
-    # from. The upgrade re-resolves the path flake against the current image.
     nix profile upgrade \
       --profile "$HOME/.nix-profile" \
       nix-environment
+
+    sudo chsh --shell "$HOME/.nix-profile/bin/fish" coder
   EOT
 
   metadata {
