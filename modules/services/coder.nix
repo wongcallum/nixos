@@ -96,6 +96,7 @@ in
             enable = true;
             listenAddress = "${addr.guestAddr}:3000";
             accessUrl = "https://coder.7sref";
+            wildcardAccessUrl = "https://*.coder.7sref";
             database.createLocally = true;
             environment.extra.CODER_TELEMETRY_ENABLE = "false";
           };
@@ -111,6 +112,14 @@ in
           addr = "${addr.guestAddr}:3000";
           category = "Development";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/coder-light.svg"; # mislabelled, actually for dark
+        };
+        # Route generated Coder app subdomains to the Coder server.
+        modules.gateway.services.coder-apps = {
+          name = "Coder workspace apps";
+          domainName = "*.coder";
+          addr = "${addr.guestAddr}:3000";
+          category = "Development";
+          hidden = true;
         };
       };
     }
