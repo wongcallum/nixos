@@ -31,7 +31,7 @@ in
       virtualisation.quadlet.containers.gallery-app.containerConfig.publishPorts = [ "3000:3000" ];
 
       modules.cloudflared = {
-        tunnelId = "9b0e8012-83b7-4b5f-a336-d0edd86ec586";
+        tunnelId = "3b2b04b1-c342-4988-afb1-6be0ccf1964c";
         ingress."gallery.callumwong.com" = "http://127.0.0.1:3000";
       };
 
