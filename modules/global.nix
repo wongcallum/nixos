@@ -33,6 +33,17 @@
                 ]
               );
             };
+
+            options.smartctlDevices = lib.mkOption {
+              type = lib.types.listOf lib.types.str;
+              default = [ ];
+              description = ''
+                Disks to hand the smartctl exporter, as `/dev/disk/by-id` names;
+                the prefix is added for you. Empty means autodiscovery, which
+                also finds transient USB enclosures - one that stops answering
+                SMART blocks every scrape until it is unplugged.
+              '';
+            };
           }
         );
         default = { };
@@ -97,6 +108,16 @@
           "zfs"
           "smartctl"
           "cadvisor"
+        ];
+        liz.smartctlDevices = [
+          "ata-WDC_WD20EARX-00AZ6B0_WD-WCC070091856"
+          "ata-WDC_WD20EARX-00AZ6B0_WD-WCC070060070"
+          "ata-WDC_WD20EZRX-00D8PB0_WD-WMC4M0186106"
+          "ata-WDC_WD20EARX-00AZ6B0_WD-WCC070117894"
+          "ata-WDC_WD10EZEX-60WN4A0_WD-WCC6Y3UDHH34"
+          "ata-ST2000DM001-1CH164_W3406XDY"
+          "nvme-Patriot_M.2_P300_128GB_P300ADBB22111800174"
+          "nvme-Samsung_SSD_980_PRO_1TB_S5GXNX0T913718H"
         ];
         salt.exporters = [
           "node"

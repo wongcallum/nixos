@@ -3,7 +3,8 @@
     { config, lib, ... }:
     let
       hostname = config.networking.hostName;
-      exporters = (config.modules.metrics.hosts.${hostname} or { }).exporters or [ ];
+      hostCfg = config.modules.metrics.hosts.${hostname} or { };
+      exporters = hostCfg.exporters or [ ];
       has = e: builtins.elem e exporters;
     in
     {
@@ -22,6 +23,7 @@
         smartctl = lib.mkIf (has "smartctl") {
           enable = true;
           port = 9003;
+          devices = map (d: "/dev/disk/by-id/${d}") (hostCfg.smartctlDevices or [ ]);
         };
 
         zfs = lib.mkIf (has "zfs") {
