@@ -33,6 +33,7 @@
 
       environment.systemPackages = with pkgs; [
         xwayland-satellite
+        adwaita-icon-theme
 
         # for dms-quick-capture
         imagemagick

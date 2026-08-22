@@ -16,11 +16,11 @@
         audio
         niri
         fonts
-        firefox
-        ghostty
         nix-ld
         direnv
-        zoxide
+        console-font
+        zram
+        tailscale
       ];
 
       programs.kdeconnect = {
@@ -46,6 +46,12 @@
         pkgs.qt6Packages.qt6ct
         pkgs.libsForQt5.qt5ct
       ];
+
+      environment.variables = {
+        EDITOR = "nvim";
+        GOPATH = "/home/callum/.local/share/go";
+        GOBIN = "/home/callum/.local/bin";
+      };
 
       xdg.portal.enable = true;
 

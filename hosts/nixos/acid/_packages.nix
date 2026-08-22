@@ -1,109 +1,15 @@
 { inputs, pkgs, ... }:
 let
-  lobehub-desktop = pkgs.callPackage ../../../packages/lobehub-desktop { };
-  chainner = pkgs.callPackage ../../../packages/chainner { };
-  openscq30-cli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.openscq30-cli;
   hermes-desktop = pkgs.callPackage ../../../packages/hermes-desktop {
     hermesSrc = inputs.hermes-agent;
   };
 in
 {
   environment.systemPackages = with pkgs; [
-    # terminal tools
-    zellij
-    chezmoi
-    mise
-    devenv
-    android-tools
-
-    ## fish plugins
-    fishPlugins.tide
-    fishPlugins.autopair
-
-    ## git
-    git
-    delta
-    lazygit
-    gh
-    tea
-
-    ## general purpose
-    nushell
-    jq
-    ripgrep
-    wl-clipboard
-    wget
-    unzip
-
-    ## informational/helper
-    ncdu
-    btop
-    nix-output-monitor
-    nix-search-cli
-    nix-your-shell
-    nh
-
-    # editors
-    neovim
-    tree-sitter
-    vscode
-
-    # lsp/format
-    nixd
-    nil
-    nixfmt
-    lua-language-server
-    markdown-oxide
-    typst
-    tinymist
-    websocat # for typst-preview.nvim
-
-    # productivity
-    xournalpp
-    libreoffice-fresh
-    qalculate-gtk
-    foliate
-    kdePackages.okular
-    zathura
-    xnviewmp
-    scrcpy
-    ffmpeg
-    mpv
-    moonlight-qt
     (obs-studio.override { cudaSupport = true; })
-    picard
-
-    # file manager
-    nemo
-    nnn
-    doublecmd
-    file-roller
-    kdePackages.dolphin
-    kdePackages.kio
-    kdePackages.kio-admin
-    kdePackages.kio-extras
-    kdePackages.kio-fuse
-    kdePackages.baloo
-    kdePackages.baloo-widgets
-    kdePackages.dolphin-plugins
-    kdePackages.kdegraphics-thumbnailers
-
-    # system
-    kdePackages.qttools
-    adwaita-icon-theme
-    pavucontrol
-    blueman
-    efibootmgr
-
-    # bloat
     equibop
     feishin
-    jetbrains-toolbox
-    ayugram-desktop
     faugus-launcher
-    lobehub-desktop
-    chainner
-    openscq30-cli
     hermes-desktop
   ];
 }

@@ -9,12 +9,11 @@ in
     {
       config,
       lib,
-      pkgs,
       ...
     }:
     {
       imports = [
-        ./_audio-always-on.nix
+        # ./_audio-always-on.nix
         ./_disko.nix
         ./_packages.nix
 
@@ -22,52 +21,25 @@ in
       ]
       ++ (with nixos; [
         limine
-        console-font
-        zram
-
-        callum
-        ssh
-        tailscale
-        autofs
-        cryptomatord
-        zed
-        freesmlauncher
-        disk-utils
-        nix-monitored
-        nix-discord-rpc
-        llama-cpp
-
         impermanence-btrfs
-
+        callum
         desktop
-        opentabletdriver
-
-        keyd
+        syncthing-desktop
+        autofs
+        nix-monitored
+        freesmlauncher
         libvirt
         docker
-        bluetooth
-        thunderbird
-        syncthing-desktop
-        helium
-        trilium-desktop
       ]);
 
       system.stateVersion = "26.05";
       system.systemBuilderCommands = "ln -s ${inputs.self.sourceInfo.outPath} $out/src";
-      services = {
 
+      networking.networkmanager.enable = true;
+      services = {
         resolved.enable = true;
         xserver.videoDrivers = [ "nvidia" ];
       };
-      environment.variables = {
-        EDITOR = "nvim";
-        GOPATH = "/home/callum/.local/share/go";
-        GOBIN = "/home/callum/.local/bin";
-      };
-
-      nixpkgs.config.allowUnfree = true;
-
-      networking.networkmanager.enable = true;
 
       modules = {
         syncthing-desktop.user = "callum";
@@ -79,7 +51,6 @@ in
 
       users.users.callum.extraGroups = [
         "networkmanager"
-        "adbusers"
       ];
 
       boot = {
@@ -92,10 +63,6 @@ in
           "usbhid"
           "sd_mod"
         ];
-      };
-
-      specialisation.LinuxLatest.configuration = {
-        boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
       };
 
       hardware = {
@@ -111,6 +78,5 @@ in
           powerManagement.enable = true;
         };
       };
-
     };
 }

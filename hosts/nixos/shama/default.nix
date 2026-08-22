@@ -22,43 +22,22 @@ in
       ]
       ++ (with nixos; [
         limine
-        console-font
-        zram
-
-        callum
-        tailscale
-        autofs
-        cryptomatord
-        zed
-        freesmlauncher
-        disk-utils
-        nix-monitored
-        nix-discord-rpc
-
         impermanence-btrfs
-
+        callum
         desktop
-        opentabletdriver
-
-        keyd
+        syncthing-desktop
+        laptop
+        autofs
+        nix-monitored
+        freesmlauncher
         libvirt
         docker
+        keyd
         bluetooth
-        thunderbird
-        laptop
-        syncthing-desktop
-        helium
-        trilium-desktop
       ]);
 
       system.stateVersion = "26.05";
       system.systemBuilderCommands = "ln -s ${inputs.self.sourceInfo.outPath} $out/src";
-
-      environment.variables = {
-        EDITOR = "nvim";
-        GOPATH = "/home/callum/.local/share/go";
-        GOBIN = "/home/callum/.local/bin";
-      };
 
       environment.sessionVariables = {
         LIBVA_DRIVER_NAME = "iHD";
@@ -66,8 +45,6 @@ in
         # needed for openvino npu device
         ZE_ENABLE_ALT_DRIVERS = "/run/opengl-driver/lib/libze_intel_npu.so.1";
       };
-
-      nixpkgs.config.allowUnfree = true;
 
       networking.networkmanager.enable = true;
       services.resolved.enable = true;
@@ -162,8 +139,6 @@ in
             vpl-gpu-rt
           ];
         };
-
       };
-
     };
 }
