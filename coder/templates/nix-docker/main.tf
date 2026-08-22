@@ -97,6 +97,7 @@ resource "docker_container" "workspace" {
   image    = docker_image.workspace.name
   name     = "coder-${lower(data.coder_workspace_owner.me.name)}-${lower(data.coder_workspace.me.name)}"
   hostname = data.coder_workspace.me.name
+  restart  = "unless-stopped"
 
   entrypoint = ["sh", "-c", coder_agent.main.init_script]
 
