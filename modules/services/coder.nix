@@ -15,7 +15,7 @@ in
   flake.modules = lib.mkMerge [
     {
       nixos.coder =
-        { pkgs, ... }:
+        { ... }:
         {
           imports = [
             nixos.docker
@@ -42,50 +42,7 @@ in
             }
           ];
 
-          # Migrate Docker state from the old virtiofs-backed persistence path
-          # the first time the local Docker volume is booted.
-          systemd.services = {
-            docker-state-migration = {
-              description = "Migrate Docker state to the local Docker volume";
-              wantedBy = [ "docker.service" ];
-              before = [
-                "containerd.service"
-                "docker.service"
-              ];
-              after = [
-                "persist.mount"
-                "var-lib-docker.mount"
-              ];
-              requires = [
-                "persist.mount"
-                "var-lib-docker.mount"
-              ];
-              unitConfig.ConditionPathExists = "/persist/var/lib/docker";
-              path = [
-                pkgs.findutils
-                pkgs.rsync
-              ];
-              serviceConfig = {
-                Type = "oneshot";
-                RemainAfterExit = true;
-              };
-              script = ''
-                if [ -e /var/lib/docker/engine-id ] || [ -e /var/lib/docker/volumes/metadata.db ]; then
-                  exit 0
-                fi
-
-                rsync --archive --hard-links --acls --xattrs --numeric-ids \
-                  /persist/var/lib/docker/ /var/lib/docker/
-              '';
-            };
-
-            docker = {
-              after = [ "docker-state-migration.service" ];
-              requires = [ "docker-state-migration.service" ];
-            };
-
-            coder.after = [ "postgresql.service" ];
-          };
+          systemd.services.coder.after = [ "postgresql.service" ];
 
           # Coder's Terraform provisioner is part of the service closure.
           nixpkgs.config.allowUnfreePredicate = pkg: lib.elem (lib.getName pkg) [ "terraform" ];
