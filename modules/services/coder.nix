@@ -38,7 +38,7 @@ in
             {
               image = "/persist/microvms/${hostname}-docker.img";
               mountPoint = "/var/lib/docker";
-              size = 32768;
+              size = 131072;
             }
           ];
 
