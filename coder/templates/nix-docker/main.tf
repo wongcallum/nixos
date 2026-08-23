@@ -30,6 +30,7 @@ resource "coder_agent" "main" {
   os   = "linux"
 
   startup_script = <<-EOT
+    #!/bin/sh
     set -eu
     curl -fsS ${local.coder_internal_url}/healthz >/dev/null
     nix --version
