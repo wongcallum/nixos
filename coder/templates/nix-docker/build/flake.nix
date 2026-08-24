@@ -33,6 +33,7 @@
               ripgrep
               wget
               neovim
+              openssh
 
               ghostty.terminfo
             ]
