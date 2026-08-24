@@ -63,6 +63,7 @@ in
         quadlet-immich
         quadlet-hermes
         quadlet-gotosocial
+        mc-server
       ]);
 
       microvm.vms.vm-gallery = {

@@ -26,7 +26,7 @@ in
 
         # quadlet-lobehub
         # quadlet-onlyboxes
-        mc-server
+        cottage-witch
       ]);
 
       system.stateVersion = "25.11";
