@@ -2,10 +2,9 @@
   description = "Tools provisioned into Coder workspaces";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-  inputs.llm-agents.url = "github:numtide/llm-agents.nix";
 
   outputs =
-    { nixpkgs, llm-agents, ... }:
+    { nixpkgs, ... }:
     let
       system = "x86_64-linux";
     in
@@ -18,26 +17,26 @@
         in
         pkgs.buildEnv {
           name = "coder-tools";
-          paths = [
-            llm-agents.packages.${system}.codex
-          ]
-          ++ (with pkgs; [
-            chezmoi
-            zellij
-            mise
-            direnv
-            git
-            delta
-            lazygit
-            gh
-            fish
-            jq
-            ripgrep
-            wget
-            neovim
+          paths = (
+            with pkgs;
+            [
+              chezmoi
+              zellij
+              mise
+              direnv
+              git
+              delta
+              lazygit
+              gh
+              fish
+              jq
+              ripgrep
+              wget
+              neovim
 
-            ghostty.terminfo
-          ]);
+              ghostty.terminfo
+            ]
+          );
         };
     };
 }
