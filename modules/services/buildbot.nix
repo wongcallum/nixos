@@ -177,6 +177,11 @@
               # `createHome` chowns the mount point before the bind mount is in
               # place, so the persisted directory has to be fixed up directly
               "d ${config.modules.persistence.persistDir}${workerHome} 0700 buildbot-worker buildbot-worker -"
+              # buildbot_nix hardcodes /var/lib/buildbot/scheduled-effects-cache
+              # in Python, so pointing the master home elsewhere does not move
+              # it. It only caches derived data, so leave it on the root that
+              # gets rolled back and just make sure it exists.
+              "d /var/lib/buildbot 0750 buildbot buildbot -"
             ];
 
             services.buildbot-master.serviceConfig.MemoryMax = "2G";
