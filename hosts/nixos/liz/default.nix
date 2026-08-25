@@ -157,9 +157,6 @@ in
           githubOauthId = "Iv23lipPVqv9ZuHat43o";
         };
 
-        # fill in after `attic cache create`
-        attic.publicKey = "";
-
         cloudflared = {
           tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
           credentialsSecret = "cloudflared/liz-credentials.json";

@@ -17,8 +17,7 @@
 
         publicKey = lib.mkOption {
           type = lib.types.str;
-          default = "";
-          example = "homelab:tQ6cKz1ktFAWpKC0DAKFVYLXmPFOcVMLcnhPBGYqLTU=";
+          default = "homelab:GtiQKpn+dfjJjjpPZQtQf2MZMzhFn2DQG9lkxxfarLc=";
           description = ''
             Signing key attic generated when the cache was created, in `<cache>:<base64>` form
           '';
