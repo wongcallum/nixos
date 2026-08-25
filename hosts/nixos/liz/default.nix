@@ -153,9 +153,8 @@ in
           domain = "buildbot.callumwong.com";
           repository = "wongcallum/nixos";
           admins = [ "wongcallum" ];
-          # fill in after creating GitHub app
-          githubAppId = 0;
-          githubOauthId = "";
+          githubAppId = 4715357;
+          githubOauthId = "Iv23lipPVqv9ZuHat43o";
         };
 
         # fill in after `attic cache create`
