@@ -13,6 +13,8 @@
         cfg = config.modules.buildbot;
 
         masterHome = config.utils.dataDir "buildbot";
+        # upstream hardcodes this and offers no option for it
+        workerHome = "/var/lib/buildbot-worker";
 
         inherit (config.modules.attic) cacheName;
         cacheUrl = "https://${config.modules.attic.domainName}.${config.modules.gateway.tld}/";
@@ -172,6 +174,9 @@
           systemd = {
             tmpfiles.rules = [
               "d ${masterHome} 0750 buildbot buildbot -"
+              # `createHome` chowns the mount point before the bind mount is in
+              # place, so the persisted directory has to be fixed up directly
+              "d ${config.modules.persistence.persistDir}${workerHome} 0700 buildbot-worker buildbot-worker -"
             ];
 
             services.buildbot-master.serviceConfig.MemoryMax = "2G";
@@ -179,7 +184,12 @@
           };
 
           environment.persistence.${config.modules.persistence.persistDir}.directories = [
-            "/var/lib/buildbot-worker"
+            {
+              directory = workerHome;
+              user = "buildbot-worker";
+              group = "buildbot-worker";
+              mode = "0700";
+            }
           ];
         };
       };
