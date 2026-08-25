@@ -15,7 +15,7 @@ let
 
   # SMT siblings are n and n+6
   guestCpus = "3-5 9-11";
-  guestMemory = "24G";
+  guestMemory = "16G";
 
   ovmf = pkgs.OVMFFull.fd;
   codeImage = "${ovmf}/FV/OVMF_CODE.fd";

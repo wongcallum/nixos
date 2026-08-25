@@ -15,6 +15,14 @@
           description = "Cloudflare tunnel UUID printed by `cloudflared tunnel create`";
         };
 
+        credentialsSecret = lib.mkOption {
+          type = lib.types.str;
+          default = "cloudflared/credentials.json";
+          description = ''
+            sops key holding this host's tunnel credentials
+          '';
+        };
+
         ingress = lib.mkOption {
           type = lib.types.attrsOf lib.types.str;
           default = { };
@@ -34,7 +42,7 @@
         }
 
         (lib.mkIf (cfg.tunnelId != "") {
-          sops.secrets."cloudflared/credentials.json" = {
+          sops.secrets.${cfg.credentialsSecret} = {
             owner = "root";
             group = "root";
             mode = "0400";
@@ -45,7 +53,7 @@
             enable = true;
 
             tunnels.${cfg.tunnelId} = {
-              credentialsFile = config.sops.secrets."cloudflared/credentials.json".path;
+              credentialsFile = config.sops.secrets.${cfg.credentialsSecret}.path;
               inherit (cfg) ingress;
               default = "http_status:404";
             };

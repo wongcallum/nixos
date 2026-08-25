@@ -1,4 +1,4 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
 {
   flake.modules.nixos.base =
     { pkgs, ... }:
@@ -26,8 +26,6 @@
         extraOptions = ''
           connect-timeout = 5
           log-lines = 50
-          min-free = 128000000
-          max-free = 1000000000
           fallback = true
         '';
 
@@ -48,6 +46,10 @@
             "flakes"
           ];
           download-buffer-size = 524288000;
+
+          min-free = lib.mkDefault 128000000;
+          max-free = lib.mkDefault 1000000000;
+
           extra-substituters = [
             "https://ghostty.cachix.org"
             "https://calamari.cachix.org"

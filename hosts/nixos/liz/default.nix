@@ -45,6 +45,7 @@ in
         ssh
         tailscale
         gateway
+        cloudflared
         libvirt
         metrics
         monitoring
@@ -64,6 +65,9 @@ in
         quadlet-hermes
         quadlet-gotosocial
         mc-server
+
+        attic
+        buildbot
       ]);
 
       microvm.vms.vm-gallery = {
@@ -106,13 +110,23 @@ in
         extraModprobeConfig = "options zfs zfs_arc_max=8589934592";
       };
 
-      # shama's kernel and other chaotic packages; liz substitutes them rather
-      # than compiling them when it builds shama's closure.
-      nix.settings = {
-        extra-substituters = [ "https://nyx-cache.chaotic.cx/" ];
-        extra-trusted-public-keys = [
-          "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
-        ];
+      nix = {
+        settings = {
+          max-jobs = 1;
+          cores = 8;
+
+          min-free = 21474836480; # 20 GiB
+          max-free = 64424509440; # 60 GiB
+
+          # shama's kernel and other chaotic packages; liz substitutes them
+          # rather than compiling them when it builds shama's closure.
+          extra-substituters = [ "https://nyx-cache.chaotic.cx/" ];
+          extra-trusted-public-keys = [
+            "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+          ];
+        };
+
+        gc.dates = lib.mkForce "daily";
       };
 
       services.zfs.autoScrub = {
@@ -134,6 +148,24 @@ in
       modules = {
         sensors.chips = [ "nct6775" ];
         watchdog.driver = "sp5100_tco";
+
+        buildbot = {
+          domain = "buildbot.callumwong.com";
+          repository = "wongcallum/nixos";
+          admins = [ "wongcallum" ];
+          # fill in after creating GitHub app
+          githubAppId = 0;
+          githubOauthId = "";
+        };
+
+        # fill in after `attic cache create`
+        attic.publicKey = "";
+
+        cloudflared = {
+          tunnelId = "";
+          credentialsSecret = "cloudflared/liz-credentials.json";
+          ingress."buildbot.callumwong.com" = "http://127.0.0.1:8010";
+        };
 
         samba.shares = {
           tank_colin = "/tank/colin";

@@ -30,5 +30,8 @@ in
   };
 
   config._module.args.deployLib = deployPkgs.deploy-rs.lib;
-  config.flake.checks.${system} = deployPkgs.deploy-rs.lib.deployChecks self.deploy;
+
+  config.flake.checks.${system} = {
+    inherit (deployPkgs.deploy-rs.lib.deployChecks self.deploy) deploy-schema;
+  };
 }

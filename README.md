@@ -8,11 +8,11 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 `nix build .#nixosConfigurations.{{host}}.config.system.build.toplevel` for one host, or
 
-`nix flake check` for the entire flake
+`nix flake check --no-build` for the entire flake.
 
 ## Deploy (rebuild)
 
-`deploy .#{{host}}`
+`deploy --skip-checks .#{{host}}`
 
 ## Deploy (install)
 
