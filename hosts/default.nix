@@ -26,9 +26,11 @@ in
     description = "nixpkgs input name per host";
   };
 
-  config = {
-    flake.nixosConfigurations = lib.mkMerge [
-      (mkHosts "hosts/nixos/" config.flake.modules.nixos (
+  config =
+    let
+      # Real machines only. Installer images are also nixosConfigurations, but
+      # they are not deploy targets, so they must not reach `flake.deploy.nodes`.
+      machines = mkHosts "hosts/nixos/" config.flake.modules.nixos (
         hostname: module:
         let
           baseName = config.flake.nixpkgs.${hostname} or "nixpkgs";
@@ -44,18 +46,22 @@ in
             module
           ];
         }
-      ))
+      );
+    in
+    {
+      flake.nixosConfigurations = lib.mkMerge [
+        machines
 
-      (config.flake.modules.iso or { })
-    ];
+        (config.flake.modules.iso or { })
+      ];
 
-    flake.deploy.nodes = lib.mapAttrs (hostname: hostConfiguration: {
-      inherit hostname;
-      profiles.system = {
-        user = "root";
-        sshUser = "callum";
-        path = deployLib.activate.nixos hostConfiguration;
-      };
-    }) config.flake.nixosConfigurations;
-  };
+      flake.deploy.nodes = lib.mapAttrs (hostname: hostConfiguration: {
+        inherit hostname;
+        profiles.system = {
+          user = "root";
+          sshUser = "callum";
+          path = deployLib.activate.nixos hostConfiguration;
+        };
+      }) machines;
+    };
 }
