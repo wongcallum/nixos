@@ -17,27 +17,26 @@
         in
         pkgs.buildEnv {
           name = "coder-tools";
-          paths = (
-            with pkgs;
-            [
-              chezmoi
-              zellij
-              mise
-              direnv
-              git
-              delta
-              lazygit
-              gh
-              fish
-              jq
-              ripgrep
-              wget
-              neovim
-              openssh
+          paths = with pkgs; [
 
-              ghostty.terminfo
-            ]
-          );
+            chezmoi
+            zellij
+            mise
+            direnv
+            git
+            delta
+            lazygit
+            gh
+            fish
+            jq
+            ripgrep
+            wget
+            neovim
+            openssh
+
+            ghostty.terminfo
+
+          ];
         };
     };
 }
