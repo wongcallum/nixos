@@ -768,8 +768,7 @@
         "sops-nix": "sops-nix",
         "tuigreet": "tuigreet",
         "unstable": "unstable",
-        "unstable-upstream": "unstable-upstream",
-        "weegspkgs": "weegspkgs"
+        "unstable-upstream": "unstable-upstream"
       }
     },
     "rust-overlay": {
@@ -962,26 +961,6 @@
         "owner": "numtide",
         "repo": "flake-utils",
         "type": "github"
-      }
-    },
-    "weegspkgs": {
-      "inputs": {
-        "nixpkgs": [
-          "unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1784262398,
-        "narHash": "sha256-A+PdOS1llLE2XEG5NyY5NyzedmAFfZTHjjsIZ/bwVjg=",
-        "ref": "refs/heads/main",
-        "rev": "76f9a3ec63dbc5f3065d55e6f0d2a6d5e3acbeb4",
-        "revCount": 8,
-        "type": "git",
-        "url": "https://codeberg.org/weegs710/pkgs"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://codeberg.org/weegs710/pkgs"
       }
     },
     "zig": {
