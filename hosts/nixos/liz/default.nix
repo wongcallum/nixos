@@ -161,7 +161,7 @@ in
         attic.publicKey = "";
 
         cloudflared = {
-          tunnelId = "";
+          tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
           credentialsSecret = "cloudflared/liz-credentials.json";
           ingress."buildbot.callumwong.com" = "http://127.0.0.1:8010";
         };
