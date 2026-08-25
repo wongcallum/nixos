@@ -105,7 +105,11 @@
             "buildbot/github-app-key".restartUnits = [ "buildbot-master.service" ];
             "buildbot/github-webhook-secret".restartUnits = [ "buildbot-master.service" ];
             "buildbot/github-oauth-secret".restartUnits = [ "buildbot-master.service" ];
-            # {"workers":[{"name":"liz","cores":1,"pass":"<same as worker-password>"}]}
+            # A bare JSON array, not an object: buildbot_nix passes the parsed
+            # file straight to `WorkerConfig(workers=data)`. `cores` is the
+            # number of worker slots, so it has to match `worker.workers`
+            # below, and `pass` has to equal buildbot/worker-password exactly.
+            # [{"name":"liz","cores":1,"pass":"..."}]
             "buildbot/workers".restartUnits = [ "buildbot-master.service" ];
             "buildbot/worker-password".restartUnits = [ "buildbot-worker.service" ];
 
