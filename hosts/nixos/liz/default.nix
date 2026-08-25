@@ -106,6 +106,15 @@ in
         extraModprobeConfig = "options zfs zfs_arc_max=8589934592";
       };
 
+      # shama's kernel and other chaotic packages; liz substitutes them rather
+      # than compiling them when it builds shama's closure.
+      nix.settings = {
+        extra-substituters = [ "https://nyx-cache.chaotic.cx/" ];
+        extra-trusted-public-keys = [
+          "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+        ];
+      };
+
       services.zfs.autoScrub = {
         enable = true;
         interval = "monthly";
