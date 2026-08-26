@@ -1,6 +1,7 @@
 {
   inputs,
   self,
+  config,
   lib,
   ...
 }:
@@ -21,6 +22,12 @@ let
       })
     ];
   };
+
+  ciDeploy = self.deploy // {
+    nodes = lib.filterAttrs (
+      hostname: _: builtins.elem hostname config.flake.ciHosts
+    ) self.deploy.nodes;
+  };
 in
 {
   # define to allow merging by flake-parts
@@ -32,6 +39,6 @@ in
   config._module.args.deployLib = deployPkgs.deploy-rs.lib;
 
   config.flake.checks.${system} = {
-    inherit (deployPkgs.deploy-rs.lib.deployChecks self.deploy) deploy-schema;
+    inherit (deployPkgs.deploy-rs.lib.deployChecks ciDeploy) deploy-schema;
   };
 }

@@ -28,6 +28,8 @@ Either manually create and fill in the file or pass in
 `--generate-hardware-config nixos-generate-config hosts/{{host}}/_configuration.nix`
 when running `nixos-anywhere`
 
+Add `{{host}}` to `ciHosts` in `modules/flake/checks.nix` so CI builds it and `deploy-schema` covers it.
+
 ### Sops on new host
 
 NEW! run `./scripts/new-sops-host.nu`
