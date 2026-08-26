@@ -18,7 +18,7 @@ in
           enable = true;
           # Stable nixpkgs' 0.102.2 crashes during first-run setup when its
           # hourly session cleanup queries the uninitialized database.
-          package = inputs.unstable.legacyPackages.${pkgs.system}.trilium-server;
+          package = inputs.unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.trilium-server;
           dataDir = config.utils.dataDir "trilium";
           inherit host port;
         };

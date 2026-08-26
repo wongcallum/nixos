@@ -12,7 +12,7 @@ in
 
   environment.systemPackages = with pkgs; [
     coder
-    libreoffice-fresh
+    libreoffice-stable
     trilium-desktop
     xournalpp
     scrcpy
