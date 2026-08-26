@@ -158,6 +158,14 @@
                   warnOnly = true;
                 }
               ];
+
+              # PR builds don't get gcroots by default, so the flake-lock-update
+              # bot's branch would otherwise pay for a full kernel rebuild twice:
+              # once on the PR, again when it lands on master with nothing cached.
+              branches.flake-lock-update = {
+                matchGlob = "update_flake_lock_action";
+                registerGCRoots = true;
+              };
             };
 
             buildbot-nix.worker = {
