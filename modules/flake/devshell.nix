@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     {
       devShells.default = pkgs.mkShell {
         packages = [
@@ -14,5 +14,8 @@
           pkgs.terraform
         ];
       };
+
+      # push devshell packages to attic
+      checks.devshell = config.devShells.default;
     };
 }
