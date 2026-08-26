@@ -70,13 +70,29 @@ in
         buildbot
       ]);
 
+      # https://microvm-nix.github.io/microvm.nix/declarative.html#fully-declarative
+
       microvm.vms.vm-gallery = {
-        flake = inputs.self;
+        config.imports = [
+          nixos.base
+          nixos.global
+          nixos."hosts/nixos/vm-gallery"
+        ];
+        # nixos.base sets nixpkgs.config, which nixpkgs forbids once pkgs is
+        # instantiated externally; force config-mode's eval-config to build
+        # its own pkgs instead of reusing liz's already-built instance.
+        pkgs = null;
         restartIfChanged = true;
       };
 
       microvm.vms.vm-coder = {
-        flake = inputs.self;
+        config.imports = [
+          nixos.base
+          nixos.global
+          nixos."hosts/nixos/vm-coder"
+        ];
+        pkgs = null;
+        nixpkgs = inputs.unstable;
         restartIfChanged = true;
       };
 
