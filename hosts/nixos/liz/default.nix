@@ -83,7 +83,6 @@ in
       _module.args.sshKeys = keys.callum;
 
       system.stateVersion = "25.11";
-      system.systemBuilderCommands = "ln -s ${inputs.self.sourceInfo.outPath} $out/src";
       networking.hostId = "19550836";
 
       boot = {
