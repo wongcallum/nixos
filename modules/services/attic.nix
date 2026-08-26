@@ -48,7 +48,14 @@
         dataset = "${pool}/attic";
         root = "/${dataset}";
         storage = "${root}/storage";
-        database = "${root}/server.db";
+
+        # server.db does small fsync-heavy writes per chunk pushed, which is
+        # IOPS-bound; scratch is a single spinning disk, so keep the database
+        # off it and on the SSD-backed persist dataset instead. Bulk chunk
+        # storage stays on scratch since it's comparatively sequential and
+        # needs the capacity more than the speed.
+        dataDir = config.utils.dataDir "attic";
+        database = "${dataDir}/server.db";
 
         listenPort = 8080;
       in
@@ -67,44 +74,55 @@
         };
 
         config = {
-          # The scratch pool is imported via boot.zfs.extraPools rather than
-          # declared in disko, so the dataset is provisioned here. Properties are
-          # re-applied on every start, which keeps changes to them declarative.
-          systemd.services.attic-storage = {
-            description = "Provision the ZFS dataset backing the attic binary cache";
-            requiredBy = [ "atticd.service" ];
-            before = [ "atticd.service" ];
-            after = [
-              "zfs-import-${pool}.service"
-              # the dataset has to be mounted before anything is written into it
-              "zfs-mount.service"
-            ];
-            path = [ config.boot.zfs.package ];
+          systemd = {
+            # The scratch pool is imported via boot.zfs.extraPools rather than
+            # declared in disko, so the dataset is provisioned here. Properties are
+            # re-applied on every start, which keeps changes to them declarative.
+            services.attic-storage = {
+              description = "Provision the ZFS dataset backing the attic binary cache";
+              requiredBy = [ "atticd.service" ];
+              before = [ "atticd.service" ];
+              after = [
+                "zfs-import-${pool}.service"
+                # the dataset has to be mounted before anything is written into it
+                "zfs-mount.service"
+              ];
+              path = [ config.boot.zfs.package ];
 
-            serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
+              serviceConfig = {
+                Type = "oneshot";
+                RemainAfterExit = true;
+              };
+
+              script = ''
+                set -eu
+
+                if ! zfs list -H -o name ${dataset} > /dev/null 2>&1; then
+                  zfs create -o mountpoint=${root} ${dataset}
+                fi
+
+                # attic already compresses chunks
+                zfs set \
+                  quota=${cfg.quota} \
+                  atime=off \
+                  compression=off \
+                  recordsize=1M \
+                  ${dataset}
+
+                install -d -o atticd -g atticd -m 0750 ${root} ${storage}
+              '';
             };
 
-            script = ''
-              set -eu
+            tmpfiles.rules = [ "d ${dataDir} 0750 atticd atticd -" ];
 
-              if ! zfs list -H -o name ${dataset} > /dev/null 2>&1; then
-                zfs create -o mountpoint=${root} ${dataset}
-              fi
-
-              # attic already compresses chunks
-              #
-              # sqlite metadata is also in the dataset, and a 1M record might be a bottleneck
-              zfs set \
-                quota=${cfg.quota} \
-                atime=off \
-                compression=off \
-                recordsize=1M \
-                ${dataset}
-
-              install -d -o atticd -g atticd -m 0750 ${root} ${storage}
-            '';
+            services.atticd.serviceConfig = {
+              DynamicUser = lib.mkForce false;
+              # and sqlite needs to write its journal into the containing directory too
+              ReadWritePaths = [
+                root
+                dataDir
+              ];
+            };
           };
 
           users.users.atticd = {
@@ -143,12 +161,6 @@
                 default-retention-period = cfg.retention;
               };
             };
-          };
-
-          systemd.services.atticd.serviceConfig = {
-            DynamicUser = lib.mkForce false;
-            # and sqlite needs to write its journal into the containing directory too
-            ReadWritePaths = [ root ];
           };
         };
       };
