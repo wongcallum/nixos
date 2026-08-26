@@ -62,7 +62,6 @@ in
         quadlet-automation
         quadlet-development
         quadlet-immich
-        quadlet-hermes
         quadlet-gotosocial
         mc-server
 

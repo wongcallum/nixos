@@ -1,9 +1,4 @@
-{ inputs, pkgs, ... }:
-let
-  hermes-desktop = pkgs.callPackage ../../../packages/hermes-desktop {
-    hermesSrc = inputs.hermes-agent;
-  };
-in
+{ pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
     coder
@@ -11,6 +6,5 @@ in
     equibop
     feishin
     faugus-launcher
-    hermes-desktop
   ];
 }
