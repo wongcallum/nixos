@@ -61,11 +61,6 @@
       in
       {
         options.modules.attic = {
-          quota = lib.mkOption {
-            type = lib.types.str;
-            default = "300G";
-          };
-
           retention = lib.mkOption {
             type = lib.types.str;
             default = "60 days";
@@ -75,53 +70,24 @@
 
         config = {
           systemd = {
-            # The scratch pool is imported via boot.zfs.extraPools rather than
-            # declared in disko, so the dataset is provisioned here. Properties are
-            # re-applied on every start, which keeps changes to them declarative.
-            services.attic-storage = {
-              description = "Provision the ZFS dataset backing the attic binary cache";
-              requiredBy = [ "atticd.service" ];
-              before = [ "atticd.service" ];
-              after = [
-                "zfs-import-${pool}.service"
-                # the dataset has to be mounted before anything is written into it
-                "zfs-mount.service"
-              ];
-              path = [ config.boot.zfs.package ];
-
-              serviceConfig = {
-                Type = "oneshot";
-                RemainAfterExit = true;
-              };
-
-              script = ''
-                set -eu
-
-                if ! zfs list -H -o name ${dataset} > /dev/null 2>&1; then
-                  zfs create -o mountpoint=${root} ${dataset}
-                fi
-
-                # attic already compresses chunks
-                zfs set \
-                  quota=${cfg.quota} \
-                  atime=off \
-                  compression=off \
-                  recordsize=1M \
-                  ${dataset}
-
-                install -d -o atticd -g atticd -m 0750 ${root} ${storage}
-              '';
-            };
-
             tmpfiles.rules = [ "d ${dataDir} 0750 atticd atticd -" ];
 
-            services.atticd.serviceConfig = {
-              DynamicUser = lib.mkForce false;
-              # and sqlite needs to write its journal into the containing directory too
-              ReadWritePaths = [
-                root
-                dataDir
+            services.atticd = {
+              # the scratch/attic dataset is provisioned manually on each host,
+              # not by this module, so just wait for the pool to be there
+              after = [
+                "zfs-import-${pool}.service"
+                "zfs-mount.service"
               ];
+
+              serviceConfig = {
+                DynamicUser = lib.mkForce false;
+                # and sqlite needs to write its journal into the containing directory too
+                ReadWritePaths = [
+                  root
+                  dataDir
+                ];
+              };
             };
           };
 
