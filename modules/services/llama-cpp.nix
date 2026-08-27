@@ -14,7 +14,7 @@
         {
           services.llama-cpp = {
             enable = true;
-            package = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs (old: {
+            package = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs {
               # drop once nixpkgs bumps past b10472
               version = "10472";
               src = pkgs.fetchFromGitHub {
@@ -28,7 +28,7 @@
                   find "$out" -name .git -print0 | xargs -0 rm -rf
                 '';
               };
-            });
+            };
             settings = {
               inherit port;
               host = "0.0.0.0";
@@ -71,7 +71,7 @@
           name = "llama.cpp";
           domainName = "llama";
           iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
-          addr = "10.0.0.4:${port}";
+          addr = "10.0.0.4:${toString port}";
           category = "Development";
         };
       };
