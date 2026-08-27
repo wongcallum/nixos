@@ -11,6 +11,36 @@
           pkgs,
           ...
         }:
+        let
+          # https://huggingface.co/blog/ggml-org/model-management-in-llamacpp
+          modelsPreset = pkgs.writeText "llama-cpp-models.ini" ''
+            version = 1
+
+            [ling-3.0-tiny]
+            hf-repo = bartowski/Ling-3.0-tiny-GGUF:Q6_K_L
+            ctx-size = 131072
+            load-on-startup = true
+
+            [hy-mt2-1.8b]
+            hf-repo = tencent/Hy-MT2-1.8B-GGUF:Q8_0
+            ctx-size = 131072
+
+            [lfm2.5-2.6b]
+            hf-repo = LiquidAI/LFM2.5-2.6B-GGUF:F16
+            spec-draft-hf = LiquidAI/LFM2.5-2.6B-DSpark-GGUF:F16
+            spec-type = draft-dspark
+            spec-draft-n-max = 10
+            spec-draft-n-min = 0
+            ctx-size = 131072
+
+            # mmproj automatically downloads
+            [unlimited-ocr]
+            hf-repo = sahilchachra/Unlimited-OCR-GGUF:BF16
+            ctx-size = 8192
+            # deterministic output recommended for OCR
+            temp = 0
+          '';
+        in
         {
           services.llama-cpp = {
             enable = true;
@@ -33,14 +63,12 @@
               inherit port;
               host = "0.0.0.0";
 
-              # https://huggingface.co/bartowski/Ling-3.0-tiny-GGUF
-              hf-repo = "bartowski/Ling-3.0-tiny-GGUF:Q6_K_L";
-              alias = "ling-3.0-tiny";
+              models-preset = modelsPreset;
+              models-max = 1;
 
               n-gpu-layers = 999;
               kv-offload = true;
               flash-attn = "on";
-              ctx-size = 32768;
               parallel = 1;
 
               temp = 0.6;
