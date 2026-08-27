@@ -67,7 +67,6 @@ in
         quadlet-development
         quadlet-immich
         quadlet-gotosocial
-        mc-server
 
         attic
         buildbot
