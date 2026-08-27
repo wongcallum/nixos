@@ -16,6 +16,8 @@ in
         })
       ]
       ++ (with nixos; [
+        persistence
+
         ssh
       ]);
 
