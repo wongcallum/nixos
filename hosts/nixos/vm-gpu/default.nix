@@ -17,7 +17,7 @@ in
         ssh
       ]);
 
-      system.stateVersion = "25.11";
+      system.stateVersion = "26.05";
 
       microvm = {
         mem = 4096;
