@@ -50,6 +50,8 @@
             };
           };
 
+          networking.firewall.allowedTCPPorts = [ port ];
+
           systemd.services.llama-cpp = lib.mkIf config.services.llama-cpp.enable {
             unitConfig = {
               Wants = [ "systemd-modules-load.service" ];
