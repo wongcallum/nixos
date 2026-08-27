@@ -4,6 +4,8 @@ let
   inherit (config.flake) keys;
 in
 {
+  flake.nixpkgs.vm-gpu = "unstable";
+
   flake.modules.nixos."hosts/nixos/vm-gpu" =
     { pkgs, ... }:
     {
