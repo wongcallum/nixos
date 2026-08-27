@@ -29,7 +29,7 @@
             hf-repo = LiquidAI/LFM2.5-2.6B-GGUF:F16
             spec-draft-hf = LiquidAI/LFM2.5-2.6B-DSpark-GGUF:F16
             spec-type = draft-dspark
-            spec-draft-n-max = 10
+            spec-draft-n-max = 9
             spec-draft-n-min = 0
             ctx-size = 131072
 
@@ -45,13 +45,13 @@
           services.llama-cpp = {
             enable = true;
             package = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs {
-              # drop once nixpkgs bumps past b10472
-              version = "10472";
+              # drop once nixpkgs bumps past b10541
+              version = "10541";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
-                tag = "b10472";
-                hash = "sha256-re0WlafJUDZOPNfIq2ECRSctdrDFVc0fXb5iSd7gDR8=";
+                tag = "b10541";
+                hash = "sha256-ifabfdofOZLIcD8snrnnvA1X894+Cv9i+DfYXaCV4Tw=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
