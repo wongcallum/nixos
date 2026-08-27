@@ -19,6 +19,8 @@ in
         persistence
 
         ssh
+
+        llama-cpp
       ]);
 
       system.stateVersion = "26.05";
@@ -57,11 +59,9 @@ in
 
       environment = {
         systemPackages = [
-          (pkgs.llama-cpp.override { cudaSupport = true; })
           pkgs.ffmpeg-full
           pkgs.nvtopPackages.nvidia
         ];
-        variables.LLAMA_CACHE = "/work/llama-cache";
       };
 
       systemd.tmpfiles.rules = [
