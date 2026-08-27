@@ -75,34 +75,41 @@ in
 
       # https://microvm-nix.github.io/microvm.nix/declarative.html#fully-declarative
 
-      microvm.vms.vm-gallery = {
-        config.imports = [
-          nixos.base
-          nixos.global
-          nixos."hosts/nixos/vm-gallery"
-        ];
-        # nixos.base sets nixpkgs.config, which nixpkgs forbids once pkgs is
-        # instantiated externally; force config-mode's eval-config to build
-        # its own pkgs instead of reusing liz's already-built instance.
-        pkgs = null;
-        restartIfChanged = true;
-      };
+      microvm.vms = {
+        vm-gallery = {
+          config.imports = [
+            nixos.base
+            nixos.global
+            nixos."hosts/nixos/vm-gallery"
+          ];
+          # nixos.base sets nixpkgs.config, which nixpkgs forbids once pkgs is
+          # instantiated externally; force config-mode's eval-config to build
+          # its own pkgs instead of reusing liz's already-built instance.
+          pkgs = null;
+          restartIfChanged = true;
+        };
 
-      microvm.vms.vm-coder = {
-        config.imports = [
-          nixos.base
-          nixos.global
-          nixos."hosts/nixos/vm-coder"
-        ];
-        pkgs = null;
-        nixpkgs = inputs.unstable;
-        restartIfChanged = true;
-      };
+        vm-coder = {
+          config.imports = [
+            nixos.base
+            nixos.global
+            nixos."hosts/nixos/vm-coder"
+          ];
+          pkgs = null;
+          nixpkgs = inputs.unstable;
+          restartIfChanged = true;
+        };
 
-      microvm.vms.vm-gpu = {
-        flake = inputs.self;
-        autostart = false;
-        restartIfChanged = true;
+        vm-gpu = {
+          config.imports = [
+            nixos.base
+            nixos.global
+            nixos."hosts/nixos/vm-gpu"
+          ];
+          pkgs = null;
+          nixpkgs = inputs.unstable;
+          restartIfChanged = true;
+        };
       };
 
       # The ordering dependency makes either guest stop completely before the
