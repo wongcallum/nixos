@@ -108,6 +108,7 @@ in
           pkgs = null;
           nixpkgs = inputs.unstable;
           restartIfChanged = true;
+          autostart = false;
         };
       };
 

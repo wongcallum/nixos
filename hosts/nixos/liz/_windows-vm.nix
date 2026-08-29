@@ -249,7 +249,7 @@ in
           ExecStart = lib.getExe launch;
           ExecStop = lib.getExe shutdown;
 
-          TimeoutStopSec = "180s";
+          TimeoutStopSec = "600s";
           Restart = "no";
 
           # VFIO locks the guest's entire address space in the IOMMU.
