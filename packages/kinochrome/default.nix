@@ -48,6 +48,7 @@ rustPlatform.buildRustPackage {
       --replace-fail '"shaders/vert.spv"' "\"$out/share/kinochrome/shaders/vert.spv\"" \
       --replace-fail '"shaders/frag.spv"' "\"$out/share/kinochrome/shaders/frag.spv\"" \
       --replace-fail '"shaders/comp.spv"' "\"$out/share/kinochrome/shaders/comp.spv\"" \
+      --replace-fail '"shaders/lut.spv"' "\"$out/share/kinochrome/shaders/lut.spv\"" \
       --replace-fail 'const RECIPE_DIR: &str = "recipes";' \
                      "const RECIPE_DIR: &str = \"$out/share/kinochrome/recipes\";"
     substituteInPlace src/import.rs \
