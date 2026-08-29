@@ -27,16 +27,16 @@ let
 in
 rustPlatform.buildRustPackage {
   pname = "kinochrome";
-  version = "0.1.0-unstable-2026-03-06";
+  version = "0.1.0-unstable-2026-07-29";
 
   src = fetchgit {
     url = "https://git.sr.ht/~grego/kinochrome";
-    rev = "0a950233a8dd31592c215e6fc1b6f6bd6c538a06";
+    rev = "4f1106c50fbbd78d3240b9806acbdee5d9683df4";
     fetchSubmodules = true;
-    hash = "sha256-vvP6URCl8CFGfFe8o229FUvQjtspnXQSnlStJ6qeA38=";
+    hash = "sha256-qpTtGtUOQvaCxWiWio+1stPWs4Bfa0VJLXbkndR2z/s=";
   };
 
-  cargoHash = "sha256-qs+nBLalQ8n+S33dAY68ori4l9F+fn/QELPDs8iw5G4=";
+  cargoHash = "sha256-Dtn2cWiMaEH8rtAXfycjh71Pk1tIcj450apxD1VYuHU=";
 
   nativeBuildInputs = [
     shaderc # glslc
