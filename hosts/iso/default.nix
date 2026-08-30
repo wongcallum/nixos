@@ -6,6 +6,31 @@
 }:
 let
   inherit (config.flake) keys;
+  inherit (config.flake.modules) nixos;
+
+  # **Optional**
+  # TS_AUTHKEY=tskey-auth-... nix build --impure .#nixosConfigurations.minimal-iso.config.system.build.isoImage
+  tsAuthKey = builtins.getEnv "TS_AUTHKEY";
+  withTailscale = tsAuthKey != "";
+
+  tailscaleInstaller =
+    { pkgs, ... }:
+    {
+      assertions = [
+        {
+          assertion = lib.hasPrefix "tskey-" tsAuthKey;
+          message = "TS_AUTHKEY is set but does not look like a tailscale auth key (expected a `tskey-` prefix).";
+        }
+      ];
+
+      services.tailscale = {
+        enable = true;
+        authKeyFile = pkgs.writeText "installer-tailscale-authkey" tsAuthKey;
+        authKeyParameters.ephemeral = true;
+        extraDaemonFlags = [ "--state=mem:" ];
+        extraUpFlags = [ "--hostname=nixos-installer" ];
+      };
+    };
 
   mkIso =
     nixpkgs: isoPath:
@@ -14,6 +39,10 @@ let
 
       modules = [
         "${nixpkgs}/nixos/modules/installer/cd-dvd/${isoPath}.nix"
+
+        nixos.base
+        nixos.global
+
         (
           { pkgs, ... }:
           {
@@ -73,7 +102,8 @@ let
             };
           }
         )
-      ];
+      ]
+      ++ lib.optional withTailscale tailscaleInstaller;
     };
 in
 {

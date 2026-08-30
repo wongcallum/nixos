@@ -52,6 +52,19 @@ nixos-anywhere --flake .#{{host}} --extra-files "$temp" --target-host {{user@hos
 rm -r "$temp"
 ```
 
+## Installer
+
+`nix build .#nixosConfigurations.{{minimal-iso|kde-iso}}.config.system.build.isoImage`
+
+To make the attic cache accessible, pass a reusable, ephemeral, short-expiry auth key:
+
+```bash
+TS_AUTHKEY=tskey-auth-... nix build --impure .#nixosConfigurations.minimal-iso.config.system.build.isoImage
+```
+
+The installer then enrols itself on boot with `--state=mem:`.
+However, the key is visible in the Nix store, so this must be treated as sensitive.
+
 ## Edit secrets
 
 `sops ../nixos-secrets/secrets.yaml`
