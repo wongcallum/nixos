@@ -19,6 +19,8 @@ in
     feishin
     ayugram-desktop
     faugus-launcher
+    kicad
+    tigervnc
     openscq30-cli
   ];
 }
