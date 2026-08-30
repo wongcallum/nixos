@@ -74,6 +74,7 @@ in
         kernelModules = [
           "kvm-intel"
           "uinput"
+          "ntsync"
         ];
 
         kernelPatches = [
