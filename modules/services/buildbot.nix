@@ -30,6 +30,8 @@
           };
         };
 
+        pushJobs = 1;
+        pushRetries = 3;
         pushToCache = pkgs.writeShellApplication {
           name = "buildbot-attic-push";
           runtimeInputs = [
@@ -46,7 +48,23 @@
             trap 'rm -rf "$config_home"' EXIT
             install -Dm600 ${atticClientConfig} "$config_home/attic/config.toml"
 
-            XDG_CONFIG_HOME="$config_home" attic push --jobs 4 ${cacheName} "$OUT_PATH"
+            attempt=1
+            while true; do
+              if XDG_CONFIG_HOME="$config_home" \
+                attic push --jobs ${toString pushJobs} ${cacheName} "$OUT_PATH"; then
+                exit 0
+              fi
+
+              if [ "$attempt" -ge ${toString pushRetries} ]; then
+                echo "attic push still failing after $attempt attempts, giving up"
+                exit 1
+              fi
+
+              delay=$((attempt * 60))
+              echo "attic push failed, retrying in ''${delay}s (attempt $attempt of ${toString pushRetries})"
+              sleep "$delay"
+              attempt=$((attempt + 1))
+            done
           '';
         };
       in

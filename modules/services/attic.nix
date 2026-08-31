@@ -122,6 +122,14 @@
                 path = storage;
               };
 
+              # default is 64 KiB average, too small for spinning disk
+              chunking = {
+                nar-size-threshold = 65536; # 64 KiB
+                min-size = 65536; # 64 KiB
+                avg-size = 262144; # 256 KiB
+                max-size = 1048576; # 1 MiB
+              };
+
               garbage-collection = {
                 interval = "12 hours";
                 default-retention-period = cfg.retention;
