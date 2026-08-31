@@ -46,6 +46,13 @@ in
             proto = "virtiofs";
           }
         ];
+
+        # A USB controller the guest has no use for on its own, so that USB
+        # devices can be hot-attached to it later by id.
+        qemu.extraArgs = [
+          "-device"
+          "qemu-xhci,id=xhci"
+        ];
       };
 
       services.xserver.videoDrivers = [ "nvidia" ];
