@@ -53,7 +53,7 @@
       kdePackages.okular
       zathura
 
-      nnn
+      broot
       file-roller
       kdePackages.dolphin
       kdePackages.kio
