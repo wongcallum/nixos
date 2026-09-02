@@ -5,8 +5,9 @@ _: {
       comic-mono-nf = pkgs.callPackage ../packages/fonts/comic-mono-nf-v1 { };
       ioskeley-mono = pkgs.callPackage ../packages/fonts/ioskeley-mono { };
       bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
-      ibm-olympiad = pkgs.callPackage ../packages/fonts/ibm-olympiad-ttf { };
       harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
+      chivo-mono = pkgs.callPackage ../packages/fonts/chivo-mono { };
+      xanh-mono = pkgs.callPackage ../packages/fonts/xanh-mono { };
     in
     {
       modules.fonts.enable = lib.mkDefault true;
@@ -17,26 +18,29 @@ _: {
         packages = with pkgs; [
           # standard fonts
           noto-fonts
-          cantarell-fonts
+          noto-fonts-cjk-sans
+          noto-fonts-cjk-serif
+          ibm-plex
           liberation_ttf
           inter
           harmonyos-sans
 
-          # cjk support
-          noto-fonts-cjk-sans
-          noto-fonts-cjk-serif
-
           # monospace fonts
-          monaspace
+          nerd-fonts.monaspace
           nerd-fonts.jetbrains-mono
           nerd-fonts.recursive-mono
+          nerd-fonts.go-mono
+          nerd-fonts.cousine
+          nerd-fonts."m+"
+          chivo-mono
+          xanh-mono
           comic-mono-nf
           ioskeley-mono
+          libertinus
 
           # bitmap fonts
           terminus_font
           bitmap-fonts
-          ibm-olympiad
         ];
         fontconfig = {
           enable = true;
