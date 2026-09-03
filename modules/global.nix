@@ -75,7 +75,6 @@
         media-slskd = lib.mkEnableOption "slskd";
 
         homeassistant = lib.mkEnableOption "Home Assistant";
-        evcc = lib.mkEnableOption "evcc";
         mongo = lib.mkEnableOption "MongoDB";
 
         gitea = lib.mkEnableOption "Gitea";
