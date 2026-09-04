@@ -109,12 +109,36 @@ in
           ];
         };
 
-        # chainload the Windows bootloader on the separate Windows ESP
-        loader.limine.extraEntries = ''
-          /Windows
-              protocol: efi
-              path: guid(cf90b43d-bb12-4ef9-9fde-8e5c7c3adcff):/EFI/Microsoft/Boot/bootmgfw.efi
-        '';
+        # This HP firmware ignores non-Microsoft boot entries whenever Windows is
+        # installed. Keep the genuine Windows loader under a stable name, point
+        # Limine at it, and reinstall Limine at the path the firmware will start.
+        loader.limine = {
+          extraEntries = ''
+            /Windows
+                protocol: efi
+                path: boot():///EFI/Microsoft/Boot/bootmgfw.windows.efi
+          '';
+
+          extraInstallCommands = ''
+            windowsLoader=${config.boot.loader.efi.efiSysMountPoint}/EFI/Microsoft/Boot/bootmgfw.efi
+            windowsBackup=${config.boot.loader.efi.efiSysMountPoint}/EFI/Microsoft/Boot/bootmgfw.windows.efi
+            limineLoader=${config.boot.loader.efi.efiSysMountPoint}/EFI/limine/BOOTX64.EFI
+
+            if [[ ! -e "$windowsBackup" ]]; then
+              if [[ ! -e "$windowsLoader" ]]; then
+                echo "refusing to install Limine at the Microsoft path: Windows bootloader is missing" >&2
+                exit 1
+              fi
+              if ${pkgs.diffutils}/bin/cmp --silent "$limineLoader" "$windowsLoader"; then
+                echo "refusing to install Limine at the Microsoft path: Windows bootloader backup is missing" >&2
+                exit 1
+              fi
+              ${pkgs.coreutils}/bin/install -m 0600 "$windowsLoader" "$windowsBackup"
+            fi
+
+            ${pkgs.coreutils}/bin/install -m 0600 "$limineLoader" "$windowsLoader"
+          '';
+        };
 
         # allow limine to take over the world
         loader.efi.canTouchEfiVariables = true;
