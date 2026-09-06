@@ -124,6 +124,7 @@
               "toolkit.legacyUserProfileCustomizations.stylesheets" = true;
               "browser.uidensity" = 1; # compact
               "layout.spellcheckDefault" = 0;
+              "middlemouse.paste" = false;
             }
             (lib.optionalAttrs config.modules.fonts.enable {
               "font.name.serif.x-western" = "HarmonyOS Sans TC";
