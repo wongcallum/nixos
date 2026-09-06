@@ -109,6 +109,22 @@
                 install_url = "https://addons.mozilla.org/firefox/downloads/latest/violentmonkey/latest.xpi";
                 installation_mode = "normal_installed";
               };
+              "enhancer_for_youtube@maxrf.com" = {
+                install_url = "https://addons.mozilla.org/firefox/downloads/latest/enhancer-for-youtube/latest.xpi";
+                installation_mode = "normal_installed";
+              };
+              "sponsorblock@ajay.app" = {
+                install_url = "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi";
+                installation_mode = "normal_installed";
+              };
+              "image-reverse-search@brawl345.github.io" = {
+                install_url = "https://addons.mozilla.org/firefox/downloads/latest/image-reverse-search/latest.xpi";
+                installation_mode = "normal_installed";
+              };
+              "clipboard2file@daijro" = {
+                install_url = "https://addons.mozilla.org/firefox/downloads/latest/clipboard2file/latest.xpi";
+                installation_mode = "normal_installed";
+              };
             };
           };
 
