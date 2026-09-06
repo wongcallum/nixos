@@ -29,13 +29,3 @@ upgrading means rebuilding the workspace onto a new image.
 coder templates push nix-docker
 coder update <workspace>
 ```
-
-## Signing in to Codex
-
-```sh
-codex login --device-auth
-coder secret create codex-auth --file '~/.codex/auth.json' < ~/.codex/auth.json
-
-# when the stored oauth credentials expire:
-coder secret update codex-auth
-```

@@ -42,6 +42,46 @@ resource "coder_agent" "main" {
       --profile "$HOME/.nix-profile" \
       nix-environment
 
+    mkdir -p "$HOME/.claude"
+    if [ ! -f "$HOME/.claude/settings.json" ]; then
+      cat >"$HOME/.claude/settings.json" <<'JSON'
+    {
+      "theme": "dark",
+      "model": "opus",
+      "effortLevel": "xhigh",
+      "tui": "fullscreen",
+      "disableBundledSkills": true,
+      "disableWorkflows": true,
+      "disableRemoteControl": true,
+      "disableClaudeAiConnectors": true,
+      "disableArtifact": true,
+      "awaySummaryEnabled": false,
+      "autoCompactEnabled": false,
+      "promptSuggestionEnabled": false,
+      "autoContinueAtUsageLimit": false,
+      "switchModelsOnFlag": false,
+      "env": {
+        "CLAUDE_CODE_SHELL": "/bin/bash"
+      },
+      "permissions": {
+        "defaultMode": "bypassPermissions"
+      },
+      "attribution": {
+        "commit": "",
+        "pr": ""
+      }
+    }
+    JSON
+    fi
+
+    if [ ! -f "$HOME/.claude.json" ]; then
+      echo '{"hasCompletedOnboarding": true}' >"$HOME/.claude.json"
+    elif ! jq -e '.hasCompletedOnboarding' "$HOME/.claude.json" >/dev/null 2>&1; then
+      claude_json_tmp="$(mktemp)"
+      jq '.hasCompletedOnboarding = true' "$HOME/.claude.json" >"$claude_json_tmp"
+      mv "$claude_json_tmp" "$HOME/.claude.json"
+    fi
+
     sudo chsh --shell "$HOME/.nix-profile/bin/fish" coder
   EOT
 
@@ -60,6 +100,20 @@ resource "coder_agent" "main" {
     interval     = 10
     timeout      = 1
   }
+}
+
+module "claude_code" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/claude-code/coder"
+  version  = "5.4.0"
+  agent_id = coder_agent.main.id
+}
+
+module "codex" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder-labs/codex/coder"
+  version  = "5.3.2"
+  agent_id = coder_agent.main.id
 }
 
 resource "coder_app" "zed" {
