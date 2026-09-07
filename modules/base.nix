@@ -61,10 +61,10 @@
 
       documentation.man.cache.enable = false;
 
-      services.journald.extraConfig = ''
-        SystemMaxUse=100M
-        MaxFileSec=3day
-      '';
+      services.journald.settings.Journal = {
+        SystemMaxUse = "100M";
+        MaxFileSec = "3day";
+      };
 
       security.sudo = {
         enable = true;
