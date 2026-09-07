@@ -1,7 +1,11 @@
 { inputs, lib, ... }:
 {
   flake.modules.nixos.base =
-    { pkgs, ... }:
+    {
+      options,
+      pkgs,
+      ...
+    }:
     {
       imports = [ inputs.self.modules.generic.utils ];
       nixpkgs.config.allowUnfree = true;
@@ -61,10 +65,21 @@
 
       documentation.man.cache.enable = false;
 
-      services.journald.settings.Journal = {
-        SystemMaxUse = "100M";
-        MaxFileSec = "3day";
-      };
+      services.journald =
+        if options.services.journald ? settings then
+          {
+            settings.Journal = {
+              SystemMaxUse = "100M";
+              MaxFileSec = "3day";
+            };
+          }
+        else
+          {
+            extraConfig = ''
+              SystemMaxUse=100M
+              MaxFileSec=3day
+            '';
+          };
 
       security.sudo = {
         enable = true;
