@@ -11,6 +11,7 @@ in
     {
       imports = [
         ./_desktop.nix
+        ./_remote-desktop.nix
 
         (microvmLib.mkGuestModule {
           n = 3;
