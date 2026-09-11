@@ -20,7 +20,7 @@ in
 
         ssh
 
-        llama-cpp
+        # llama-cpp
       ]);
 
       system.stateVersion = "26.05";
