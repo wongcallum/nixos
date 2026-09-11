@@ -19,7 +19,6 @@ in
       "shama"
       "vm-coder"
       "vm-gallery"
-      "vm-gpu"
     ];
 
     flake.checks.${system} = lib.genAttrs config.flake.ciHosts (

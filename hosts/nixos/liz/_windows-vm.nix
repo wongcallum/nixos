@@ -8,7 +8,7 @@ let
   stateDir = config.utils.dataDir "windows-vm";
   runDir = "/run/windows-vm";
 
-  tap = "vmwin";
+  tap = "vmtap";
   hostAddr = "10.0.1.1";
   guestAddr = "10.0.1.2";
   guestMac = "02:00:00:00:01:02";

@@ -18,6 +18,7 @@ in
         ./_console.nix
         ./_vfio.nix
         ./_windows-vm.nix
+        ./_gpu-vm.nix
 
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
@@ -28,10 +29,6 @@ in
         (microvmLib.mkHostNetworking {
           n = 2;
           hostname = "vm-coder";
-        })
-        (microvmLib.mkHostNetworking {
-          n = 3;
-          hostname = "vm-gpu";
         })
         (microvmLib.mkHostNetworking {
           n = 4;
@@ -103,18 +100,6 @@ in
           restartIfChanged = true;
         };
 
-        vm-gpu = {
-          config.imports = [
-            nixos.base
-            nixos.global
-            nixos."hosts/nixos/vm-gpu"
-          ];
-          pkgs = null;
-          nixpkgs = inputs.unstable;
-          restartIfChanged = true;
-          autostart = false;
-        };
-
         vm-hsctikzbench = {
           config.imports = [
             nixos.base
@@ -131,10 +116,10 @@ in
       # other starts when systemd resolves their mutual conflict.
       systemd.services = {
         windows-vm = {
-          conflicts = [ "microvm@vm-gpu.service" ];
-          after = [ "microvm@vm-gpu.service" ];
+          conflicts = [ "gpu-vm.service" ];
+          after = [ "gpu-vm.service" ];
         };
-        "microvm@vm-gpu".conflicts = [ "windows-vm.service" ];
+        gpu-vm.conflicts = [ "windows-vm.service" ];
       };
 
       _module.args.sshKeys = keys.callum;
