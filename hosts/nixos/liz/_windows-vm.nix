@@ -293,7 +293,9 @@ in
     #     +- to host -> nixos-fw -> windows-vm-in -+- tcp/445 ---------> ACCEPT
     #     |                                        +- any other NEW ---> DROP
     #     |
-    #     +- routed --> FORWARD --> windows-vm-fwd +- 10/8, 172.16/12, -> DROP
+    #     +- routed --> FORWARD --> windows-vm-fwd +- ESTABLISHED,RELATED -> ACCEPT
+    #                                              |  (replies to LAN/tailnet clients)
+    #                                              +- 10/8, 172.16/12, -> DROP
     #                                              |  192.168/16,
     #                                              |  100.64/10, 169.254/16
     #                                              +- anything else ---> NAT -> internet
@@ -306,6 +308,7 @@ in
       iptables -I nixos-fw -i ${tap} -j windows-vm-in
 
       iptables -N windows-vm-fwd 2>/dev/null || iptables -F windows-vm-fwd
+      iptables -A windows-vm-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
       ${lib.concatMapStringsSep "\n" (dest: "iptables -A windows-vm-fwd -d ${dest} -j DROP") [
         "10.0.0.0/8"
         "172.16.0.0/12"

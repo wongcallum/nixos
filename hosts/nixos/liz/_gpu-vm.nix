@@ -239,6 +239,8 @@ let
           settings = {
             capture = "x11";
             encoder = "nvenc";
+            # The web UI only trusts localhost origins by default.
+            csrf_allowed_origins = "https://${guestAddr}:47990";
           };
         };
       };
@@ -405,9 +407,12 @@ let
         # The root port preserves PCIe capabilities; matching function numbers
         # expose the GPU and HDMI audio as one multifunction device. Both are
         # bound by _vfio.nix before this unit starts.
+        # With no emulated VGA the GPU is the boot display, and SeaBIOS would
+        # execute its VBIOS and hang; the Linux driver reads the VBIOS from the
+        # card itself, so the ROM BAR is not exposed at all.
         -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
-        -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on"
-        -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1"
+        -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on,rombar=0"
+        -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1,rombar=0"
 
         # A USB controller the guest has no use for on its own, so that USB
         # devices can be hot-attached to it later by id.
