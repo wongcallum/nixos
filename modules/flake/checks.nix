@@ -11,7 +11,7 @@ in
   };
 
   config = {
-    # intentionally omitted: staging, minimal-iso, kde-iso
+    # intentionally omitted: minimal-iso, kde-iso
     flake.ciHosts = [
       "acid"
       "liz"
