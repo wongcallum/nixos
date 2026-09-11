@@ -31,7 +31,7 @@ in
       system.stateVersion = "26.05";
 
       microvm = {
-        mem = 4096;
+        mem = 16384;
         vcpu = 4;
         devices = [
           {
@@ -73,6 +73,7 @@ in
         systemPackages = [
           pkgs.ffmpeg-full
           pkgs.nvtopPackages.nvidia
+          (pkgs.blender.override { cudaSupport = true; })
         ];
       };
 
