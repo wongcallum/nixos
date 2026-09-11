@@ -10,6 +10,8 @@ in
     { pkgs, ... }:
     {
       imports = [
+        ./_desktop.nix
+
         (microvmLib.mkGuestModule {
           n = 3;
           hostname = "vm-gpu";
@@ -17,6 +19,8 @@ in
       ]
       ++ (with nixos; [
         persistence
+
+        callum
 
         ssh
 
