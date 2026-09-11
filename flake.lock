@@ -435,6 +435,26 @@
         "type": "github"
       }
     },
+    "hsctikzbench": {
+      "inputs": {
+        "nixpkgs": [
+          "unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789114248,
+        "narHash": "sha256-YQyJ9XoTKBM4V/yoeViA50Do9tzbXebDPxVlTSFFGLs=",
+        "owner": "wongcallum",
+        "repo": "hsctikzbench",
+        "rev": "cae40cc56abc18499712ca9a2f626e13dc7c8bd0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wongcallum",
+        "repo": "hsctikzbench",
+        "type": "github"
+      }
+    },
     "impermanence": {
       "inputs": {
         "home-manager": "home-manager_3",
@@ -759,6 +779,7 @@
         "flux": "flux",
         "freesmlauncher": "freesmlauncher",
         "ghostty": "ghostty",
+        "hsctikzbench": "hsctikzbench",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "microvm": "microvm",
@@ -800,10 +821,10 @@
     "secrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1787709498,
-        "narHash": "sha256-5oId01zqMkni5IYG915FANVEvH6/st9KlrvtwTyLybs=",
+        "lastModified": 1789122152,
+        "narHash": "sha256-lgC7aUHIfJkKmQ/Vzd3/aRW4t1dtTVLv4t8cP7CxnGM=",
         "ref": "refs/heads/master",
-        "rev": "b34340a311e48a648c5737b1c96f454f089132b9",
+        "rev": "60a2d136f86d2b46f2760f2519d2ee50eb0fcb72",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/wongcallum/nixos-secrets.git"

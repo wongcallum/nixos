@@ -25,6 +25,7 @@
     prism-tower.url = "github:wongcallum/prism-tower";
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
+    hsctikzbench.url = "github:wongcallum/hsctikzbench";
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
@@ -62,6 +63,7 @@
     tuigreet.inputs.nixpkgs.follows = "unstable";
     cryptomatord.inputs.nixpkgs.follows = "unstable";
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
+    hsctikzbench.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =

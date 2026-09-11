@@ -33,6 +33,10 @@ in
           n = 3;
           hostname = "vm-gpu";
         })
+        (microvmLib.mkHostNetworking {
+          n = 4;
+          hostname = "vm-hsctikzbench";
+        })
       ]
       ++ (with nixos; [
         uefi
@@ -109,6 +113,17 @@ in
           nixpkgs = inputs.unstable;
           restartIfChanged = true;
           autostart = false;
+        };
+
+        vm-hsctikzbench = {
+          config.imports = [
+            nixos.base
+            nixos.global
+            nixos."hosts/nixos/vm-hsctikzbench"
+          ];
+          pkgs = null;
+          nixpkgs = inputs.unstable;
+          restartIfChanged = true;
         };
       };
 
