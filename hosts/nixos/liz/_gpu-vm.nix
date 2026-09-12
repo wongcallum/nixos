@@ -235,7 +235,7 @@ let
         sunshine = {
           enable = true;
           openFirewall = true;
-          package = pkgs.sunshine.override { cudaSupport = true; };
+          package = self.packages.${pkgs.stdenv.hostPlatform.system}.sunshine;
           settings = {
             capture = "x11";
             encoder = "nvenc";
