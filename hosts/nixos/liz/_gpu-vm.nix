@@ -125,6 +125,7 @@ let
       hardware = {
         graphics.enable = true;
         nvidia = {
+          package = config.boot.kernelPackages.nvidiaPackages.latest;
           modesetting.enable = false;
           open = true;
           nvidiaSettings = false;
