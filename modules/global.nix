@@ -98,7 +98,6 @@
       hostAddrs = {
         liz = "100.103.248.5";
         salt = "100.83.198.98";
-        staging = "100.103.202.124";
       };
 
       metrics.hosts = {

@@ -11,7 +11,7 @@ in
   };
 
   config = {
-    # intentionally omitted: staging, minimal-iso, kde-iso
+    # intentionally omitted: minimal-iso, kde-iso
     flake.ciHosts = [
       "acid"
       "liz"
@@ -19,7 +19,6 @@ in
       "shama"
       "vm-coder"
       "vm-gallery"
-      "vm-gpu"
     ];
 
     flake.checks.${system} = lib.genAttrs config.flake.ciHosts (
