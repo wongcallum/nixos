@@ -18,9 +18,12 @@ let
     fetchSubmodules = true;
   };
 
+  # FFmpeg 9 requires NVENC API 13.1 and an NVIDIA 610+ driver. Keep the
+  # prepared FFmpeg from the preceding build-deps release until nixpkgs ships a
+  # compatible driver; it targets the NVENC API supported by the current 595.
   ffmpegPrebuilt = fetchzip {
-    url = "https://github.com/LizardByte/build-deps/releases/download/v2026.724.203728/Linux-x86_64-ffmpeg.tar.gz";
-    hash = "sha256-ERw553AsQ0s/7oEXCiwjJjZEp1hpe9aCgiEBRs0K0R0=";
+    url = "https://github.com/LizardByte/build-deps/releases/download/v2026.516.30821/Linux-x86_64-ffmpeg.tar.gz";
+    hash = "sha256-VT+4qP2FaizCoIBBbBkzbYw4YOvGhuBUoZxWL0IYVZo=";
   };
 in
 (sunshine.override { cudaSupport = true; }).overrideAttrs (
