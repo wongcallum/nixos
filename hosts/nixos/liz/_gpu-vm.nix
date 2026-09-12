@@ -13,7 +13,7 @@ let
 
   tap = "vmtap";
   hostAddr = "10.0.1.1";
-  guestAddr = "10.0.1.2";
+  guestAddr = "10.0.1.3";
   guestMac = "02:00:00:00:01:03";
 
   guestCpus = "3-5 9-11";
