@@ -23,22 +23,14 @@ let
   qmpSocket = "${runDir}/qmp.sock";
   shareSocket = tag: "${runDir}/${tag}.sock";
 
-  # The guest's store is an overlay over the host's, so its closure ships with
-  # liz while the guest can still build and install. The zvol holds the
-  # overlay's upper layer together with the Nix database that indexes it.
-  nixVolume = "rpool/vm/gpu-nix";
+  # A separate /nix owns both store paths and their database. Keep the former
+  # gpu-nix overlay zvol untouched; it is not a standalone store.
+  nixVolume = "rpool/vm/gpu-store";
   nixVolumeSize = "64G";
   nixVolumePath = "/dev/zvol/${nixVolume}";
   nixVolumeSerial = "nix";
 
   shares = [
-    {
-      tag = "store";
-      source = "/nix/store";
-      mountPoint = "/nix/.ro-store";
-      readOnly = true;
-      neededForBoot = true;
-    }
     {
       tag = "persist";
       source = stateDir;
@@ -97,15 +89,6 @@ let
           "virtiofs"
         ];
         kernelParams = [ "console=ttyS0" ];
-
-        # The host passes the registration of the closure it booted us with;
-        # paths it has since collected are dropped from the database.
-        postBootCommands = ''
-          if [[ "$(cat /proc/cmdline)" =~ regInfo=([^ ]*) ]]; then
-            ${lib.getExe' config.nix.package "nix-store"} --load-db < "''${BASH_REMATCH[1]}"
-          fi
-          ${lib.getExe' config.nix.package "nix-store"} --verify
-        '';
       };
 
       fileSystems = lib.mkMerge [
@@ -119,20 +102,10 @@ let
             ];
           };
 
-          "/nix/var" = {
+          "/nix" = {
             device = "/dev/disk/by-id/virtio-${nixVolumeSerial}";
             fsType = "ext4";
-            autoFormat = true;
             options = [ "discard" ];
-            neededForBoot = true;
-          };
-
-          "/nix/store" = {
-            overlay = {
-              lowerdir = [ "/nix/.ro-store" ];
-              upperdir = "/nix/var/overlay/upper";
-              workdir = "/nix/var/overlay/work";
-            };
             neededForBoot = true;
           };
         }
@@ -148,13 +121,6 @@ let
           ) shares
         ))
       ];
-
-      # Deleting or hard-linking a lower-layer path writes a whiteout over the
-      # host's copy, so the store must never be collected or optimised here.
-      nix = {
-        gc.automatic = lib.mkForce false;
-        optimise.automatic = lib.mkForce false;
-      };
 
       hardware = {
         graphics.enable = true;
@@ -331,30 +297,59 @@ let
 
   kernel = "${guest.config.boot.kernelPackages.kernel}/${guest.config.system.boot.loader.kernelFile}";
   initrd = "${guest.config.system.build.initialRamdisk}/${guest.config.system.boot.loader.initrdFile}";
-  regInfo = pkgs.closureInfo { rootPaths = [ guest.config.system.build.toplevel ]; };
   cmdline = toString (
     guest.config.boot.kernelParams
     ++ [
       "init=${guest.config.system.build.toplevel}/init"
-      "regInfo=${regInfo}/registration"
     ]
   );
 
   createVolumes = pkgs.writeShellApplication {
     name = "gpu-vm-volumes";
-    runtimeInputs = [ config.boot.zfs.package ];
+    runtimeInputs = [
+      config.boot.zfs.package
+      pkgs.e2fsprogs
+    ];
     text = ''
+      created=false
       if ! zfs list -H -o name "${nixVolume}" >/dev/null 2>&1; then
         zfs create -s -V ${nixVolumeSize} \
           -o volblocksize=16K \
           -o compression=lz4 \
           "${nixVolume}"
+        created=true
       fi
       # udev needs a moment to publish /dev/zvol after creation.
       for _ in $(seq 1 50); do
         [ -e "${nixVolumePath}" ] && break
         sleep 0.1
       done
+      if [ ! -b "${nixVolumePath}" ]; then
+        echo "Missing GPU VM block device: ${nixVolumePath}" >&2
+        exit 1
+      fi
+      # Only format a volume created by this invocation, never an existing disk.
+      if "$created"; then
+        mkfs.ext4 "${nixVolumePath}"
+      fi
+    '';
+  };
+
+  # Run only while QEMU is stopped. A rooted local store copies actual files,
+  # registers their closure, and keeps guest GC independent of host GC.
+  seedStore = pkgs.writeShellApplication {
+    name = "gpu-vm-seed-store";
+    runtimeInputs = [ config.nix.package ];
+    text = ''
+      root="$1"
+      system="${guest.config.system.build.toplevel}"
+      nix --extra-experimental-features nix-command copy \
+        --no-check-sigs --to "$root" "$system"
+      nix-env --store "$root" \
+        --profile "$root/nix/var/nix/profiles/system" --set "$system"
+      # Direct kernel boot must remain rooted even if the guest changes profiles.
+      mkdir -p "$root/nix/var/nix/gcroots"
+      ln -sfn "$system" "$root/nix/var/nix/gcroots/gpu-vm-boot"
     '';
   };
 
@@ -468,6 +463,22 @@ let
   };
 in
 {
+  environment.etc."gpu-vm/README".text = ''
+    Guest /nix: ${nixVolumePath} (${nixVolumeSize}, independent ext4 store)
+    Before each QEMU start, the host mounts this volume privately, copies and
+    registers the configured guest closure, updates its system profile, and
+    pins the direct-boot closure at /nix/var/nix/gcroots/gpu-vm-boot.
+    The disk is unmounted before QEMU starts. Never mount it on the host while
+    QEMU is running. Guest GC and optimisation do not depend on the host store.
+
+    Cutover requires an explicitly scheduled stop of the old GPU VM before
+    activating this configuration and starting gpu-vm.service.
+    rpool/vm/gpu-nix is the old overlay volume and is deliberately left intact.
+    Its installed packages and profiles are not migrated into the new store;
+    reinstall them after cutover. /persist (including /home/callum) and /work
+    retain their existing host-backed storage.
+  '';
+
   systemd = {
     tmpfiles.rules = [
       "d ${stateDir} 0755 root root -"
@@ -507,8 +518,21 @@ in
           ]
           ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
 
+          # ExecStartPre completes and unmounts the disk before QEMU opens it.
+          # A failed copy aborts startup rather than booting an incomplete store.
+          path = [ pkgs.util-linux ];
+          preStart = ''
+            root="${runDir}/root"
+            mkdir -p "$root/nix"
+            mount -t ext4 "${nixVolumePath}" "$root/nix"
+            trap 'umount "$root/nix"' EXIT
+            ${lib.getExe seedStore} "$root"
+          '';
+
           serviceConfig = {
             Type = "exec";
+            PrivateMounts = true;
+            TimeoutStartSec = "infinity";
             ExecStart = lib.getExe launch;
             ExecStop = lib.getExe shutdown;
 
