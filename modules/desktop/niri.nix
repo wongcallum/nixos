@@ -38,7 +38,7 @@
         # for dms-quick-capture
         imagemagick
         img2pdf
-        tesseract
+        (tesseract.override { enableLanguages = [ "eng" ]; })
         zbar
       ];
     };

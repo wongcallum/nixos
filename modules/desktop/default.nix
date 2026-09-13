@@ -64,6 +64,8 @@
 
         gnome.gnome-keyring.enable = true;
 
+        speechd.enable = false;
+
         avahi = {
           enable = true;
           nssmdns4 = true;

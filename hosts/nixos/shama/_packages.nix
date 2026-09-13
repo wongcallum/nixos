@@ -13,7 +13,7 @@ in
     trilium-desktop
     xournalpp
     scrcpy
-    obs-studio
+    (obs-studio.override { browserSupport = false; })
     picard
     equibop
     feishin
