@@ -105,14 +105,14 @@ resource "coder_agent" "main" {
 module "claude_code" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/claude-code/coder"
-  version  = "5.4.0"
+  version  = "5.4.1"
   agent_id = coder_agent.main.id
 }
 
 module "codex" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder-labs/codex/coder"
-  version  = "5.3.2"
+  version  = "5.4.0"
   agent_id = coder_agent.main.id
 }
 
