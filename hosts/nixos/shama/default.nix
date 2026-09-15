@@ -12,46 +12,6 @@ in
       pkgs,
       ...
     }:
-    let
-      repairWindowsBootloader = pkgs.writeShellScript "shama-repair-windows-bootloader" ''
-        set -euo pipefail
-
-        windowsLoader=${config.boot.loader.efi.efiSysMountPoint}/EFI/Microsoft/Boot/bootmgfw.efi
-        windowsBackup=${config.boot.loader.efi.efiSysMountPoint}/EFI/NixOS/Windows.efi
-        legacyWindowsBackup=${config.boot.loader.efi.efiSysMountPoint}/EFI/Microsoft/Boot/bootmgfw.windows.efi
-        limineLoader=${config.boot.loader.efi.efiSysMountPoint}/EFI/limine/BOOTX64.EFI
-
-        if [[ ! -e "$limineLoader" ]]; then
-          echo "refusing to repair the Microsoft boot path: Limine is not installed" >&2
-          exit 1
-        fi
-
-        # Keep the Windows loader outside EFI/Microsoft/Boot. Windows servicing
-        # is allowed to replace or clean that directory, but must not be able
-        # to destroy the only Windows loader we can chainload from Limine.
-        if [[ ! -e "$windowsBackup" ]]; then
-          if [[ -e "$legacyWindowsBackup" ]]; then
-            ${pkgs.coreutils}/bin/install -D -m 0600 "$legacyWindowsBackup" "$windowsBackup"
-          elif [[ ! -e "$windowsLoader" ]]; then
-            echo "refusing to install Limine at the Microsoft path: Windows bootloader is missing" >&2
-            exit 1
-          elif ${pkgs.diffutils}/bin/cmp --silent "$limineLoader" "$windowsLoader"; then
-            echo "refusing to install Limine at the Microsoft path: Windows bootloader backup is missing" >&2
-            exit 1
-          else
-            ${pkgs.coreutils}/bin/install -D -m 0600 "$windowsLoader" "$windowsBackup"
-          fi
-        fi
-
-        if ${pkgs.diffutils}/bin/cmp --silent "$limineLoader" "$windowsBackup"; then
-          echo "refusing to install Limine at the Microsoft path: Windows backup is not a Windows loader" >&2
-          exit 1
-        fi
-
-        ${pkgs.coreutils}/bin/install -D -m 0600 "$limineLoader" "$windowsLoader"
-      '';
-    in
-
     {
       imports = [
         ./_disko.nix
@@ -149,38 +109,14 @@ in
           ];
         };
 
-        # This HP firmware ignores non-Microsoft boot entries whenever Windows is
-        # installed. Keep the genuine Windows loader outside the Microsoft tree,
-        # point Limine at it, and reinstall Limine at the path the firmware starts.
-        loader.limine = {
-          # HP firmware is deliberately targeted through the Microsoft path
-          # below; do not switch this to EFI/BOOT/BOOTX64.EFI implicitly.
-          efiInstallAsRemovable = false;
-
-          extraEntries = ''
-            /Windows
-                protocol: efi
-                path: boot():///EFI/NixOS/Windows.efi
-          '';
-
-          extraInstallCommands = "${repairWindowsBootloader}";
-        };
+        loader.limine.extraEntries = ''
+          /Windows
+              protocol: efi
+              path: guid(195e89e2-24cb-41c5-8ceb-26751ca21fa2):/EFI/Microsoft/Boot/bootmgfw.efi
+        '';
 
         # allow limine to take over the world
         loader.efi.canTouchEfiVariables = true;
-      };
-      # Windows can restore its loader at the Microsoft path while servicing
-      # itself. Repair it on every NixOS boot before the next reboot.
-      systemd.services.shama-limine-windows-bootloader = {
-        description = "Keep Limine at the HP firmware boot path";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "local-fs.target" ];
-        unitConfig.RequiresMountsFor = "/boot";
-        serviceConfig = {
-          Type = "oneshot";
-          ExecStart = repairWindowsBootloader;
-          RemainAfterExit = true;
-        };
       };
 
       # backup kernel
