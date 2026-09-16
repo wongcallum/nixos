@@ -22,8 +22,6 @@ RUN apt-get update \
   && echo "${USER} ALL=(ALL) NOPASSWD:ALL" >/etc/sudoers.d/${USER} \
   && chmod 0440 /etc/sudoers.d/${USER}
 
-COPY flake.nix flake.lock /etc/coder/nix-environment/
-
 USER ${USER}
 WORKDIR /home/${USER}
 

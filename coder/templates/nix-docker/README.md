@@ -19,13 +19,3 @@ with:
 ```sh
 coder create --template nix-docker nix-dev
 ```
-
-## Upgrading workspace tools
-
-The tool set is baked into the image at `/etc/coder/nix-environment`, so
-upgrading means rebuilding the workspace onto a new image.
-
-```sh
-coder templates push nix-docker
-coder update <workspace>
-```

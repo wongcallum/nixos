@@ -53,9 +53,8 @@ resource "coder_agent" "main" {
 }
 
 module "nix_profile" {
-  source    = "./modules/nix-profile"
-  agent_id  = coder_agent.main.id
-  flake_uri = "path:/etc/coder/nix-environment#default"
+  source   = "./modules/nix-profile"
+  agent_id = coder_agent.main.id
 }
 
 module "login_shell" {
@@ -136,8 +135,6 @@ resource "docker_image" "workspace" {
 
   triggers = {
     dockerfile = filesha256("${path.module}/build/Dockerfile")
-    flake      = filesha256("${path.module}/build/flake.nix")
-    flake_lock = filesha256("${path.module}/build/flake.lock")
   }
 }
 

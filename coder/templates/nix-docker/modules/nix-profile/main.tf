@@ -14,7 +14,8 @@ variable "agent_id" {
 
 variable "flake_uri" {
   type        = string
-  description = "Flake installable to keep in the profile, e.g. path:/etc/coder/nix-environment#default. Must be an unlocked reference so it can be upgraded on each start."
+  description = "Flake installable to keep in the profile. Must be an unlocked reference so it can be upgraded on each start."
+  default     = "github:wongcallum/nixos#coder-tools"
 }
 
 variable "profile" {
