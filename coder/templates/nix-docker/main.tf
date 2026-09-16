@@ -58,20 +58,11 @@ module "nix_profile" {
   flake_uri = "path:/etc/coder/nix-environment#default"
 }
 
-module "dotfiles" {
-  count    = data.coder_workspace.me.start_count
-  source   = "registry.coder.com/coder/dotfiles/coder"
-  version  = "1.4.2"
+module "login_shell" {
+  source   = "./modules/login-shell"
   agent_id = coder_agent.main.id
-
-  # fish comes from the Nix profile, so wait for it before switching shells.
-  post_clone_script = <<-EOT
-    #!/bin/sh
-    set -eu
-    coder exp sync want dotfiles-shell ${module.nix_profile.sync_unit}
-    coder exp sync start dotfiles-shell
-    sudo chsh --shell "$HOME/.nix-profile/bin/fish" coder
-  EOT
+  shell    = "$HOME/.nix-profile/bin/fish"
+  wait_for = [module.nix_profile.sync_unit]
 }
 
 module "claude_code" {
