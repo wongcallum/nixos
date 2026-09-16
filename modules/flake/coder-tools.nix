@@ -10,13 +10,10 @@
           mise
           direnv
           git
-          delta
           lazygit
           gh
           fish
-          jq
           ripgrep
-          wget
           neovim
           openssh
           ghostty.terminfo
