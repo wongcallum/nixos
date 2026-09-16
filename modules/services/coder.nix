@@ -55,7 +55,11 @@ in
             accessUrl = "https://coder.7sref";
             wildcardAccessUrl = "*.coder.7sref";
             database.createLocally = true;
-            environment.extra.CODER_TELEMETRY_ENABLE = "false";
+            environment.extra = {
+              CODER_TELEMETRY_ENABLE = "false";
+              CODER_SESSION_DURATION = "168h";
+              CODER_DEFAULT_TOKEN_LIFETIME = "744h";
+            };
           };
 
           users.users.coder.extraGroups = [ "docker" ];
