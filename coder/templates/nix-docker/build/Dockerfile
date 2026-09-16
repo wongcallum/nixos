@@ -14,6 +14,7 @@ RUN apt-get update \
     ca-certificates \
     curl \
     git \
+    jq \
     sudo \
     xz-utils \
   && rm -rf /var/lib/apt/lists/* \

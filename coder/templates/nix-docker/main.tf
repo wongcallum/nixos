@@ -33,56 +33,6 @@ resource "coder_agent" "main" {
     #!/bin/sh
     set -eu
     curl -fsS ${local.coder_internal_url}/healthz >/dev/null
-    nix --version
-
-    nix profile add \
-      --profile "$HOME/.nix-profile" \
-      path:/etc/coder/nix-environment#default
-    nix profile upgrade \
-      --profile "$HOME/.nix-profile" \
-      nix-environment
-
-    mkdir -p "$HOME/.claude"
-    if [ ! -f "$HOME/.claude/settings.json" ]; then
-      cat >"$HOME/.claude/settings.json" <<'JSON'
-    {
-      "theme": "dark",
-      "model": "opus",
-      "effortLevel": "xhigh",
-      "tui": "fullscreen",
-      "disableBundledSkills": true,
-      "disableWorkflows": true,
-      "disableRemoteControl": true,
-      "disableClaudeAiConnectors": true,
-      "disableArtifact": true,
-      "awaySummaryEnabled": false,
-      "autoCompactEnabled": false,
-      "promptSuggestionEnabled": false,
-      "autoContinueAtUsageLimit": false,
-      "switchModelsOnFlag": false,
-      "env": {
-        "CLAUDE_CODE_SHELL": "/bin/bash"
-      },
-      "permissions": {
-        "defaultMode": "bypassPermissions"
-      },
-      "attribution": {
-        "commit": "",
-        "pr": ""
-      }
-    }
-    JSON
-    fi
-
-    if [ ! -f "$HOME/.claude.json" ]; then
-      echo '{"hasCompletedOnboarding": true}' >"$HOME/.claude.json"
-    elif ! jq -e '.hasCompletedOnboarding' "$HOME/.claude.json" >/dev/null 2>&1; then
-      claude_json_tmp="$(mktemp)"
-      jq '.hasCompletedOnboarding = true' "$HOME/.claude.json" >"$claude_json_tmp"
-      mv "$claude_json_tmp" "$HOME/.claude.json"
-    fi
-
-    sudo chsh --shell "$HOME/.nix-profile/bin/fish" coder
   EOT
 
   metadata {
@@ -102,11 +52,72 @@ resource "coder_agent" "main" {
   }
 }
 
+module "nix_profile" {
+  source    = "./modules/nix-profile"
+  agent_id  = coder_agent.main.id
+  flake_uri = "path:/etc/coder/nix-environment#default"
+}
+
+module "dotfiles" {
+  count    = data.coder_workspace.me.start_count
+  source   = "registry.coder.com/coder/dotfiles/coder"
+  version  = "1.4.2"
+  agent_id = coder_agent.main.id
+
+  # fish comes from the Nix profile, so wait for it before switching shells.
+  post_clone_script = <<-EOT
+    #!/bin/sh
+    set -eu
+    coder exp sync want dotfiles-shell ${module.nix_profile.sync_unit}
+    coder exp sync start dotfiles-shell
+    sudo chsh --shell "$HOME/.nix-profile/bin/fish" coder
+  EOT
+}
+
 module "claude_code" {
   count    = data.coder_workspace.me.start_count
   source   = "registry.coder.com/coder/claude-code/coder"
   version  = "5.4.1"
   agent_id = coder_agent.main.id
+
+  managed_settings = {
+    theme                     = "dark"
+    model                     = "opus"
+    effortLevel               = "xhigh"
+    tui                       = "fullscreen"
+    disableBundledSkills      = true
+    disableWorkflows          = true
+    disableRemoteControl      = true
+    disableClaudeAiConnectors = true
+    disableArtifact           = true
+    awaySummaryEnabled        = false
+    autoCompactEnabled        = false
+    promptSuggestionEnabled   = false
+    autoContinueAtUsageLimit  = false
+    switchModelsOnFlag        = false
+    env = {
+      CLAUDE_CODE_SHELL = "/bin/bash"
+    }
+    permissions = {
+      defaultMode = "bypassPermissions"
+    }
+    attribution = {
+      commit = ""
+      pr     = ""
+    }
+  }
+
+  # The module only skips onboarding when it is given credentials; login
+  # happens interactively here, so mark it complete ourselves.
+  post_install_script = <<-EOT
+    #!/bin/sh
+    set -eu
+    claude_json="$HOME/.claude.json"
+    [ -f "$claude_json" ] || echo '{}' >"$claude_json"
+    tmp="$(mktemp)"
+    jq '.hasCompletedOnboarding = true' "$claude_json" >"$tmp"
+    mv "$tmp" "$claude_json"
+  EOT
 }
 
 module "codex" {
