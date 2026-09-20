@@ -74,6 +74,7 @@ let
       ];
 
       system.stateVersion = "26.05";
+      nixpkgs.config.cudaSupport = true;
 
       networking = {
         hostName = "linuz";

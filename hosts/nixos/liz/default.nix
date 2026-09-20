@@ -161,9 +161,13 @@ in
 
           # shama's kernel and other chaotic packages; liz substitutes them
           # rather than compiling them when it builds shama's closure.
-          extra-substituters = [ "https://nyx-cache.chaotic.cx/" ];
+          extra-substituters = [
+            "https://nyx-cache.chaotic.cx/"
+            "https://cache.nixos-cuda.org/"
+          ];
           extra-trusted-public-keys = [
             "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
+            "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
           ];
         };
 
