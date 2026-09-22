@@ -9,7 +9,6 @@ in
 
   environment.systemPackages = with pkgs; [
     coder
-    libreoffice-stable
     trilium-desktop
     xournalpp
     scrcpy
@@ -17,9 +16,7 @@ in
     picard
     equibop
     feishin
-    ayugram-desktop
     faugus-launcher
-    kicad
     tigervnc
     openscq30-cli
   ];
