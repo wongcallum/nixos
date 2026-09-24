@@ -442,11 +442,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789114248,
-        "narHash": "sha256-YQyJ9XoTKBM4V/yoeViA50Do9tzbXebDPxVlTSFFGLs=",
+        "lastModified": 1790223496,
+        "narHash": "sha256-XUsLR+kS0S41972pH63xQKrCI5cQmGWjtYuNQnH86v0=",
         "owner": "wongcallum",
         "repo": "hsctikzbench",
-        "rev": "cae40cc56abc18499712ca9a2f626e13dc7c8bd0",
+        "rev": "f9f6ef24c0753fb069004ceede6287989c80c939",
         "type": "github"
       },
       "original": {
