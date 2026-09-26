@@ -15,37 +15,42 @@
         mongo = lib.mkDefault true;
       };
 
-      virtualisation.quadlet.containers = {
-        homeassistant = lib.mkIf config.modules.containers.homeassistant (
-          config.utils.mkContainer {
-            containerConfig = {
-              image = "ghcr.io/home-assistant/home-assistant:stable";
-              podmanArgs = [
-                "--privileged"
-                "--network=host"
-              ];
-              volumes = [
-                "${config.utils.dataDir "home-assistant"}:/config"
-                "/etc/localtime:/etc/localtime:ro"
-                "/run/dbus:/run/dbus:ro"
-              ];
-            };
-          }
-        );
+      virtualisation.quadlet = {
+        autoUpdate.enable = true;
 
-        mongo = lib.mkIf config.modules.containers.mongo (
-          config.utils.mkContainer {
-            containerConfig = {
-              image = "mongo:latest";
-              environments = {
-                MONGO_INITDB_ROOT_USERNAME = "admin";
-                MONGO_INITDB_ROOT_PASSWORD = "secretpassword";
+        containers = {
+          homeassistant = lib.mkIf config.modules.containers.homeassistant (
+            config.utils.mkContainer {
+              containerConfig = {
+                image = "ghcr.io/home-assistant/home-assistant:stable";
+                autoUpdate = "registry";
+                podmanArgs = [
+                  "--privileged"
+                  "--network=host"
+                ];
+                volumes = [
+                  "${config.utils.dataDir "home-assistant"}:/config"
+                  "/etc/localtime:/etc/localtime:ro"
+                  "/run/dbus:/run/dbus:ro"
+                ];
               };
-              volumes = [ "${config.users.users.colin.home}/mongo_data:/data/db" ];
-              publishPorts = [ "27017:27017" ];
-            };
-          }
-        );
+            }
+          );
+
+          mongo = lib.mkIf config.modules.containers.mongo (
+            config.utils.mkContainer {
+              containerConfig = {
+                image = "docker.io/library/mongo:8";
+                environments = {
+                  MONGO_INITDB_ROOT_USERNAME = "admin";
+                  MONGO_INITDB_ROOT_PASSWORD = "secretpassword";
+                };
+                volumes = [ "${config.users.users.colin.home}/mongo_data:/data/db" ];
+                publishPorts = [ "27017:27017" ];
+              };
+            }
+          );
+        };
       };
 
       networking.firewall.allowedTCPPorts = lib.mkMerge [

@@ -93,6 +93,8 @@ in
       };
 
       virtualisation.quadlet = {
+        autoUpdate.enable = true;
+
         networks.${networkName} = {
           networkConfig = {
             subnets = [ "172.22.0.0/16" ];
@@ -126,7 +128,8 @@ in
           searxng = lib.mkIf config.modules.containers.searxng (
             config.utils.mkContainer {
               containerConfig = {
-                image = "searxng/searxng:latest";
+                image = "docker.io/searxng/searxng:latest";
+                autoUpdate = "registry";
                 volumes = [ "${searxngDir}:/etc/searxng:rw" ];
                 environmentFiles = [ secretFile ];
                 networks = [ networks.${networkName}.ref ];

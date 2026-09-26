@@ -39,6 +39,8 @@ in
         };
 
         virtualisation.quadlet = {
+          autoUpdate.enable = true;
+
           networks.${networkName} = {
             networkConfig = {
               subnets = [ "172.25.0.0/16" ];
@@ -141,6 +143,7 @@ in
             immich-stack = config.utils.mkContainer {
               containerConfig = {
                 image = "ghcr.io/majorfi/immich-stack:latest";
+                autoUpdate = "registry";
                 environmentFiles = [ config.sops.secrets."docker/immich-stack_env".path ];
                 environments = {
                   API_URL = "http://172.25.0.5:2283/api";

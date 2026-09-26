@@ -43,6 +43,8 @@ in
       };
 
       virtualisation.quadlet = {
+        autoUpdate.enable = true;
+
         networks.${networkName} = {
           networkConfig = {
             subnets = [ "172.21.0.0/16" ];
@@ -55,6 +57,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "ghcr.io/hotio/sonarr:latest";
+                autoUpdate = "registry";
                 volumes = [
                   "/mnt/media:/data:rw"
                   "${config.utils.dataDir "media/sonarr"}:/config:rw"
@@ -69,6 +72,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "ghcr.io/hotio/radarr:latest";
+                autoUpdate = "registry";
                 volumes = [
                   "/mnt/media:/data:rw"
                   "${config.utils.dataDir "media/radarr"}:/config:rw"
@@ -83,6 +87,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "ghcr.io/hotio/prowlarr:latest";
+                autoUpdate = "registry";
                 volumes = [ "${config.utils.dataDir "media/prowlarr"}:/config:rw" ];
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.21.0.5";
@@ -94,6 +99,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "ghcr.io/flaresolverr/flaresolverr:latest";
+                autoUpdate = "registry";
                 environments = {
                   CAPTCHA_SOLVER = "none";
                   LOG_HTML = "false";
@@ -109,6 +115,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "ghcr.io/hotio/qbittorrent:latest";
+                autoUpdate = "registry";
                 environments = {
                   WEBUI_PORTS = "11090/tcp";
                 };
@@ -125,7 +132,8 @@ in
           media-jellyfin = lib.mkIf config.modules.containers.media-jellyfin (
             config.utils.mkContainer {
               containerConfig = {
-                image = "jellyfin/jellyfin";
+                image = "docker.io/jellyfin/jellyfin:latest";
+                autoUpdate = "registry";
                 notify = "healthy";
                 healthStartPeriod = "30s";
                 volumes = [
