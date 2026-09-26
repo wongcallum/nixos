@@ -30,6 +30,7 @@ in
         freesmlauncher
         libvirt
         docker
+        bluetooth
       ]);
 
       system.stateVersion = "26.05";
