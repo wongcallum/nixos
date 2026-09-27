@@ -44,10 +44,10 @@ resource "coder_script" "login_shell" {
     set -eu
 
     trap 'coder exp sync complete ${local.sync_unit}' EXIT
-    coder exp sync start ${local.sync_unit}
     %{for unit in var.wait_for~}
     coder exp sync want ${local.sync_unit} ${unit}
     %{endfor~}
+    coder exp sync start ${local.sync_unit}
 
     shell="${var.shell}"
     user='${var.user}'
