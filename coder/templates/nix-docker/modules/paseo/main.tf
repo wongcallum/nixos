@@ -104,6 +104,15 @@ resource "coder_script" "paseo" {
       npm install --prefix "$prefix" --no-fund --no-audit --loglevel=error "@getpaseo/cli@$version"
     fi
 
+    # The daemon hints the web UI's initial connection from the Host header,
+    # which lacks a port behind Coder's proxy, so the hint fails to parse and
+    # the UI falls back to the browser's own localhost. Derive the hint from
+    # the page URL instead; this runs after the daemon's injected <head> hint.
+    index="$prefix/node_modules/@getpaseo/server/dist/server/web-ui/index.html"
+    if ! grep -q coder-connection-hint "$index"; then
+      sed -i 's#<body>#<body><script id="coder-connection-hint">(function(l){var s=l.protocol==="https:";window.__PASEO_INITIAL_DAEMON_CONNECTION__={listen:l.hostname+":"+(l.port||(s?443:80)),useTls:s}})(location)</script>#' "$index"
+    fi
+
     # Wrapper so `paseo` works from terminals without Node.js on PATH.
     cat >"$HOME/.local/bin/paseo" <<WRAPPER
     #!/bin/sh
