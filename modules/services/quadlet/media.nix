@@ -20,6 +20,7 @@ in
         "d ${config.utils.dataDir "media/jellyfin/cache"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/config"} 0755 root root -"
         "d ${config.utils.dataDir "media/slskd"} 0755 root root -"
+        "d ${config.utils.dataDir "media/slskd-webui"} 0755 root root -"
         "d /mnt/media/soulseek 0755 1000 1000 -"
         "d /mnt/media/soulseek/downloads 0755 1000 1000 -"
         "d /mnt/media/soulseek/incomplete 0755 1000 1000 -"
@@ -151,7 +152,8 @@ in
           media-slskd = lib.mkIf config.modules.containers.media-slskd (
             config.utils.mkContainer {
               containerConfig = {
-                image = "ghcr.io/wongcallum/slskd:browse-enhancements";
+                image = "docker.io/slskd/slskd:latest";
+                autoUpdate = "registry";
                 environmentFiles = [ config.sops.secrets."docker/slskd_env".path ];
                 environments = {
                   SLSKD_REMOTE_CONFIGURATION = "false";
@@ -167,6 +169,7 @@ in
                   "/mnt/media/soulseek:/data:rw"
                   "/mnt/media/media/music:/music:ro"
                   "${config.utils.dataDir "media/slskd"}:/app:rw"
+                  "${config.utils.dataDir "media/slskd-webui"}:/slskd/wwwroot:ro"
                 ];
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.21.0.8";
