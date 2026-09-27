@@ -34,6 +34,7 @@ in
         docker
         keyd
         bluetooth
+        opentabletdriver
       ]);
 
       system.stateVersion = "26.05";
