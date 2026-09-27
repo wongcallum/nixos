@@ -117,6 +117,20 @@ module "codex" {
   agent_id = coder_agent.main.id
 }
 
+module "paseo" {
+  source   = "./modules/paseo"
+  agent_id = coder_agent.main.id
+
+  # Coder forwards the app's subdomain as the Host header (*.coder.7sref).
+  hostnames = [".coder.7sref"]
+
+  # Paseo caches provider availability, so start it after the agent CLIs exist.
+  wait_for_scripts = concat(
+    flatten(module.claude_code[*].scripts),
+    flatten(module.codex[*].scripts),
+  )
+}
+
 resource "coder_app" "zed" {
   agent_id     = coder_agent.main.id
   slug         = "zed"
