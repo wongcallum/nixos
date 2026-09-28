@@ -60,9 +60,8 @@ in
         qbittorrent
 
         radicale
-        trilium
-        memos
         quadlet-productivity
+        quadlet-leafwiki
         quadlet-media
         quadlet-automation
         quadlet-development
