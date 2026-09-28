@@ -124,6 +124,10 @@ in
 
       _module.args.sshKeys = keys.callum;
 
+      environment.persistence.${config.modules.persistence.persistDir}.directories = [
+        "/var/lib/libvirt"
+      ];
+
       system.stateVersion = "25.11";
       networking.hostId = "19550836";
 
