@@ -27,6 +27,7 @@
     microvm.url = "github:astro/microvm.nix";
     hsctikzbench.url = "github:wongcallum/hsctikzbench";
     ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
+    punktfunk.url = "git+https://git.unom.io/unom/punktfunk?ref=nix-stable"; # don't follow nixpkgs to use their cache
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
     tuigreet.url = "github:tuigreet/tuigreet";

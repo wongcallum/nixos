@@ -56,9 +56,11 @@
 
           extra-substituters = [
             "https://ghostty.cachix.org"
+            "https://nix.unom.io"
           ];
           extra-trusted-public-keys = [
             "ghostty.cachix.org-1:QB389yTa6gTyneehvqG58y0WnHjQOqgnA+wBnpWWxns="
+            "punktfunk-cache-1:yhOJmHxzg6tzXpxSFzlYn6Pc6r0jHprsWqt8MZC654o="
           ];
         };
       };

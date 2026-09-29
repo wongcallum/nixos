@@ -55,15 +55,12 @@ let
       ...
     }:
     let
-      display = ":${toString config.services.xserver.display}";
-      xauthority = "/run/xorg/Xauthority";
-      inherit (config.services.xserver.displayManager) xserverBin xserverArgs;
-
-      # `cvt 1920 1080 60`
-      modeline = ''"1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync'';
+      punktfunk = config.services.punktfunk.host.package;
     in
     {
       imports = with self.modules.nixos; [
+        inputs.punktfunk.nixosModules.default
+
         persistence
 
         callum
@@ -127,7 +124,8 @@ let
         graphics.enable = true;
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.latest;
-          modesetting.enable = false;
+          # KWin renders through nvidia-drm.
+          modesetting.enable = true;
           open = true;
           nvidiaSettings = false;
         };
@@ -141,8 +139,6 @@ let
           pkgs.nvtopPackages.nvidia
           (pkgs.blender.override { cudaSupport = true; })
         ];
-
-        xfce.excludePackages = [ pkgs.xfce4-power-manager ];
 
         persistence.${config.modules.persistence.persistDir}.directories = [
           {
@@ -162,7 +158,6 @@ let
           extraGroups = [
             "video"
             "render"
-            "input"
             "uinput"
           ];
         };
@@ -174,41 +169,32 @@ let
           PasswordAuthentication = lib.mkForce true;
         };
 
-        # Headless Xorg on the passed-through GPU with a fixed 1080p60 mode.
-        xserver = {
+        # With no display manager, punktfunk-kde-session below runs Plasma.
+        xserver.videoDrivers = [ "nvidia" ];
+        desktopManager.plasma6.enable = true;
+
+        pipewire = {
           enable = true;
-          videoDrivers = [ "nvidia" ];
-          displayManager.lightdm.enable = false;
-          desktopManager.xfce = {
-            enable = true;
-            enableScreensaver = false;
-          };
-          terminateOnReset = false;
-          monitorSection = ''
-            Modeline ${modeline}
-            Option "DPMS" "false"
-          '';
-          screenSection = ''
-            Option "AllowEmptyInitialConfiguration" "true"
-            Option "ConnectedMonitor" "DFP"
-            Option "UseEDID" "false"
-            Option "ModeValidation" "NoMaxPClkCheck, NoEdidMaxPClkCheck, NoMaxSizeCheck, NoHorizSyncCheck, NoVertRefreshCheck, NoVirtualSizeCheck, NoExtendedGpuCapabilitiesCheck, NoTotalSizeCheck, NoDualLinkDVICheck, NoDisplayPortBandwidthCheck, AllowNon3DVisionModes, AllowNonHDMI3DModes, AllowNonEdidModes, NoEdidHDMI2Check"
-            Option "MetaModes" "1920x1080_60.00 +0+0"
-            Option "HardDPMS" "false"
-          '';
+          pulse.enable = true;
         };
 
-        libinput.enable = true;
-
-        sunshine = {
+        # Each client gets a KWin virtual output at its own mode.
+        punktfunk.host = {
           enable = true;
+          users = [ "callum" ];
+          autoStart = true;
           openFirewall = true;
-          package = self.packages.${pkgs.stdenv.hostPlatform.system}.sunshine;
+          # Stock Moonlight clients; the guest is only reachable through liz.
+          gamestream = true;
+          # Pinned to the headless session, as in upstream's packaging/kde/host.env.
           settings = {
-            capture = "x11";
-            encoder = "nvenc";
-            # The web UI only trusts localhost origins by default.
-            csrf_allowed_origins = "https://${guestAddr}:47990";
+            WAYLAND_DISPLAY = "wayland-kde";
+            XDG_CURRENT_DESKTOP = "KDE";
+            PUNKTFUNK_COMPOSITOR = "kwin";
+            PUNKTFUNK_VIDEO_SOURCE = "virtual";
+            PUNKTFUNK_INPUT_BACKEND = "libei";
+            PUNKTFUNK_GSO = true;
+            PUNKTFUNK_KWIN_VIRTUAL_PRIMARY = true;
           };
         };
       };
@@ -225,63 +211,26 @@ let
           "d /work/llama-cache 0755 root root -"
         ];
 
-        # XFCE session without a display manager
-        services = {
-          xorg = {
-            description = "Headless Xorg on ${display}";
-            wantedBy = [ "multi-user.target" ];
-
-            preStart = ''
-              rm -f ${xauthority}
-              ${lib.getExe pkgs.xauth} -q -f ${xauthority} add ${display} . "$(${lib.getExe' pkgs.util-linux "mcookie"})"
-              chown callum ${xauthority}
-              chmod 0400 ${xauthority}
-            '';
-
-            postStart = ''
-              for _ in $(seq 1 100); do
-                if XAUTHORITY=${xauthority} ${lib.getExe pkgs.xset} -display ${display} q >/dev/null 2>&1; then
-                  exit 0
-                fi
-                sleep 0.1
-              done
-              echo "Xorg did not come up on ${display}" >&2
-              exit 1
-            '';
-
-            serviceConfig = {
-              RuntimeDirectory = "xorg";
-              RuntimeDirectoryMode = "0755";
-              ExecStart = "${xserverBin} ${toString xserverArgs} -auth ${xauthority} -noreset vt7";
-              Restart = "always";
-              RestartSec = 2;
-            };
-          };
-
-          xfce-session = {
-            description = "XFCE session for callum on ${display}";
-            wantedBy = [ "multi-user.target" ];
-            bindsTo = [ "xorg.service" ];
-            after = [
-              "xorg.service"
-              "systemd-user-sessions.service"
-            ];
-
-            environment = {
-              DISPLAY = display;
-              XAUTHORITY = xauthority;
-              XDG_SESSION_TYPE = "x11";
-            };
-
-            serviceConfig = {
-              User = "callum";
-              Group = "users";
-              PAMName = "login";
-              WorkingDirectory = "/home/callum";
-              ExecStart = "${config.services.displayManager.sessionData.wrapper} ${lib.getExe' pkgs.xfce4-session "startxfce4"}";
-              Restart = "always";
-              RestartSec = 2;
-            };
+        # Upstream's headless Plasma session: `kwin --virtual` plus plasmashell,
+        # started at boot through lingering.
+        user.services.punktfunk-kde-session = {
+          description = "punktfunk headless KDE Plasma session";
+          unitConfig.ConditionUser = "callum";
+          wantedBy = [ "default.target" ];
+          after = [
+            "pipewire.service"
+            "pipewire-pulse.service"
+            "dbus.service"
+          ];
+          wants = [ "pipewire.service" ];
+          path = [
+            config.system.path
+            pkgs.bash
+          ];
+          serviceConfig = {
+            ExecStart = "${lib.getExe pkgs.bash} ${punktfunk}/share/punktfunk-host/headless/run-headless-kde.sh 1920x1080";
+            Restart = "always";
+            RestartSec = 3;
           };
         };
       };
