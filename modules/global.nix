@@ -89,7 +89,6 @@
         immich = lib.mkEnableOption "Immich";
 
         lobehub = lib.mkEnableOption "LobeHub";
-        onlyboxes = lib.mkEnableOption "OnlyBoxes";
         gotosocial = lib.mkEnableOption "GoToSocial";
         leafwiki = lib.mkEnableOption "LeafWiki";
       };

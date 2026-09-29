@@ -154,9 +154,6 @@ in
                   # allow login from LobeHub Desktop app
                   ENABLE_OIDC = "1";
 
-                  SANDBOX_PROVIDER = "onlyboxes";
-                  ONLYBOXES_BASE_URL = "http://172.28.0.6:8089";
-
                   # api keys defined in nixos-secrets
                   SEARCH_PROVIDERS = "tavily,exa";
                   CRAWLER_IMPLS = "exa,naive";
@@ -192,7 +189,7 @@ in
         lobehub = {
           name = "LobeChat";
           domainName = "lobehub";
-          addr = "${config.modules.hostAddrs.salt}:3210";
+          addr = "${config.modules.hostAddrs.liz}:3210";
           iconUrl = "https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@latest/icons/lobehub-color.svg";
           category = "Productivity";
         };
@@ -200,7 +197,7 @@ in
         lobehub-storage = {
           name = "LobeChat Storage";
           domainName = "lobehub-storage";
-          addr = "${config.modules.hostAddrs.salt}:9000";
+          addr = "${config.modules.hostAddrs.liz}:9000";
           hidden = true;
         };
       };

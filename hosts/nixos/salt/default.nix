@@ -24,8 +24,6 @@ in
         metrics
         logs
 
-        # quadlet-lobehub
-        # quadlet-onlyboxes
         # cottage-witch
       ]);
 
