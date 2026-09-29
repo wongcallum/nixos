@@ -4,12 +4,30 @@ in
 { inputs, lib, ... }:
 {
   flake.modules.nixos.quadlet-lobehub =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
       inherit (config.virtualisation.quadlet) networks;
       tld = config.modules.gateway.tld;
       appUrl = "https://lobehub.${tld}";
       s3PublicDomain = "https://lobehub-storage.${tld}";
+      s3AccessKey = "rustfsadmin";
+      s3SecretKey = "rustfsadmin";
+
+      # mirrors docker-compose/deploy/bucket.config.json upstream
+      bucketPolicy = pkgs.writeText "lobehub-bucket-policy.json" (
+        builtins.toJSON {
+          Version = "2012-10-17";
+          Statement = [
+            {
+              Effect = "Allow";
+              Principal.AWS = [ "*" ];
+              Action = [ "s3:GetObject" ];
+              Resource = [ "arn:aws:s3:::lobe/*" ];
+            }
+          ];
+        }
+      );
+      bucketCors = pkgs.writeText "lobehub-bucket-cors.xml" "<CORSConfiguration><CORSRule><AllowedOrigin>*</AllowedOrigin><AllowedMethod>GET</AllowedMethod><AllowedMethod>PUT</AllowedMethod><AllowedMethod>HEAD</AllowedMethod><AllowedHeader>*</AllowedHeader><ExposeHeader>ETag</ExposeHeader><MaxAgeSeconds>3600</MaxAgeSeconds></CORSRule></CORSConfiguration>";
     in
     {
       imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
@@ -17,7 +35,7 @@ in
       systemd.tmpfiles.rules = [
         "d ${config.utils.dataDir "lobehub/db"} 0755 root root -"
         "d ${config.utils.dataDir "lobehub/redis"} 0755 999 999 -"
-        "d ${config.utils.dataDir "lobehub/minio"} 0755 root root -"
+        "d ${config.utils.dataDir "lobehub/rustfs"} 0755 10001 10001 -"
       ];
 
       modules.containers = {
@@ -84,42 +102,47 @@ in
             }
           );
 
-          lobehub-minio = lib.mkIf config.modules.containers.lobehub (
+          lobehub-rustfs = lib.mkIf config.modules.containers.lobehub (
             config.utils.mkContainer {
               containerConfig = {
-                image = "minio/minio:latest";
-                exec = "server /data --console-address :9001";
+                image = "docker.io/rustfs/rustfs:latest";
                 environments = {
-                  MINIO_ROOT_USER = "minioadmin";
-                  MINIO_ROOT_PASSWORD = "minioadmin";
+                  RUSTFS_ACCESS_KEY = s3AccessKey;
+                  RUSTFS_SECRET_KEY = s3SecretKey;
+                  RUSTFS_CONSOLE_ENABLE = "true";
                 };
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.28.0.4";
                 publishPorts = [ "9000:9000" ];
                 volumes = [
-                  "${config.utils.dataDir "lobehub/minio"}:/data"
+                  "${config.utils.dataDir "lobehub/rustfs"}:/data"
                 ];
-                healthCmd = "curl -f http://localhost:9000/minio/health/live";
+                healthCmd = "wget -qO- http://localhost:9000/health";
                 healthInterval = "10s";
                 healthTimeout = "5s";
-                healthRetries = 5;
+                healthRetries = 30;
                 notify = "healthy";
               };
             }
           );
 
-          # one-shot: create the `lobe` bucket and allow anonymous downloads so
-          # browser file URLs (via lobehub-storage.${tld}) resolve.
-          lobehub-minio-init = lib.mkIf config.modules.containers.lobehub {
+          # one-shot: create the `lobe` bucket, allow anonymous downloads so
+          # browser file URLs (via lobehub-storage.${tld}) resolve, and add the
+          # CORS rule browsers need for presigned uploads.
+          lobehub-rustfs-init = lib.mkIf config.modules.containers.lobehub {
             containerConfig = {
-              image = "minio/mc:latest";
+              image = "docker.io/rustfs/rc:latest";
               entrypoint = "/bin/sh";
-              exec = "-c 'mc alias set local http://172.28.0.4:9000 minioadmin minioadmin && mc mb --ignore-existing local/lobe && mc anonymous set download local/lobe'";
+              exec = "-c 'set -eu; rc alias set local http://172.28.0.4:9000 ${s3AccessKey} ${s3SecretKey}; rc mb local/lobe --ignore-existing; rc anonymous set-json /bucket.config.json local/lobe; rc bucket cors set local/lobe /cors.xml'";
               networks = [ networks.${networkName}.ref ];
+              volumes = [
+                "${bucketPolicy}:/bucket.config.json:ro"
+                "${bucketCors}:/cors.xml:ro"
+              ];
             };
             unitConfig = {
-              Requires = [ "lobehub-minio.service" ];
-              After = [ "lobehub-minio.service" ];
+              Requires = [ "lobehub-rustfs.service" ];
+              After = [ "lobehub-rustfs.service" ];
             };
             serviceConfig = {
               Type = "oneshot";
@@ -147,8 +170,8 @@ in
                   S3_BUCKET = "lobe";
                   S3_ENABLE_PATH_STYLE = "1";
                   S3_SET_ACL = "0";
-                  S3_ACCESS_KEY_ID = "minioadmin";
-                  S3_SECRET_ACCESS_KEY = "minioadmin";
+                  S3_ACCESS_KEY_ID = s3AccessKey;
+                  S3_SECRET_ACCESS_KEY = s3SecretKey;
                   LLM_VISION_IMAGE_USE_BASE64 = "1";
 
                   # allow login from LobeHub Desktop app
@@ -166,14 +189,14 @@ in
                 Requires = [
                   "lobehub-postgres.service"
                   "lobehub-redis.service"
-                  "lobehub-minio.service"
-                  "lobehub-minio-init.service"
+                  "lobehub-rustfs.service"
+                  "lobehub-rustfs-init.service"
                 ];
                 After = [
                   "lobehub-postgres.service"
                   "lobehub-redis.service"
-                  "lobehub-minio.service"
-                  "lobehub-minio-init.service"
+                  "lobehub-rustfs.service"
+                  "lobehub-rustfs-init.service"
                 ];
               };
             }
