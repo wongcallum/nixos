@@ -89,9 +89,9 @@
 
           sops.secrets = {
             # read by systemd as root through LoadCredential
-            "buildbot/github-app-key".restartUnits = [ "nixbot.service" ];
-            "buildbot/github-webhook-secret".restartUnits = [ "nixbot.service" ];
-            "buildbot/github-oauth-secret".restartUnits = [ "nixbot.service" ];
+            "nixbot/github-app-key".restartUnits = [ "nixbot.service" ];
+            "nixbot/github-webhook-secret".restartUnits = [ "nixbot.service" ];
+            "nixbot/github-oauth-secret".restartUnits = [ "nixbot.service" ];
 
             # read directly by the attic client running as the service user
             "attic/push-token" = {
@@ -120,10 +120,10 @@
             github = {
               enable = true;
               appId = cfg.githubAppId;
-              appSecretKeyFile = config.sops.secrets."buildbot/github-app-key".path;
-              webhookSecretFile = config.sops.secrets."buildbot/github-webhook-secret".path;
+              appSecretKeyFile = config.sops.secrets."nixbot/github-app-key".path;
+              webhookSecretFile = config.sops.secrets."nixbot/github-webhook-secret".path;
               oauthId = cfg.githubOauthId;
-              oauthSecretFile = config.sops.secrets."buildbot/github-oauth-secret".path;
+              oauthSecretFile = config.sops.secrets."nixbot/github-oauth-secret".path;
               repoAllowlist = [ cfg.repository ];
               # projects are enabled in the web UI instead
               topic = null;
