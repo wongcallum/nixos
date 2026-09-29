@@ -38,7 +38,14 @@ in
 
   config._module.args.deployLib = deployPkgs.deploy-rs.lib;
 
-  config.flake.checks.${system} = {
-    inherit (deployPkgs.deploy-rs.lib.deployChecks ciDeploy) deploy-schema;
+  config.flake = {
+    checks.${system} = {
+      inherit (deployPkgs.deploy-rs.lib.deployChecks ciDeploy) deploy-schema;
+    };
+
+    # What nixbot builds (see nixbot.toml). deploy-schema evaluates every host
+    # at once and blows through nixbot's hard eval memory cap, while each
+    # host's toplevel is already its own check.
+    ciChecks.${system} = removeAttrs config.flake.checks.${system} [ "deploy-schema" ];
   };
 }
