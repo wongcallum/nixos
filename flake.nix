@@ -17,7 +17,7 @@
     };
 
     deploy-rs.url = "github:serokell/deploy-rs";
-    buildbot-nix.url = "github:nix-community/buildbot-nix";
+    nixbot.url = "github:Mic92/nixbot";
     sops-nix.url = "github:Mic92/sops-nix";
     disko.url = "github:nix-community/disko";
     impermanence.url = "github:nix-community/impermanence";
@@ -57,7 +57,7 @@
     nix-monitored.inputs.nixpkgs.follows = "nixpkgs";
     nix-discord-rpc.inputs.nixpkgs.follows = "nixpkgs";
 
-    buildbot-nix.inputs.nixpkgs.follows = "unstable-upstream";
+    nixbot.inputs.nixpkgs.follows = "unstable-upstream";
 
     dms.inputs.nixpkgs.follows = "unstable";
     tuigreet.inputs.nixpkgs.follows = "unstable";

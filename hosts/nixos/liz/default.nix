@@ -69,7 +69,7 @@ in
         quadlet-gotosocial
 
         attic
-        buildbot
+        nixbot
       ]);
 
       # https://microvm-nix.github.io/microvm.nix/declarative.html#fully-declarative
@@ -197,8 +197,8 @@ in
         sensors.chips = [ "nct6775" ];
         watchdog.driver = "sp5100_tco";
 
-        buildbot = {
-          domain = "buildbot.callumwong.com";
+        nixbot = {
+          domain = "ci.callumwong.com";
           repository = "wongcallum/nixos";
           admins = [ "wongcallum" ];
           githubAppId = 4715357;
@@ -208,7 +208,7 @@ in
         cloudflared = {
           tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
           credentialsSecret = "cloudflared/liz-credentials.json";
-          ingress."buildbot.callumwong.com" = "http://127.0.0.1:8010";
+          ingress."ci.callumwong.com" = "http://127.0.0.1:8010";
         };
 
         samba.shares = {
