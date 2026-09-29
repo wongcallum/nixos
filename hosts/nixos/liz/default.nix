@@ -17,7 +17,6 @@ in
         ./_networking.nix
         ./_console.nix
         ./_vfio.nix
-        ./_windows-vm.nix
         ./_gpu-vm.nix
 
         inputs.disko.nixosModules.default
@@ -112,16 +111,6 @@ in
         };
       };
 
-      # The ordering dependency makes either guest stop completely before the
-      # other starts when systemd resolves their mutual conflict.
-      systemd.services = {
-        windows-vm = {
-          conflicts = [ "gpu-vm.service" ];
-          after = [ "gpu-vm.service" ];
-        };
-        gpu-vm.conflicts = [ "windows-vm.service" ];
-      };
-
       _module.args.sshKeys = keys.callum;
 
       environment.persistence.${config.modules.persistence.persistDir}.directories = [
@@ -150,7 +139,7 @@ in
         zfs.forceImportRoot = false;
 
         # Demand misses barely improved between the previous 4.7 GiB ARC and 28 GiB;
-        # 8 GiB leaves headroom while preserving RAM for page cache and the Windows VM.
+        # 8 GiB leaves headroom while preserving RAM for page cache and the GPU VM.
         # ZFS first loads in the initrd, so the cap must be a modprobe option.
         extraModprobeConfig = "options zfs zfs_arc_max=8589934592";
       };

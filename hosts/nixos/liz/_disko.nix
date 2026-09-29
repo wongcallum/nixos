@@ -97,12 +97,12 @@ in
             mountpoint = "/persist";
           };
 
-          # Windows zvols are provisioned separately beneath this dataset.
+          # GPU VM zvols are provisioned separately beneath this dataset.
           "vm" = {
             type = "zfs_fs";
             options = {
               mountpoint = "none";
-              quota = "450G";
+              quota = "250G";
             };
           };
         };

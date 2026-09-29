@@ -23,10 +23,10 @@ let
   qmpSocket = "${runDir}/qmp.sock";
   shareSocket = tag: "${runDir}/${tag}.sock";
 
-  # A separate /nix owns both store paths and their database. Keep the former
-  # gpu-nix overlay zvol untouched; it is not a standalone store.
+  # A separate /nix owns both store paths and their database.
   nixVolume = "rpool/vm/gpu-store";
-  nixVolumeSize = "64G";
+  nixVolumeSizeGiB = 250;
+  nixVolumeSize = "${toString nixVolumeSizeGiB}G";
   nixVolumePath = "/dev/zvol/${nixVolume}";
   nixVolumeSerial = "nix";
 
@@ -320,6 +320,11 @@ let
           -o compression=lz4 \
           "${nixVolume}"
         created=true
+      elif [ "$(zfs get -Hp -o value volsize "${nixVolume}")" -lt ${
+        toString (nixVolumeSizeGiB * 1024 * 1024 * 1024)
+      } ]; then
+        # Grow only; ExecStartPre expands the filesystem to match.
+        zfs set volsize=${nixVolumeSize} "${nixVolume}"
       fi
       # udev needs a moment to publish /dev/zvol after creation.
       for _ in $(seq 1 50); do
@@ -472,13 +477,6 @@ in
     pins the direct-boot closure at /nix/var/nix/gcroots/gpu-vm-boot.
     The disk is unmounted before QEMU starts. Never mount it on the host while
     QEMU is running. Guest GC and optimisation do not depend on the host store.
-
-    Cutover requires an explicitly scheduled stop of the old GPU VM before
-    activating this configuration and starting gpu-vm.service.
-    rpool/vm/gpu-nix is the old overlay volume and is deliberately left intact.
-    Its installed packages and profiles are not migrated into the new store;
-    reinstall them after cutover. /persist (including /home/callum) and /work
-    retain their existing host-backed storage.
   '';
 
   systemd = {
@@ -522,12 +520,17 @@ in
 
           # ExecStartPre completes and unmounts the disk before QEMU opens it.
           # A failed copy aborts startup rather than booting an incomplete store.
-          path = [ pkgs.util-linux ];
+          path = [
+            pkgs.util-linux
+            pkgs.e2fsprogs
+          ];
           preStart = ''
             root="${runDir}/root"
             mkdir -p "$root/nix"
             mount -t ext4 "${nixVolumePath}" "$root/nix"
             trap 'umount "$root/nix"' EXIT
+            # Online grow after a volsize increase; a no-op otherwise.
+            resize2fs "${nixVolumePath}"
             ${lib.getExe seedStore} "$root"
           '';
 
@@ -549,5 +552,74 @@ in
         };
       }
     ];
+
+    network = {
+      netdevs."25-${tap}" = {
+        netdevConfig = {
+          Name = tap;
+          Kind = "tap";
+        };
+        tapConfig = {
+          User = "root";
+          Group = "root";
+        };
+      };
+
+      networks."25-${tap}" = {
+        matchConfig.Name = tap;
+        address = [ "${hostAddr}/24" ];
+        networkConfig.ConfigureWithoutCarrier = true;
+        linkConfig.RequiredForOnline = false;
+      };
+    };
+  };
+
+  networking = {
+    nat = {
+      enable = true;
+      internalInterfaces = [ tap ];
+    };
+
+    #
+    #   guest 10.0.1.3 (on the tap)
+    #     |
+    #     +- to host -> nixos-fw -> gpu-vm-in -+- tcp/445 ---------> ACCEPT
+    #     |                                    +- any other NEW ---> DROP
+    #     |
+    #     +- routed --> FORWARD --> gpu-vm-fwd +- ESTABLISHED,RELATED -> ACCEPT
+    #                                          |  (replies to LAN/tailnet clients)
+    #                                          +- 10/8, 172.16/12, -> DROP
+    #                                          |  192.168/16,
+    #                                          |  100.64/10, 169.254/16
+    #                                          +- anything else ---> NAT -> internet
+    #
+    firewall.extraCommands = ''
+      iptables -N gpu-vm-in 2>/dev/null || iptables -F gpu-vm-in
+      iptables -A gpu-vm-in -p tcp --dport 445 -j nixos-fw-accept
+      iptables -A gpu-vm-in -m conntrack --ctstate NEW -j DROP
+      iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
+      iptables -I nixos-fw -i ${tap} -j gpu-vm-in
+
+      iptables -N gpu-vm-fwd 2>/dev/null || iptables -F gpu-vm-fwd
+      iptables -A gpu-vm-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      ${lib.concatMapStringsSep "\n" (dest: "iptables -A gpu-vm-fwd -d ${dest} -j DROP") [
+        "10.0.0.0/8"
+        "172.16.0.0/12"
+        "192.168.0.0/16"
+        "100.64.0.0/10" # tailnet (CGNAT)
+        "169.254.0.0/16" # link-local, incl. cloud metadata
+      ]}
+      iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
+      iptables -I FORWARD -i ${tap} -j gpu-vm-fwd
+    '';
+
+    firewall.extraStopCommands = ''
+      iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
+      iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
+      iptables -F gpu-vm-in 2>/dev/null || true
+      iptables -X gpu-vm-in 2>/dev/null || true
+      iptables -F gpu-vm-fwd 2>/dev/null || true
+      iptables -X gpu-vm-fwd 2>/dev/null || true
+    '';
   };
 }
