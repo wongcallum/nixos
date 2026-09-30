@@ -17,6 +17,7 @@
     environment.systemPackages = with pkgs; [
       chezmoi
       mise
+      devenv
       zellij
       nushell
       jq
@@ -47,7 +48,6 @@
       pavucontrol
 
       mpv
-      moonlight-qt
       qalculate-qt
       gthumb
       kdePackages.okular
