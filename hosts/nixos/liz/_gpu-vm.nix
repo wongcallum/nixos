@@ -223,10 +223,8 @@ let
             "dbus.service"
           ];
           wants = [ "pipewire.service" ];
-          path = [
-            config.system.path
-            pkgs.bash
-          ];
+          # inherit the user manager's login PATH, not NixOS's minimal unit default.
+          enableDefaultPath = false;
           serviceConfig = {
             ExecStart = "${lib.getExe pkgs.bash} ${punktfunk}/share/punktfunk-host/headless/run-headless-kde.sh 1920x1080";
             Restart = "always";
