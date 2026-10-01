@@ -31,6 +31,7 @@ in
         libvirt
         docker
         bluetooth
+        ssh
       ]);
 
       system.stateVersion = "26.05";
