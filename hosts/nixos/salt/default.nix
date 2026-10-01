@@ -66,10 +66,15 @@ in
       };
 
       services.punktfunk.host = {
+        # Gen9's HEVC encoder advertises no block sizes, and punktfunk's fallback
+        # headers disagree with what it codes, so the stream is undecodable.
+        package =
+          inputs.punktfunk.packages.${pkgs.stdenv.hostPlatform.system}.punktfunk-host.overrideAttrs
+            (old: {
+              patches = (old.patches or [ ]) ++ [ ../../../patches/punktfunk-hevc-guessed-features.patch ];
+            });
         # Stock Moonlight clients on the trusted LAN.
         gamestream = true;
-        # Main10 HEVC through VAAPI on the UHD 630 streams a green, corrupted picture.
-        settings.PUNKTFUNK_10BIT = false;
       };
 
       networking.useNetworkd = true;

@@ -1,0 +1,82 @@
+diff -ru a/crates/pf-vaapi/src/enc_h265.rs b/crates/pf-vaapi/src/enc_h265.rs
+--- a/crates/pf-vaapi/src/enc_h265.rs	2026-10-01 22:37:40.843253547 +1000
++++ b/crates/pf-vaapi/src/enc_h265.rs	2026-10-01 22:37:55.960483285 +1000
+@@ -49,6 +49,8 @@
+     pub log2_max_tb_minus2: u8,
+     pub max_transform_hierarchy_depth_inter: u8,
+     pub max_transform_hierarchy_depth_intra: u8,
++    /// `diff_cu_qp_delta_depth` for the PPS and picture parameters.
++    pub diff_cu_qp_delta_depth: u8,
+     /// Generalised P/B: a P picture is coded as a B slice whose L1 repeats L0.
+     /// Intel says so (`BI_NOT_EMPTY`) on both entrypoints; AMD takes P slices.
+     pub gpb: bool,
+@@ -64,6 +66,7 @@
+         // MVP 10, strong intra 12, transform skip 20, CU QP delta 22. Blocks: max
+         // CTB 0, min CB 4, MAX TB 6, min TB 8, depth inter 10, intra 14 — a
+         // minimum field interleaves after each maximum.
++        let (log2_ctb_minus3, log2_min_cb_minus3) = (b(0), b(4));
+         Self {
+             amp: f(4),
+             sao: f(6),
+@@ -71,31 +74,38 @@
+             strong_intra_smoothing: f(12),
+             transform_skip: f(20),
+             cu_qp_delta: f(22),
+-            log2_ctb_minus3: b(0),
+-            log2_min_cb_minus3: b(4),
++            log2_ctb_minus3,
++            log2_min_cb_minus3,
+             log2_max_tb_minus2: b(6),
+             log2_min_tb_minus2: b(8),
+             max_transform_hierarchy_depth_inter: b(10),
+             max_transform_hierarchy_depth_intra: b(14),
++            // The whole CTB depth, so the rate controller may set a QP per coding
++            // block. Zero would make `cu_qp_delta` a no-op.
++            diff_cu_qp_delta_depth: log2_ctb_minus3 - log2_min_cb_minus3,
+             gpb: false,
+         }
+     }
+ 
+-    /// ffmpeg's fallback when a driver advertises nothing: 32×32 CTB, 16×16 CB.
++    /// ffmpeg's fallback when a driver advertises nothing, as it writes it: 32×32
++    /// CTB, 8×8 CB, transform depth 3, AMP, and CU QP delta at CTB depth. This is
++    /// what Intel's Gen9 VME HEVC encoder (iHD, EncSlice) codes; it advertises no
++    /// HEVC attributes, and headers that disagree make the slice data unparseable.
+     pub fn guessed() -> Self {
+         Self {
+-            amp: false,
++            amp: true,
+             sao: false,
+             temporal_mvp: false,
+             strong_intra_smoothing: false,
+             transform_skip: false,
+             cu_qp_delta: true,
+             log2_ctb_minus3: 2,
+-            log2_min_cb_minus3: 1,
++            log2_min_cb_minus3: 0,
+             log2_min_tb_minus2: 0,
+             log2_max_tb_minus2: 3,
+-            max_transform_hierarchy_depth_inter: 0,
+-            max_transform_hierarchy_depth_intra: 0,
++            max_transform_hierarchy_depth_inter: 3,
++            max_transform_hierarchy_depth_intra: 3,
++            diff_cu_qp_delta_depth: 0,
+             gpb: false,
+         }
+     }
+diff -ru a/crates/pf-vaapi/src/hevc.rs b/crates/pf-vaapi/src/hevc.rs
+--- a/crates/pf-vaapi/src/hevc.rs	2026-10-01 22:37:40.843253547 +1000
++++ b/crates/pf-vaapi/src/hevc.rs	2026-10-01 22:37:55.961923029 +1000
+@@ -217,10 +217,9 @@
+         })
+     }
+ 
+-    /// `diff_cu_qp_delta_depth`: the whole CTB depth, so the rate controller may
+-    /// set a QP per coding block. Zero would make `cu_qp_delta` a no-op.
++    /// `diff_cu_qp_delta_depth`: as the features say.
+     pub fn diff_cu_qp_delta_depth(&self) -> u8 {
+-        self.features.log2_ctb_minus3 - self.features.log2_min_cb_minus3
++        self.features.diff_cu_qp_delta_depth
+     }
+ 
+     /// One picture's slice segment header, whole picture, ending on the
