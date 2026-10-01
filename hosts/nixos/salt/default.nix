@@ -65,8 +65,12 @@ in
         ];
       };
 
-      # Stock Moonlight clients on the trusted LAN.
-      services.punktfunk.host.gamestream = true;
+      services.punktfunk.host = {
+        # Stock Moonlight clients on the trusted LAN.
+        gamestream = true;
+        # Main10 HEVC through VAAPI on the UHD 630 streams a green, corrupted picture.
+        settings.PUNKTFUNK_10BIT = false;
+      };
 
       networking.useNetworkd = true;
       systemd = {
