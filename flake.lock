@@ -813,11 +813,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784271031,
-        "narHash": "sha256-uDia1oxbrHUqF128GduPLwRbaOFSA3N+N76T9xBsx2U=",
+        "lastModified": 1790849973,
+        "narHash": "sha256-7N5ERtW1kR1Kh6LerZ01aI2D9LNEfgXyJzCyA73LrUI=",
         "owner": "wongcallum",
         "repo": "prism-tower",
-        "rev": "ad2e6e2aaf4e025d3692ca7eed56dad1d021e055",
+        "rev": "e5d97c1461e0f9fa5172d30d17073ecd5eb72102",
         "type": "github"
       },
       "original": {
