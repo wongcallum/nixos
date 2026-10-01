@@ -54,18 +54,14 @@ let
       pkgs,
       ...
     }:
-    let
-      punktfunk = config.services.punktfunk.host.package;
-    in
     {
       imports = with self.modules.nixos; [
-        inputs.punktfunk.nixosModules.default
-
         persistence
 
         callum
 
         ssh
+        remote-desktop
 
         # llama-cpp
       ];
@@ -121,7 +117,6 @@ let
       ];
 
       hardware = {
-        graphics.enable = true;
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.latest;
           # KWin renders through nvidia-drm.
@@ -150,18 +145,7 @@ let
         ];
       };
 
-      users.users = {
-        root.openssh.authorizedKeys.keys = sshKeys;
-
-        callum = {
-          linger = true;
-          extraGroups = [
-            "video"
-            "render"
-            "uinput"
-          ];
-        };
-      };
+      users.users.root.openssh.authorizedKeys.keys = sshKeys;
 
       services = {
         openssh.settings = {
@@ -169,34 +153,10 @@ let
           PasswordAuthentication = lib.mkForce true;
         };
 
-        # With no display manager, punktfunk-kde-session below runs Plasma.
         xserver.videoDrivers = [ "nvidia" ];
-        desktopManager.plasma6.enable = true;
 
-        pipewire = {
-          enable = true;
-          pulse.enable = true;
-        };
-
-        # Each client gets a KWin virtual output at its own mode.
-        punktfunk.host = {
-          enable = true;
-          users = [ "callum" ];
-          autoStart = true;
-          openFirewall = true;
-          # Stock Moonlight clients; the guest is only reachable through liz.
-          gamestream = true;
-          # Pinned to the headless session, as in upstream's packaging/kde/host.env.
-          settings = {
-            WAYLAND_DISPLAY = "wayland-kde";
-            XDG_CURRENT_DESKTOP = "KDE";
-            PUNKTFUNK_COMPOSITOR = "kwin";
-            PUNKTFUNK_VIDEO_SOURCE = "virtual";
-            PUNKTFUNK_INPUT_BACKEND = "libei";
-            PUNKTFUNK_GSO = true;
-            PUNKTFUNK_KWIN_VIRTUAL_PRIMARY = true;
-          };
-        };
+        # Stock Moonlight clients; the guest is only reachable through liz.
+        punktfunk.host.gamestream = true;
       };
 
       systemd = {
@@ -210,27 +170,6 @@ let
         tmpfiles.rules = [
           "d /work/llama-cache 0755 root root -"
         ];
-
-        # Upstream's headless Plasma session: `kwin --virtual` plus plasmashell,
-        # started at boot through lingering.
-        user.services.punktfunk-kde-session = {
-          description = "punktfunk headless KDE Plasma session";
-          unitConfig.ConditionUser = "callum";
-          wantedBy = [ "default.target" ];
-          after = [
-            "pipewire.service"
-            "pipewire-pulse.service"
-            "dbus.service"
-          ];
-          wants = [ "pipewire.service" ];
-          # inherit the user manager's login PATH, not NixOS's minimal unit default.
-          enableDefaultPath = false;
-          serviceConfig = {
-            ExecStart = "${lib.getExe pkgs.bash} ${punktfunk}/share/punktfunk-host/headless/run-headless-kde.sh 1920x1080";
-            Restart = "always";
-            RestartSec = 3;
-          };
-        };
       };
     };
 
