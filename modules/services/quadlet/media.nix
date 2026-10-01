@@ -1,6 +1,7 @@
 let
   networkName = "media";
-  jellyfinDomainName = "watch.media";
+  jellyfinDomainName = "jellyfin.media";
+  pelagicaDomainName = "watch.media";
 in
 { inputs, lib, ... }:
 {
@@ -19,6 +20,7 @@ in
         "d ${config.utils.dataDir "media/qbittorrent"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/cache"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/config"} 0755 root root -"
+        "d ${config.utils.dataDir "media/pelagica"} 0755 root root -"
         "d ${config.utils.dataDir "media/slskd"} 0755 root root -"
         "d ${config.utils.dataDir "media/slskd-webui"} 0755 root root -"
         "d /mnt/media/soulseek 0755 1000 1000 -"
@@ -33,6 +35,7 @@ in
         media-flaresolverr = lib.mkDefault true;
         media-qbittorrent = lib.mkDefault true;
         media-jellyfin = lib.mkDefault true;
+        media-pelagica = lib.mkDefault config.modules.containers.media-jellyfin;
         media-slskd = lib.mkDefault true;
       };
 
@@ -144,7 +147,26 @@ in
                 ];
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.21.0.7";
-                environments.JELLYFIN_PublishedServerUrl = "${jellyfinDomainName}.${config.modules.gateway.tld}";
+                environments.JELLYFIN_PublishedServerUrl = "https://${jellyfinDomainName}.${config.modules.gateway.tld}";
+              };
+            }
+          );
+
+          media-pelagica = lib.mkIf config.modules.containers.media-pelagica (
+            config.utils.mkContainer {
+              containerConfig = {
+                image = "docker.io/kartoffelchipss/pelagica:latest";
+                autoUpdate = "registry";
+                environments.SERVER_ADDRESS = "https://${jellyfinDomainName}.${config.modules.gateway.tld}";
+                volumes = [
+                  "${config.utils.dataDir "media/pelagica"}:/config:rw"
+                  # The backend authenticates against Jellyfin over HTTPS; trust our internal CA.
+                  "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
+                ];
+                networks = [ networks.${networkName}.ref ];
+                ip = "172.21.0.9";
+                # Resolve the public Jellyfin name to Caddy on the network's host gateway.
+                addHosts = [ "${jellyfinDomainName}.${config.modules.gateway.tld}:172.21.0.1" ];
               };
             }
           );
@@ -221,6 +243,14 @@ in
           domainName = jellyfinDomainName;
           addr = "172.21.0.7:8096";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jellyfin.png";
+          category = "Media";
+        };
+
+        media-pelagica = lib.mkIf config.modules.containers.media-pelagica {
+          name = "Pelagica";
+          domainName = pelagicaDomainName;
+          addr = "172.21.0.9:80";
+          iconUrl = "https://pelagica.app/logo/logo.svg";
           category = "Media";
         };
 

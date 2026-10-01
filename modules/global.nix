@@ -72,6 +72,7 @@
         media-flaresolverr = lib.mkEnableOption "FlareSolverr";
         media-qbittorrent = lib.mkEnableOption "qBittorrent";
         media-jellyfin = lib.mkEnableOption "Jellyfin";
+        media-pelagica = lib.mkEnableOption "Pelagica";
         media-slskd = lib.mkEnableOption "slskd";
 
         homeassistant = lib.mkEnableOption "Home Assistant";
