@@ -102,9 +102,11 @@ in
           max-free = 64424509440; # 60 GiB
 
           # shama's kernel and other chaotic packages; substituted rather
-          # than compiled when CI builds shama's closure
+          # than compiled when CI builds shama's closure. Asked after
+          # cache.nixos.org (40) rather than at its advertised 30, since
+          # nixos.org has nearly every path and nyx almost none.
           extra-substituters = [
-            "https://nyx-cache.chaotic.cx/"
+            "https://nyx-cache.chaotic.cx/?priority=45"
             "https://cache.nixos-cuda.org/"
           ];
           extra-trusted-public-keys = [
