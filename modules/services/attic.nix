@@ -46,6 +46,16 @@ in
             '';
           };
 
+          priority = lib.mkOption {
+            type = lib.types.nullOr lib.types.int;
+            default = null;
+            example = 10;
+            description = ''
+              Substituter priority overriding the cache's own (lower is asked
+              first); null keeps the one attic advertises
+            '';
+          };
+
           publicKey = lib.mkOption {
             type = lib.types.str;
             default = "homelab:GtiQKpn+dfjJjjpPZQtQf2MZMzhFn2DQG9lkxxfarLc=";
@@ -58,9 +68,16 @@ in
 
     base =
       { config, ... }:
+      let
+        cfg = config.modules.attic;
+      in
       {
         nix.settings = {
-          extra-substituters = [ "${config.modules.attic.endpoint}${config.modules.attic.cacheName}" ];
+          extra-substituters = [
+            "${cfg.endpoint}${cfg.cacheName}${
+              lib.optionalString (cfg.priority != null) "?priority=${toString cfg.priority}"
+            }"
+          ];
           extra-trusted-public-keys = lib.optional (
             config.modules.attic.publicKey != ""
           ) config.modules.attic.publicKey;

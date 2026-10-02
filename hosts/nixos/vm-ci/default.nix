@@ -138,7 +138,13 @@ in
         services.nixbot.port = nixbotPort;
 
         modules = {
-          attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
+          attic = {
+            endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
+            # Ask attic before the public caches. Most of what CI looks up was
+            # pushed there by an earlier run, and it answers in about a
+            # millisecond, whereas a public cache costs a TLS handshake.
+            priority = 10;
+          };
 
           nixbot = {
             inherit domain;
