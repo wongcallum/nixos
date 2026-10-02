@@ -6,6 +6,7 @@
       nixpkgs.overlays = [ inputs.freesmlauncher.overlays.default ];
 
       environment.systemPackages = [
+        # workaround: https://github.com/wongcallum/nixos/issues/77
         # https://github.com/FreesmTeam/FreesmLauncher/pull/233
         ((pkgs.freesmlauncher.override { jdks = [ ]; }).overrideAttrs (old: {
           qtWrapperArgs = builtins.filter (

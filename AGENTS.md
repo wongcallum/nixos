@@ -41,6 +41,13 @@ A host's `default.nix` imports reusable features from `config.flake.modules.nixo
 - **Users:** use `self.factory.user <name> <isAdmin> <useSopsPassword>` from `modules/users/factory.nix` plus a per-user module.
 - **Web services:** contribute an entry to the registry exposed by `modules/services/gateway.nix`; Caddy and `prism-tower` derive their configuration from it.
 
+### Workarounds
+
+Every local workaround for an upstream problem has an open GitHub issue labelled `workaround`. Workarounds include patches, `overrideAttrs`/overlays, version or source pins, input overrides, forks, and config that disables a broken feature.
+
+- **Adding one:** open an issue (`gh issue create --label workaround`) with **Workaround** (file and what it does), **Upstream** (link and current status, or "not filed"), **Done when**, and **Cleanup**. Put the issue URL in a `# workaround: <url>` comment beside the workaround.
+- **Removing one:** close its issue, referencing it from the commit (`closes #N`).
+
 ### nixpkgs patches
 
 Prefer a suitable upstream fix: add its PR or commit to `scripts/patch-nixpkgs.sh` and run the script locally. Use a local overlay only when no suitable upstream fix can be cherry-picked.

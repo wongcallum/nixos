@@ -50,6 +50,7 @@
         ];
       };
 
+      # workaround: https://github.com/wongcallum/nixos/issues/76
       # FIXME: https://github.com/NixOS/nixpkgs/pull/520137
       nixpkgs.overlays = lib.mkIf (has "cadvisor") [
         (_: prev: {

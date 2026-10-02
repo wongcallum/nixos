@@ -24,6 +24,7 @@
 
       programs.kdeconnect = {
         enable = true;
+        # workaround: https://github.com/wongcallum/nixos/issues/79
         # https://bugs.kde.org/show_bug.cgi?id=513536
         # mkForce to win over plasma6, which also sets this package.
         package = lib.mkForce (
