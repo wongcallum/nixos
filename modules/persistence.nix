@@ -1,7 +1,11 @@
 { inputs, lib, ... }:
 {
   flake.modules.nixos.persistence =
-    { config, ... }:
+    { config, pkgs, ... }:
+    let
+      inherit (config.modules.persistence) persistDir;
+      credentialSecret = "/var/lib/systemd/credential.secret";
+    in
     {
       imports = [ inputs.impermanence.nixosModules.impermanence ];
 
@@ -13,12 +17,12 @@
       };
 
       config = {
-        fileSystems.${config.modules.persistence.persistDir}.neededForBoot = true;
+        fileSystems.${persistDir}.neededForBoot = true;
 
         # ensure that StateDirectory is not too permissive for DynamicUser services
         systemd.tmpfiles.rules = [ "d /var/lib/private 0700 root root -" ];
 
-        environment.persistence.${config.modules.persistence.persistDir} = {
+        environment.persistence.${persistDir} = {
           enable = true;
           hideMounts = true;
           directories = [
@@ -27,7 +31,33 @@
           ];
           files = [
             "/etc/machine-id"
+            # host key for systemd-creds; losing it strands every credential
+            # encrypted with it, such as libvirt's secrets-encryption-key
+            credentialSecret
           ];
+        };
+
+        # Impermanence symlinks a file that is missing from persistent storage,
+        # and systemd replaces that symlink when it writes the key, so the key
+        # would never persist. Seed it first, adopting a live key if one exists.
+        system.activationScripts = {
+          credential-secret = {
+            deps = [ "createPersistentStorageDirs" ];
+            text = ''
+              persisted=${persistDir}${credentialSecret}
+              live=${credentialSecret}
+              if [ ! -e "$persisted" ]; then
+                mkdir -p "$(dirname "$persisted")"
+                if [ -s "$live" ] && [ ! -L "$live" ] && ! ${pkgs.util-linux}/bin/findmnt "$live" >/dev/null; then
+                  mv "$live" "$persisted"
+                else
+                  rm -f "$live"
+                  SYSTEMD_CREDENTIAL_SECRET="$persisted" ${config.systemd.package}/bin/systemd-creds setup
+                fi
+              fi
+            '';
+          };
+          persist-files.deps = [ "credential-secret" ];
         };
       };
     };
