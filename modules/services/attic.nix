@@ -1,37 +1,52 @@
 { lib, ... }:
 {
   flake.modules.nixos = {
-    global = _: {
-      options.modules.attic = {
-        cacheName = lib.mkOption {
-          type = lib.types.str;
-          default = "homelab";
-          description = "Name of the attic cache CI pushes to and hosts pull from";
-        };
+    global =
+      { config, ... }:
+      {
+        options.modules.attic = {
+          cacheName = lib.mkOption {
+            type = lib.types.str;
+            default = "homelab";
+            description = "Name of the attic cache CI pushes to and hosts pull from";
+          };
 
-        domainName = lib.mkOption {
-          type = lib.types.str;
-          default = "attic";
-          description = "Internal hostname the cache is served under";
-        };
+          domainName = lib.mkOption {
+            type = lib.types.str;
+            default = "attic";
+            description = "Internal hostname the cache is served under";
+          };
 
-        publicKey = lib.mkOption {
-          type = lib.types.str;
-          default = "homelab:GtiQKpn+dfjJjjpPZQtQf2MZMzhFn2DQG9lkxxfarLc=";
-          description = ''
-            Signing key attic generated when the cache was created, in `<cache>:<base64>` form
-          '';
+          endpoint = lib.mkOption {
+            type = lib.types.str;
+            default = "https://${config.modules.attic.domainName}.${config.modules.gateway.tld}/";
+            description = "Base URL this host reaches the attic server at";
+          };
+
+          guestPort = lib.mkOption {
+            type = lib.types.port;
+            default = 8081;
+            description = ''
+              Plain-HTTP port the attic host serves the cache on for microVM
+              guests, which can reach neither the gateway nor its DNS
+            '';
+          };
+
+          publicKey = lib.mkOption {
+            type = lib.types.str;
+            default = "homelab:GtiQKpn+dfjJjjpPZQtQf2MZMzhFn2DQG9lkxxfarLc=";
+            description = ''
+              Signing key attic generated when the cache was created, in `<cache>:<base64>` form
+            '';
+          };
         };
       };
-    };
 
     base =
       { config, ... }:
       {
         nix.settings = {
-          extra-substituters = [
-            "https://${config.modules.attic.domainName}.${config.modules.gateway.tld}/${config.modules.attic.cacheName}"
-          ];
+          extra-substituters = [ "${config.modules.attic.endpoint}${config.modules.attic.cacheName}" ];
           extra-trusted-public-keys = lib.optional (
             config.modules.attic.publicKey != ""
           ) config.modules.attic.publicKey;
@@ -149,6 +164,21 @@
           addr = config.services.atticd.settings.listen;
           category = "Development";
         };
+
+        # Guests are only let through to this port (see allowedHostTCPPorts in
+        # microvmLib.mkHostNetworking), so it serves attic and nothing else.
+        services.caddy.virtualHosts."http://:${toString config.modules.attic.guestPort}" =
+          lib.mkIf config.services.atticd.enable
+            {
+              extraConfig = ''
+                # attic checks X-Forwarded-Host, which Caddy otherwise fills
+                # with the address the guest dialled
+                reverse_proxy ${config.services.atticd.settings.listen} {
+                  header_up Host ${config.modules.attic.domainName}.${config.modules.gateway.tld}
+                  header_up X-Forwarded-Host ${config.modules.attic.domainName}.${config.modules.gateway.tld}
+                }
+              '';
+            };
       };
   };
 }

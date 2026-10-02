@@ -69,7 +69,7 @@ in
         quadlet-lobehub
 
         attic
-        nixbot
+        vm-ci-host
       ]);
 
       # https://microvm-nix.github.io/microvm.nix/declarative.html#fully-declarative
@@ -113,6 +113,9 @@ in
 
       _module.args.sshKeys = keys.callum;
 
+      # keep CI off the cores the GPU VM is pinned to (_gpu-vm.nix)
+      systemd.services."microvm@vm-ci".serviceConfig.AllowedCPUs = "0-2 6-8";
+
       environment.persistence.${config.modules.persistence.persistDir}.directories = [
         "/var/lib/libvirt"
       ];
@@ -151,17 +154,6 @@ in
 
           min-free = 21474836480; # 20 GiB
           max-free = 64424509440; # 60 GiB
-
-          # shama's kernel and other chaotic packages; liz substitutes them
-          # rather than compiling them when it builds shama's closure.
-          extra-substituters = [
-            "https://nyx-cache.chaotic.cx/"
-            "https://cache.nixos-cuda.org/"
-          ];
-          extra-trusted-public-keys = [
-            "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
-            "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
-          ];
         };
 
         gc.dates = lib.mkForce "daily";
@@ -187,18 +179,9 @@ in
         sensors.chips = [ "nct6775" ];
         watchdog.driver = "sp5100_tco";
 
-        nixbot = {
-          domain = "ci.callumwong.com";
-          repository = "wongcallum/nixos";
-          admins = [ "wongcallum" ];
-          githubAppId = 4715357;
-          githubOauthId = "Iv23lipPVqv9ZuHat43o";
-        };
-
         cloudflared = {
           tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
           credentialsSecret = "cloudflared/liz-credentials.json";
-          ingress."ci.callumwong.com" = "http://127.0.0.1:8010";
         };
 
         samba.shares = {

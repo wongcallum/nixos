@@ -17,7 +17,7 @@
         postgresDir = "/var/lib/postgresql";
 
         inherit (config.modules.attic) cacheName;
-        cacheUrl = "https://${config.modules.attic.domainName}.${config.modules.gateway.tld}/";
+        cacheUrl = config.modules.attic.endpoint;
 
         # The token is referenced by path, not inlined, so this file is safe in
         # the store. Written into a throwaway XDG_CONFIG_HOME per push because
@@ -68,6 +68,12 @@
             description = "GitHub usernames allowed to log in, trigger builds and change settings";
           };
 
+          listenAddress = lib.mkOption {
+            type = lib.types.str;
+            default = "127.0.0.1";
+            description = "Address the web interface and webhook receiver listen on";
+          };
+
           githubAppId = lib.mkOption {
             type = lib.types.int;
             default = 0;
@@ -113,8 +119,8 @@
             # one build at a time, nixbot defaults to the core count
             buildConcurrency = 1;
             # Unlike buildbot, the eval budget (workers * size) is a hard cap.
-            # deploy-schema evaluates every host at once and peaks around 7 GiB.
-            evalWorkerCount = 2;
+            # A single host's toplevel peaks around 3.5 GiB (liz).
+            evalWorkerCount = 1;
             evalMaxMemorySize = 5120;
 
             github = {
@@ -148,10 +154,10 @@
 
           systemd = {
             # upstream binds the port on every interface when nginx is off
-            sockets.nixbot.socketConfig.ListenStream = lib.mkForce "127.0.0.1:${toString config.services.nixbot.port}";
+            sockets.nixbot.socketConfig.ListenStream = lib.mkForce "${cfg.listenAddress}:${toString config.services.nixbot.port}";
 
             # evaluation workers plus the service itself; builds run in the nix daemon
-            services.nixbot.serviceConfig.MemoryMax = "12G";
+            services.nixbot.serviceConfig.MemoryMax = "7G";
           };
 
           environment.persistence.${config.modules.persistence.persistDir}.directories = [
@@ -169,18 +175,6 @@
               mode = "0750";
             }
           ];
-        };
-      };
-
-    gateway =
-      { config, lib, ... }:
-      {
-        modules.gateway.services.nixbot = lib.mkIf config.services.nixbot.enable {
-          name = "nixbot";
-          domainName = "nixbot";
-          iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/nixos.svg";
-          addr = "127.0.0.1:${toString config.services.nixbot.port}";
-          category = "Development";
         };
       };
   };

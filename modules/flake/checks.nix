@@ -17,6 +17,7 @@ in
       "liz"
       "salt"
       "shama"
+      "vm-ci"
       "vm-coder"
       "vm-gallery"
     ];

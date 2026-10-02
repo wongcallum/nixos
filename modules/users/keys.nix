@@ -10,4 +10,9 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKEkOx5xtPpJhIow56T2UNu+vFJITPCpjmGaaUILfbAQ callum@acid"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIInBiS3lc/8BUJLibu1+6KSu+pEOLXPCRxY/FLF5GMo5 callum@shama"
   ];
+
+  # the always-on agent, allowed to build on vm-ci
+  config.flake.keys.hermes = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKA4ipU4YRHP9lP3BHPuN/2Uc1BgoMUq38/DeC0IrDO callum-hermes-nixos-builder"
+  ];
 }

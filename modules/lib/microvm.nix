@@ -8,7 +8,12 @@
     };
 
     mkGuestModule =
-      { n, hostname }:
+      {
+        n,
+        hostname,
+        # Without the host store, the guest boots from its own store disk.
+        shareHostStore ? true,
+      }:
       let
         addr = addressing n;
       in
@@ -30,20 +35,21 @@
               inherit (addr) mac;
             }
           ];
-          shares = [
-            {
+          shares =
+            lib.optional shareHostStore {
               tag = "store";
               source = "/nix/store";
               mountPoint = "/nix/.ro-store";
               proto = "virtiofs";
             }
-            {
-              tag = "persist";
-              source = "/persist/microvms/${hostname}";
-              mountPoint = "/persist";
-              proto = "virtiofs";
-            }
-          ];
+            ++ [
+              {
+                tag = "persist";
+                source = "/persist/microvms/${hostname}";
+                mountPoint = "/persist";
+                proto = "virtiofs";
+              }
+            ];
         };
 
         systemd.network = {
@@ -68,7 +74,12 @@
       };
 
     mkHostNetworking =
-      { n, hostname }:
+      {
+        n,
+        hostname,
+        # host ports the guest may still open connections to
+        allowedHostTCPPorts ? [ ],
+      }:
       let
         addr = addressing n;
         vmDir = "/persist/microvms/${hostname}";
@@ -91,6 +102,20 @@
         delForwardDrops = lib.concatMapStringsSep "\n" (
           dest: "${forwardDrop "D" dest} 2>/dev/null || true"
         ) blockedDestinations;
+
+        hostAccept =
+          op: port:
+          "iptables -${op} nixos-fw -i ${hostname} -p tcp --dport ${toString port} -j nixos-fw-accept";
+
+        # inserted after the blanket drop so they land above it
+        addHostAccepts = lib.concatMapStringsSep "\n" (port: ''
+          ${hostAccept "D" port} 2>/dev/null || true
+          ${hostAccept "I" port}
+        '') allowedHostTCPPorts;
+
+        delHostAccepts = lib.concatMapStringsSep "\n" (
+          port: "${hostAccept "D" port} 2>/dev/null || true"
+        ) allowedHostTCPPorts;
       in
       {
         systemd.network.networks."10-${hostname}" = {
@@ -111,14 +136,17 @@
             internalInterfaces = [ hostname ];
           };
 
-          # Block guest-initiated connections to the host, and forwarded
-          # guest traffic to anything on the LAN or the tailnet.
+          # Block guest-initiated connections to the host, except on
+          # allowedHostTCPPorts, and forwarded guest traffic to anything on
+          # the LAN or the tailnet.
           firewall.extraCommands = ''
             iptables -I nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP
+            ${addHostAccepts}
             ${addForwardDrops}
           '';
           firewall.extraStopCommands = ''
             iptables -D nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP 2>/dev/null || true
+            ${delHostAccepts}
             ${delForwardDrops}
           '';
         };
