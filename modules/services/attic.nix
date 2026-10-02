@@ -1,7 +1,7 @@
-{ lib, microvmLib, ... }:
+{ lib, ... }:
 let
-  # the address guests dial for the attic guest port; the same for every guest
-  guestHost = port: "${(microvmLib.addressing 0).hostAddr}:${toString port}";
+  # what guests dial for the attic guest port
+  guestHost = cfg: "${cfg.guestAddress}:${toString cfg.guestPort}";
 in
 {
   flake.modules.nixos = {
@@ -31,8 +31,18 @@ in
             type = lib.types.port;
             default = 8081;
             description = ''
-              Plain-HTTP port the attic host serves the cache on for microVM
+              Plain-HTTP port the attic host serves the cache on for VM
               guests, which can reach neither the gateway nor its DNS
+            '';
+          };
+
+          guestAddress = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            example = "10.0.1.1";
+            description = ''
+              The attic host's address on the VM network that guests reach
+              guestPort at; null leaves the guest port off
             '';
           };
 
@@ -133,8 +143,8 @@ in
               listen = "127.0.0.1:${toString listenPort}";
               allowed-hosts = [
                 "${cfg.domainName}.${config.modules.gateway.tld}"
-                (guestHost cfg.guestPort)
-              ];
+              ]
+              ++ lib.optional (cfg.guestAddress != null) (guestHost cfg);
               # Unset so attic derives the endpoint it hands clients from
               # X-Forwarded-Host/-Proto. The client switches to that endpoint
               # for pushes, and guests can't resolve the gateway's hostname.
@@ -174,18 +184,18 @@ in
           category = "Development";
         };
 
-        # Guests are only let through to this port (see allowedHostTCPPorts in
-        # microvmLib.mkHostNetworking), so it serves attic and nothing else.
+        # The host firewall lets guests through to this port only (vm-ci-host),
+        # so it serves attic and nothing else.
         services.caddy.virtualHosts."http://:${toString config.modules.attic.guestPort}" =
-          lib.mkIf config.services.atticd.enable
+          lib.mkIf (config.services.atticd.enable && config.modules.attic.guestAddress != null)
             {
               extraConfig = ''
                 # attic checks X-Forwarded-Host against allowed-hosts and
                 # builds the API endpoint it returns from it, so pin both to
                 # the address guests reach this port at
                 reverse_proxy ${config.services.atticd.settings.listen} {
-                  header_up Host ${guestHost config.modules.attic.guestPort}
-                  header_up X-Forwarded-Host ${guestHost config.modules.attic.guestPort}
+                  header_up Host ${guestHost config.modules.attic}
+                  header_up X-Forwarded-Host ${guestHost config.modules.attic}
                   header_up X-Forwarded-Proto http
                 }
               '';

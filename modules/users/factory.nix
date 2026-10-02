@@ -1,21 +1,32 @@
 { lib, ... }:
 {
   config.flake.factory.user = username: isAdmin: useSopsPassword: {
-    nixos."${username}" = {
-      modules.users.${username}.enable = true;
+    nixos."${username}" =
+      { config, ... }:
+      {
+        modules.users.${username}.enable = true;
 
-      users.users."${username}" = {
-        isNormalUser = true;
-        home = "/home/${username}";
-        extraGroups = lib.optionals isAdmin [ "wheel" ];
+        users.users."${username}" = lib.mkMerge [
+          {
+            isNormalUser = true;
+            home = "/home/${username}";
+            extraGroups = lib.optionals isAdmin [ "wheel" ];
+          }
+          (lib.mkIf config.modules.users.${username}.lockPassword {
+            initialPassword = lib.mkForce null;
+            hashedPassword = "!";
+          })
+        ];
+
+        nix.settings.trusted-users = lib.optionals isAdmin [ username ];
       };
-
-      nix.settings.trusted-users = lib.optionals isAdmin [ username ];
-    };
 
     nixos.sops =
       { config, lib, ... }:
-      lib.mkIf (useSopsPassword && (config.modules.users.${username}.enable or false)) {
+      let
+        user = config.modules.users.${username} or { };
+      in
+      lib.mkIf (useSopsPassword && (user.enable or false) && !(user.lockPassword or false)) {
         sops.secrets."passwords/${username}" = {
           owner = "root";
           group = "root";

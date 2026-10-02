@@ -59,7 +59,13 @@
       users = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule {
-            options.enable = lib.mkEnableOption "user account";
+            options = {
+              enable = lib.mkEnableOption "user account";
+              lockPassword = lib.mkEnableOption ''
+                a locked password instead of the user's usual one (from sops or
+                initialPassword), leaving SSH keys and passwordless sudo
+              '';
+            };
           }
         );
         default = { };

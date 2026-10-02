@@ -1,4 +1,9 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
+let
+  # upstream hardcodes both and offers no option for them
+  stateDir = "/var/lib/nixbot";
+  postgresDir = "/var/lib/postgresql";
+in
 {
   flake.modules.nixos = {
     # requires flake.modules.nixos.sops
@@ -11,10 +16,6 @@
       }:
       let
         cfg = config.modules.nixbot;
-
-        # upstream hardcodes both and offers no option for them
-        stateDir = "/var/lib/nixbot";
-        postgresDir = "/var/lib/postgresql";
 
         inherit (config.modules.attic) cacheName;
         cacheUrl = config.modules.attic.endpoint;
@@ -172,23 +173,29 @@
             # evaluation workers plus the service itself; builds run in the nix daemon
             services.nixbot.serviceConfig.MemoryMax = "7G";
           };
-
-          environment.persistence.${config.modules.persistence.persistDir}.directories = [
-            # repository mirrors, build logs and the workload identity key
-            {
-              directory = stateDir;
-              user = "nixbot";
-              group = "nixbot";
-              mode = "0700";
-            }
-            {
-              directory = postgresDir;
-              user = "postgres";
-              group = "postgres";
-              mode = "0750";
-            }
-          ];
         };
+      };
+
+    persistence =
+      { config, ... }:
+      {
+        environment.persistence.${config.modules.persistence.persistDir}.directories =
+          lib.mkIf (config.services.nixbot.enable or false)
+            [
+              # repository mirrors, build logs and the workload identity key
+              {
+                directory = stateDir;
+                user = "nixbot";
+                group = "nixbot";
+                mode = "0700";
+              }
+              {
+                directory = postgresDir;
+                user = "postgres";
+                group = "postgres";
+                mode = "0750";
+              }
+            ];
       };
   };
 }

@@ -114,7 +114,7 @@ in
       _module.args.sshKeys = keys.callum;
 
       # keep CI off the cores the GPU VM is pinned to (_gpu-vm.nix)
-      systemd.services."microvm@vm-ci".serviceConfig.AllowedCPUs = "0-2 6-8";
+      systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
 
       environment.persistence.${config.modules.persistence.persistDir}.directories = [
         "/var/lib/libvirt"
