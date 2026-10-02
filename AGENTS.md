@@ -14,6 +14,8 @@
 4. Before finishing, run `nix develop --command bash -c 'treefmt; statix check .; deadnix --fail .'`.
 5. Finish with `nix flake check --no-build`. `--no-build` is mandatory: omitting it realises every host's toplevel and may copy multi-gigabyte closures into the local store.
 
+**Low-memory agents:** evaluation peaks around 3.5 GiB per host and 9 GiB for the full flake check. An agent that cannot evaluate locally may skip steps 2, 3 and 5: push a branch to `wongcallum/nixos` (not a fork, whose PRs wait for approval) and open a draft pull request. nixbot evaluates and builds every host, and the lint workflow covers step 4. Mark the pull request ready only once all nixbot and lint checks pass.
+
 ## Architecture
 
 This is a Dendritic flake built with flake-parts and `import-tree`. Feature files under `modules/` and `hosts/` are auto-imported and declare `flake.modules.<class>.<name>`:

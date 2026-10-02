@@ -135,6 +135,19 @@
               topic = null;
             };
 
+            # The repository is public: hold fork PRs until a maintainer
+            # approves them, so strangers can't run builds (or fill attic).
+            # Branches pushed to the repository itself always build.
+            prApproval = {
+              enable = true;
+              # not CONTRIBUTOR: one merged commit shouldn't skip approval
+              trustedAssociations = [
+                "OWNER"
+                "MEMBER"
+                "COLLABORATOR"
+              ];
+            };
+
             uploaders = [
               {
                 name = "attic";

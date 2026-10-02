@@ -79,6 +79,10 @@ in
 
         systemd.tmpfiles.rules = [ "d ${storeOverlay}/build 0755 root root -" ];
 
+        # Builds run in the daemon's cgroup, so a runaway one is killed on
+        # its own instead of the whole VM running out and taking nixbot with it.
+        systemd.services.nix-daemon.serviceConfig.MemoryMax = "6G";
+
         nix.settings = {
           # the default under /nix/var sits on the tmpfs root
           build-dir = "${storeOverlay}/build";
