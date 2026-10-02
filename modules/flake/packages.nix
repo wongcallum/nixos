@@ -19,6 +19,7 @@
         lobehub-desktop = pkgs.callPackage ../../packages/lobehub-desktop { };
         kinochrome = pkgs.callPackage ../../packages/kinochrome { };
         chainner = pkgs.callPackage ../../packages/chainner { };
+        zapfast = pkgs.callPackage ../../packages/zapfast { };
         inherit (openscq30) openscq30-cli openscq30-gui;
       };
 

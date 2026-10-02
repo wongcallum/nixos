@@ -1,6 +1,6 @@
 { inputs, pkgs, ... }:
 let
-  openscq30-cli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.openscq30-cli;
+  inherit (inputs.self.packages.${pkgs.stdenv.hostPlatform.system}) openscq30-cli zapfast;
 in
 {
   imports = with inputs.self.modules.nixos; [
@@ -19,5 +19,6 @@ in
     faugus-launcher
     tigervnc
     openscq30-cli
+    zapfast
   ];
 }
