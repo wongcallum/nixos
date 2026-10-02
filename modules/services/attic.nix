@@ -1,4 +1,8 @@
-{ lib, ... }:
+{ lib, microvmLib, ... }:
+let
+  # the address guests dial for the attic guest port; the same for every guest
+  guestHost = port: "${(microvmLib.addressing 0).hostAddr}:${toString port}";
+in
 {
   flake.modules.nixos = {
     global =
@@ -127,8 +131,13 @@
 
             settings = {
               listen = "127.0.0.1:${toString listenPort}";
-              allowed-hosts = [ "${cfg.domainName}.${config.modules.gateway.tld}" ];
-              api-endpoint = "https://${cfg.domainName}.${config.modules.gateway.tld}/";
+              allowed-hosts = [
+                "${cfg.domainName}.${config.modules.gateway.tld}"
+                (guestHost cfg.guestPort)
+              ];
+              # Unset so attic derives the endpoint it hands clients from
+              # X-Forwarded-Host/-Proto. The client switches to that endpoint
+              # for pushes, and guests can't resolve the gateway's hostname.
 
               database.url = "sqlite://${database}?mode=rwc";
 
@@ -171,11 +180,13 @@
           lib.mkIf config.services.atticd.enable
             {
               extraConfig = ''
-                # attic checks X-Forwarded-Host, which Caddy otherwise fills
-                # with the address the guest dialled
+                # attic checks X-Forwarded-Host against allowed-hosts and
+                # builds the API endpoint it returns from it, so pin both to
+                # the address guests reach this port at
                 reverse_proxy ${config.services.atticd.settings.listen} {
-                  header_up Host ${config.modules.attic.domainName}.${config.modules.gateway.tld}
-                  header_up X-Forwarded-Host ${config.modules.attic.domainName}.${config.modules.gateway.tld}
+                  header_up Host ${guestHost config.modules.attic.guestPort}
+                  header_up X-Forwarded-Host ${guestHost config.modules.attic.guestPort}
+                  header_up X-Forwarded-Proto http
                 }
               '';
             };
