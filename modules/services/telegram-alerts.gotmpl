@@ -1,0 +1,57 @@
+{{/* escape free text for element content / <code> */}}
+{{ define "tg.esc" -}}
+{{ . | reReplaceAll "&" "&amp;" | reReplaceAll "<" "&lt;" | reReplaceAll ">" "&gt;" -}}
+{{ end }}
+
+{{/* escape a URL for use inside href="..." */}}
+{{ define "tg.href" -}}
+{{ . | reReplaceAll "&" "&amp;" | reReplaceAll "<" "&lt;" | reReplaceAll ">" "&gt;" |
+reReplaceAll "\"" "&quot;" -}}
+{{ end }}
+
+{{ define "tg.icon" -}}
+{{ if eq . "critical" }}🔴{{ else if eq . "warning" }}🟠{{ else if eq . "info" }}🔵{{ else
+}}⚪️{{ end -}}
+{{ end }}
+
+{{ define "tg.alert" -}}
+{{ template "tg.icon" .Labels.severity }} <b>{{ template "tg.esc" .Labels.alertname }}</b>
+— <i>{{ template "tg.esc" .Labels.severity }}</i>
+{{ with .Annotations.summary }}{{ template "tg.esc" . }}
+{{ end }}
+{{- with .Annotations.description }}{{ template "tg.esc" . }}
+{{ end }}
+{{- if or .Labels.instance .Labels.service .Labels.environment -}}
+🏷
+{{- $sep := " " -}}
+{{- with .Labels.instance }}{{ $sep }}instance <code>{{ template "tg.esc" . }}</code>{{
+$sep = " · " }}{{ end }}
+{{- with .Labels.service }}{{ $sep }}service <code>{{ template "tg.esc" . }}</code>{{ $sep
+= " · " }}{{ end }}
+{{- with .Labels.environment }}{{ $sep }}env <code>{{ template "tg.esc" . }}</code>{{ end
+}}
+{{ end }}
+{{- if eq .Status "resolved" -}}
+🕐 {{ .StartsAt.Format "Jan 02 15:04 MST" }} → {{ .EndsAt.Format "Jan 02 15:04 MST" }}
+{{ else -}}
+🕐 since {{ .StartsAt.Format "Jan 02 15:04 MST" }}
+{{ end -}}
+{{- with .GeneratorURL }}🔗 <a href="{{ template "tg.href" . }}">View alert</a>{{ end }}
+{{- with .SilenceURL }} · <a href="{{ template "tg.href" . }}">Silence</a>{{ end }}
+{{- with .DashboardURL }} · <a href="{{ template "tg.href" . }}">Dashboard</a>{{ end }}
+{{ end }}
+
+{{ define "tg.message" -}}
+{{ if .Alerts.Firing -}}
+🔥 <b>{{ len .Alerts.Firing }} FIRING</b>
+
+{{ range .Alerts.Firing }}{{ template "tg.alert" . }}
+{{ end -}}
+{{- end -}}
+{{- if .Alerts.Resolved -}}
+✅ <b>{{ len .Alerts.Resolved }} RESOLVED</b>
+
+{{ range .Alerts.Resolved }}{{ template "tg.alert" . }}
+{{ end -}}
+{{- end -}}
+{{ end }}
