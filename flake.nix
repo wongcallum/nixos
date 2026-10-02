@@ -26,16 +26,14 @@
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
     hsctikzbench.url = "github:wongcallum/hsctikzbench";
-    ghostty.url = "github:ghostty-org/ghostty"; # don't follow nixpkgs to use their cachix
     punktfunk.url = "git+https://git.unom.io/unom/punktfunk?ref=nix-stable"; # don't follow nixpkgs to use their cache
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
-    tuigreet.url = "github:tuigreet/tuigreet";
     nix-monitored.url = "github:ners/nix-monitored";
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
     cryptomatord.url = "github:wongcallum/cryptomatord";
     freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
-    crane.url = "github:ipetkov/crane/7930f6c291de6f83c257839d434592aa085f290a";
+    crane.url = "github:ipetkov/crane";
     openscq30 = {
       url = "github:Oppzippy/OpenSCQ30/409460e16c44324b35aeb5c99ea9acb7896726f4";
       flake = false;
@@ -61,7 +59,6 @@
     nixbot.inputs.nixpkgs.follows = "unstable-upstream";
 
     dms.inputs.nixpkgs.follows = "unstable";
-    tuigreet.inputs.nixpkgs.follows = "unstable";
     cryptomatord.inputs.nixpkgs.follows = "unstable";
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
     hsctikzbench.inputs.nixpkgs.follows = "unstable";

@@ -110,7 +110,5 @@ in
   flake.nixosConfigurations = {
     minimal-iso = mkIso inputs.nixpkgs "installation-cd-minimal";
     kde-iso = mkIso inputs.nixpkgs "installation-cd-graphical-calamares-plasma6";
-    # minimal-iso-unstable = mkIso inputs.nixpkgs-unstable "installation-cd-minimal";
-    # kde-iso-unstable = mkIso inputs.nixpkgs-unstable "installation-cd-graphical-calamares-plasma6";
   };
 }

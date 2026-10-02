@@ -3,7 +3,6 @@ _: {
     { lib, pkgs, ... }:
     let
       comic-mono-nf = pkgs.callPackage ../packages/fonts/comic-mono-nf-v1 { };
-      ioskeley-mono = pkgs.callPackage ../packages/fonts/ioskeley-mono { };
       bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
       harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
       chivo-mono = pkgs.callPackage ../packages/fonts/chivo-mono { };
@@ -35,7 +34,7 @@ _: {
           chivo-mono
           xanh-mono
           comic-mono-nf
-          ioskeley-mono
+          ioskeley-mono.standard
           libertinus
 
           # bitmap fonts

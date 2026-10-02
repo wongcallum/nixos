@@ -8,7 +8,6 @@
       ...
     }:
     let
-      tuigreet = inputs.tuigreet.packages.${pkgs.stdenv.hostPlatform.system}.tuigreet;
       sessions = config.services.displayManager.sessionData.desktops;
     in
     {
@@ -59,7 +58,7 @@
         greetd = {
           enable = true;
           useTextGreeter = true;
-          settings.default_session.command = "${lib.getExe tuigreet} --asterisks --time --remember --remember-session --sessions ${sessions}/share/wayland-sessions --xsessions ${sessions}/share/xsessions --cmd niri-session";
+          settings.default_session.command = "${lib.getExe pkgs.tuigreet} --asterisks --time --remember --remember-session --sessions ${sessions}/share/wayland-sessions --xsessions ${sessions}/share/xsessions --cmd niri-session";
         };
 
         gnome.gnome-keyring.enable = true;

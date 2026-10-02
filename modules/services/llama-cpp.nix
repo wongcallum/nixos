@@ -44,21 +44,7 @@
         {
           services.llama-cpp = {
             enable = true;
-            package = (pkgs.llama-cpp.override { cudaSupport = true; }).overrideAttrs {
-              # drop once nixpkgs bumps past b10541
-              version = "10541";
-              src = pkgs.fetchFromGitHub {
-                owner = "ggml-org";
-                repo = "llama.cpp";
-                tag = "b10541";
-                hash = "sha256-ifabfdofOZLIcD8snrnnvA1X894+Cv9i+DfYXaCV4Tw=";
-                leaveDotGit = true;
-                postFetch = ''
-                  git -C "$out" rev-parse --short HEAD > $out/COMMIT
-                  find "$out" -name .git -print0 | xargs -0 rm -rf
-                '';
-              };
-            };
+            package = pkgs.llama-cpp.override { cudaSupport = true; };
             settings = {
               inherit port;
               host = "0.0.0.0";
