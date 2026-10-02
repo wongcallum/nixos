@@ -2,9 +2,13 @@
   flake.modules.nixos.monitoring =
     { config, lib, ... }:
     let
-      # created through the UI, so their UIDs are not declared anywhere
-      promUid = "aff001un1301sb";
-      lokiUid = "afolga78njz7kd";
+      datasourceUid =
+        name:
+        (lib.findFirst (d: d.name == name) (throw "no Grafana datasource named ${name}")
+          config.services.grafana.provision.datasources.settings.datasources
+        ).uid;
+      promUid = datasourceUid "prometheus";
+      lokiUid = datasourceUid "loki";
 
       # Rules that first lived in the UI keep their UIDs, so provisioning took
       # them over in place rather than duplicating them.

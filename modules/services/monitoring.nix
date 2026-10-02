@@ -48,6 +48,30 @@
               org_role = "Viewer";
             };
           };
+
+          # UIDs are the ones these got when created in the UI, so provisioning
+          # took them over in place
+          provision.datasources.settings = {
+            apiVersion = 1;
+            datasources = [
+              {
+                name = "prometheus";
+                type = "prometheus";
+                uid = "aff001un1301sb";
+                access = "proxy";
+                url = "http://${config.services.prometheus.listenAddress}:${toString config.services.prometheus.port}";
+                isDefault = true;
+              }
+              {
+                name = "loki";
+                type = "loki";
+                uid = "afolga78njz7kd";
+                access = "proxy";
+                url = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}";
+                jsonData.manageAlerts = false;
+              }
+            ];
+          };
         };
 
         prometheus = {
