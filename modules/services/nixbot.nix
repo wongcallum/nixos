@@ -3,6 +3,15 @@ let
   # upstream hardcodes both and offers no option for them
   stateDir = "/var/lib/nixbot";
   postgresDir = "/var/lib/postgresql";
+
+  # Adds services.nixbot.evalNixOptions, which changes both the module and
+  # the package, so the module is imported from the patched source too.
+  # workaround: https://github.com/wongcallum/nixos/issues/86
+  nixbotSrc = inputs.nixpkgs.legacyPackages.x86_64-linux.applyPatches {
+    name = "nixbot-source";
+    src = inputs.nixbot;
+    patches = [ ../../patches/nixbot-eval-nix-options.patch ];
+  };
 in
 {
   flake.modules.nixos = {
@@ -48,7 +57,7 @@ in
         };
       in
       {
-        imports = [ inputs.nixbot.nixosModules.nixbot ];
+        imports = [ "${nixbotSrc}/nixosModules/nixbot.nix" ];
 
         options.modules.nixbot = {
           domain = lib.mkOption {
@@ -123,6 +132,15 @@ in
             # A single host's toplevel peaks around 3.5 GiB (liz).
             evalWorkerCount = 1;
             evalMaxMemorySize = 5120;
+
+            # --check-cache-status asks every substituter about every path
+            # until one has it, and a path no cache has costs a TLS handshake
+            # with each. Eval only asks attic and cache.nixos.org; builds
+            # still substitute from every cache. The daemon accepts only
+            # substituters it has configured, so these must match nix.conf.
+            evalNixOptions.substituters = lib.concatStringsSep " " (
+              [ config.modules.attic.substituter ] ++ config.nix.settings.substituters
+            );
 
             github = {
               enable = true;

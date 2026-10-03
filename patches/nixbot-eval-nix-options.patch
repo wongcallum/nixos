@@ -1,0 +1,63 @@
+diff --git a/nixbot/nixbot/build_run.py b/nixbot/nixbot/build_run.py
+index b563d73..2e01fb4 100644
+--- a/nixbot/nixbot/build_run.py
++++ b/nixbot/nixbot/build_run.py
+@@ -215,6 +215,11 @@ def _eval_settings(
+         # The worktree's .git points into the central clone. The
+         # sandboxed evaluator needs to read it.
+         extra_ro_paths=[o.repos.clone_path(event.repo.key)],
++        extra_args=[
++            arg
++            for name, value in sorted(o.config.eval_extra_nix_options.items())
++            for arg in ("--option", name, value)
++        ],
+         eval_systems=o.config.eval_systems,
+         legacy_attr_prefix=o.config.legacy_attr_prefix,
+     )
+diff --git a/nixbot/nixbot/config.py b/nixbot/nixbot/config.py
+index d40d13d..737bb3c 100644
+--- a/nixbot/nixbot/config.py
++++ b/nixbot/nixbot/config.py
+@@ -375,6 +375,9 @@ class Config(BaseModel):
+     # docs/OIDC.md, semantics in auth.can_view_private.
+     private_repo_viewers: dict[str, list[str]] = {}
+     eval_worker_count: int | None = None
++    # nix options for nix-eval-jobs, e.g. a narrower substituters list
++    # for --check-cache-status than the builds use.
++    eval_extra_nix_options: dict[str, str] = {}
+     # Concurrent evaluations (global). Default matches today's global eval lock.
+     eval_concurrency: int = 1
+     # Global cap on concurrent attribute builds; None = derive from CPU count.
+diff --git a/nixosModules/nixbot.nix b/nixosModules/nixbot.nix
+index c268c9c..0555068 100644
+--- a/nixosModules/nixbot.nix
++++ b/nixosModules/nixbot.nix
+@@ -43,6 +43,7 @@ let
+       private_repo_viewers = cfg.privateRepoViewers;
+       eval_max_memory_size = cfg.evalMaxMemorySize;
+       eval_worker_count = cfg.evalWorkerCount;
++      eval_extra_nix_options = cfg.evalNixOptions;
+       build_concurrency = cfg.buildConcurrency;
+       build_store =
+         if cfg.buildStore.url == null then
+@@ -336,6 +337,20 @@ in
+       description = "Number of nix-eval-jobs worker processes; null uses the core count.";
+     };
+ 
++    evalNixOptions = lib.mkOption {
++      type = lib.types.attrsOf lib.types.str;
++      default = { };
++      example = {
++        substituters = "https://cache.nixos.org/";
++      };
++      description = ''
++        nix options passed to nix-eval-jobs as `--option`. Builds are
++        unaffected. Restricting `substituters` here makes
++        `--check-cache-status` skip slow caches; the daemon only accepts
++        substituters it already has configured.
++      '';
++    };
++
+     showTrace = lib.mkOption {
+       type = lib.types.bool;
+       default = false;

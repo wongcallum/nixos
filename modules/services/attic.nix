@@ -56,6 +56,19 @@ in
             '';
           };
 
+          substituter = lib.mkOption {
+            type = lib.types.str;
+            default =
+              let
+                cfg = config.modules.attic;
+              in
+              "${cfg.endpoint}${cfg.cacheName}${
+                lib.optionalString (cfg.priority != null) "?priority=${toString cfg.priority}"
+              }";
+            readOnly = true;
+            description = "The cache's substituter URL exactly as it appears in nix.conf";
+          };
+
           publicKey = lib.mkOption {
             type = lib.types.str;
             default = "homelab:GtiQKpn+dfjJjjpPZQtQf2MZMzhFn2DQG9lkxxfarLc=";
@@ -73,11 +86,7 @@ in
       in
       {
         nix.settings = {
-          extra-substituters = [
-            "${cfg.endpoint}${cfg.cacheName}${
-              lib.optionalString (cfg.priority != null) "?priority=${toString cfg.priority}"
-            }"
-          ];
+          extra-substituters = [ cfg.substituter ];
           extra-trusted-public-keys = lib.optional (
             config.modules.attic.publicKey != ""
           ) config.modules.attic.publicKey;
