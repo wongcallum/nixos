@@ -98,6 +98,11 @@ in
           max-jobs = 2;
           cores = 3;
 
+          # base's 500 MB buffers each download in the daemon, and a build
+          # pulling many paths at once got the daemon OOM-killed under the
+          # 6G cap above. Nix's default makes downloads wait for the disk.
+          download-buffer-size = lib.mkForce 67108864; # 64 MiB
+
           min-free = 21474836480; # 20 GiB
           max-free = 64424509440; # 60 GiB
 
