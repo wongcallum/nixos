@@ -28,7 +28,12 @@ in
     # A regular host with its own disk, bootloader and store, deployed on its
     # own with deploy-rs. liz only runs QEMU for it; see vm-ci-host.
     "hosts/nixos/${hostname}" =
-      { config, modulesPath, ... }:
+      {
+        config,
+        modulesPath,
+        pkgs,
+        ...
+      }:
       {
         imports = [
           ./_disko.nix
@@ -93,6 +98,13 @@ in
         # Builds run in the daemon's cgroup, so a runaway one is killed on
         # its own instead of the whole VM running out and taking nixbot with it.
         systemd.services.nix-daemon.serviceConfig.MemoryMax = "6G";
+
+        # 2.34 wakes every goal waiting for a build slot whenever a build
+        # finishes, and each wakeup keeps more coroutine frames alive. With
+        # crane's hundreds of per-crate derivations, the worker grew past the
+        # 6G cap above. 2.35.2 wakes one waiter per finished build.
+        # workaround: https://github.com/wongcallum/nixos/issues/88
+        nix.package = pkgs.nixVersions.nix_2_35;
 
         nix.settings = {
           max-jobs = 2;
