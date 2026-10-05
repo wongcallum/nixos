@@ -119,7 +119,9 @@ in
 
         nix.settings = {
           max-jobs = 2;
-          cores = 3;
+          # every vCPU per build: the kernel, CI's longest build, mostly
+          # compiles alone. Two overlapping builds share the CPU instead.
+          cores = vcpu;
 
           # base's 500 MB buffers each download in the daemon, and a build
           # pulling many paths at once got the daemon OOM-killed under its
