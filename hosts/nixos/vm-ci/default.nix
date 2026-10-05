@@ -18,7 +18,8 @@ let
   guestMac = "02:00:00:00:01:04";
 
   vcpu = 6;
-  mem = 12288; # MiB
+  # a ceiling: free page reporting hands unused memory back to liz
+  mem = 16384; # MiB
 
   domain = "ci.callumwong.com";
   nixbotPort = 8010;
@@ -48,6 +49,8 @@ in
 
           ssh
           tailscale
+          # anon overflow past the daemon's cap compresses instead of thrashing
+          zram
 
           nixbot
         ]);
@@ -97,12 +100,20 @@ in
 
         # Builds run in the daemon's cgroup, so a runaway one is killed on
         # its own instead of the whole VM running out and taking nixbot with it.
-        systemd.services.nix-daemon.serviceConfig.MemoryMax = "6G";
+        # pahole needs ~7 GiB to encode shama's kernel BTF. Under 6G it wasn't
+        # killed but thrashed on its input's page cache until max-silent-time.
+        # Room for this plus nixbot's 5 GiB eval budget. zram's compressed
+        # pages aren't charged to the cgroup, so swap gets its own cap; 2G
+        # covers pahole's overflow without letting a build fill the VM.
+        systemd.services.nix-daemon.serviceConfig = {
+          MemoryMax = "10G";
+          MemorySwapMax = "2G";
+        };
 
         # 2.34 wakes every goal waiting for a build slot whenever a build
         # finishes, and each wakeup keeps more coroutine frames alive. With
         # crane's hundreds of per-crate derivations, the worker grew past the
-        # 6G cap above. 2.35.2 wakes one waiter per finished build.
+        # daemon's then 6G cap. 2.35.2 wakes one waiter per finished build.
         # workaround: https://github.com/wongcallum/nixos/issues/88
         nix.package = pkgs.nixVersions.nix_2_35;
 
@@ -111,8 +122,8 @@ in
           cores = 3;
 
           # base's 500 MB buffers each download in the daemon, and a build
-          # pulling many paths at once got the daemon OOM-killed under the
-          # 6G cap above. Nix's default makes downloads wait for the disk.
+          # pulling many paths at once got the daemon OOM-killed under its
+          # then 6G cap. Nix's default makes downloads wait for the disk.
           download-buffer-size = lib.mkForce 67108864; # 64 MiB
 
           min-free = 21474836480; # 20 GiB
