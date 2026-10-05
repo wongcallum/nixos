@@ -3,7 +3,7 @@ let
   inherit (config.flake.modules) nixos;
 in
 {
-  # Plasma for the headless KWin session, matching liz's gpu-vm guest.
+  # Matches liz's gpu-vm guest, which runs the same headless sway session.
   flake.nixpkgs.salt = "unstable";
 
   flake.modules.nixos."hosts/nixos/salt" =
@@ -90,7 +90,7 @@ in
           linkConfig.RequiredForOnline = "routable";
         };
 
-        # An idle Plasma session must not suspend the box out from under clients.
+        # An idle sway session must not suspend the box out from under clients.
         targets = lib.genAttrs [ "sleep" "suspend" "hibernate" "hybrid-sleep" ] (_: {
           enable = false;
         });

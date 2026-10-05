@@ -119,7 +119,7 @@ let
       hardware = {
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.latest;
-          # KWin renders through nvidia-drm.
+          # sway renders through nvidia-drm.
           modesetting.enable = true;
           open = true;
           nvidiaSettings = false;

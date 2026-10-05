@@ -1,17 +1,16 @@
 { inputs, ... }:
 {
-  # A login-less streaming appliance: a headless Plasma session that punktfunk
+  # A login-less streaming appliance: a headless sway session that punktfunk
   # serves to clients. Hosts supply the GPU driver.
   flake.modules.nixos.remote-desktop =
     {
       config,
       lib,
-      pkgs,
       ...
     }:
     let
       user = "callum";
-      punktfunk = config.services.punktfunk.host.package;
+      nvidia = lib.elem "nvidia" config.services.xserver.videoDrivers;
     in
     {
       imports = [ inputs.punktfunk.nixosModules.default ];
@@ -27,38 +26,48 @@
         ];
       };
 
-      services = {
-        # With no display manager, punktfunk-kde-session below runs Plasma.
-        desktopManager.plasma6.enable = true;
+      # Also routes ScreenCast to xdg-desktop-portal-wlr and exports SWAYSOCK and
+      # WAYLAND_DISPLAY to the user manager, where punktfunk finds them.
+      programs.sway.enable = true;
 
+      # NixOS starts xdg-desktop-portal-wlr with --config, so it ignores the
+      # chooser punktfunk writes to ~/.config and waits on an interactive slurp.
+      # This is that chooser: punktfunk names each session's output in the file.
+      xdg.portal.wlr.settings.screencast = {
+        chooser_type = "simple";
+        chooser_cmd = "cat $XDG_RUNTIME_DIR/punktfunk-xdpw-output";
+      };
+
+      services = {
         pipewire = {
           enable = true;
           pulse.enable = true;
         };
 
-        # Each client gets a KWin virtual output at its own mode.
+        # Each client gets a `swaymsg create_output` headless output at its own mode.
         punktfunk.host = {
           enable = true;
           users = [ user ];
           autoStart = true;
           openFirewall = true;
-          # Pinned to the headless session, as in upstream's packaging/kde/host.env.
+          # The host starts before sway exports its environment, and input
+          # injection reads only WAYLAND_DISPLAY. sway is the user's only
+          # compositor, so it always takes the first socket, wayland-1.
           settings = {
-            WAYLAND_DISPLAY = "wayland-kde";
-            XDG_CURRENT_DESKTOP = "KDE";
-            PUNKTFUNK_COMPOSITOR = "kwin";
+            WAYLAND_DISPLAY = "wayland-1";
+            XDG_CURRENT_DESKTOP = "sway";
+            PUNKTFUNK_COMPOSITOR = "wlroots";
             PUNKTFUNK_VIDEO_SOURCE = "virtual";
-            PUNKTFUNK_INPUT_BACKEND = "libei";
+            PUNKTFUNK_INPUT_BACKEND = "wlr";
             PUNKTFUNK_GSO = true;
-            PUNKTFUNK_KWIN_VIRTUAL_PRIMARY = true;
           };
         };
       };
 
-      # Upstream's headless Plasma session: `kwin --virtual` plus plasmashell,
-      # started at boot through lingering.
-      systemd.user.services.punktfunk-kde-session = {
-        description = "punktfunk headless KDE Plasma session";
+      # Upstream's scripts/headless/run-headless-sway.sh as a unit, started at
+      # boot through lingering.
+      systemd.user.services.punktfunk-sway-session = {
+        description = "punktfunk headless sway session";
         unitConfig.ConditionUser = user;
         wantedBy = [ "default.target" ];
         after = [
@@ -69,8 +78,26 @@
         wants = [ "pipewire.service" ];
         # inherit the user manager's login PATH, not NixOS's minimal unit default.
         enableDefaultPath = false;
+        environment = lib.mkMerge [
+          {
+            XDG_CURRENT_DESKTOP = "sway";
+            XDG_SESSION_TYPE = "wayland";
+            WLR_BACKENDS = "headless";
+            # No bootstrap HEADLESS-1: it would hold workspace 1 off-stream.
+            # With no outputs, sway parks workspaces until a client's output appears.
+            WLR_HEADLESS_OUTPUTS = "0";
+            WLR_LIBINPUT_NO_DEVICES = "1";
+          }
+          # Upstream's wlroots-on-NVIDIA settings from scripts/headless/env.sh.
+          (lib.mkIf nvidia {
+            WLR_RENDERER = "gles2";
+            WLR_NO_HARDWARE_CURSORS = "1";
+            GBM_BACKEND = "nvidia-drm";
+            __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+          })
+        ];
         serviceConfig = {
-          ExecStart = "${lib.getExe pkgs.bash} ${punktfunk}/share/punktfunk-host/headless/run-headless-kde.sh 1920x1080";
+          ExecStart = "${lib.getExe config.programs.sway.package}${lib.optionalString nvidia " --unsupported-gpu"}";
           Restart = "always";
           RestartSec = 3;
         };
