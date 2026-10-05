@@ -116,6 +116,11 @@ in
       # keep CI off the cores the GPU VM is pinned to (_gpu-vm.nix)
       systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
 
+      # LAN clients reach Jellyfin directly, bypassing Caddy.
+      virtualisation.quadlet.containers.media-jellyfin.containerConfig.publishPorts = [
+        "192.168.0.2:8096:8096"
+      ];
+
       environment.persistence.${config.modules.persistence.persistDir}.directories = [
         "/var/lib/libvirt"
       ];
