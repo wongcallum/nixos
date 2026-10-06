@@ -99,11 +99,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784094932,
-        "narHash": "sha256-EibVIK5cphqejOebViJWf/mNOz97YvntdYydoFGlf9s=",
+        "lastModified": 1791319996,
+        "narHash": "sha256-q5PNZpfQJZFkMEo63HYgqLJMWHaWlU7WPEDPdUyhguY=",
         "owner": "wongcallum",
         "repo": "cryptomatord",
-        "rev": "63493d7322819015156183552a2669ed2a633f3f",
+        "rev": "a451df5a0aadc3ebd9fc603dda0c74c208d77c82",
         "type": "github"
       },
       "original": {
