@@ -23,7 +23,10 @@
           upower.enable = true;
         };
 
-        powerManagement.enable = true;
+        powerManagement = {
+          enable = true;
+          powertop.enable = true;
+        };
 
         # tuned-ppd thinks that no_turbo=1 means that the cpu is thermal throttling
         # we automatically disable turbo in the power saving profile, so the report is misleading
