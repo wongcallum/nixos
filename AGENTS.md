@@ -45,10 +45,11 @@ A host's `default.nix` imports reusable features from `config.flake.modules.nixo
 
 ### Workarounds
 
-Every local workaround for an upstream problem has an open GitHub issue labelled `workaround`. Workarounds include patches, `overrideAttrs`/overlays, version or source pins, input overrides, forks, and config that disables a broken feature.
+Every local workaround for an upstream problem has an entry in `modules/workarounds.nix`. Workarounds include patches, `overrideAttrs`/overlays, version or source pins, input overrides, forks, and config that disables a broken feature.
 
-- **Adding one:** open an issue (`gh issue create --label workaround`) with **Workaround** (file and what it does), **Upstream** (link and current status, or "not filed"), **Done when**, and **Cleanup**. Put the issue URL in a `# workaround: <url>` comment beside the workaround.
-- **Removing one:** close its issue, referencing it from the commit (`closes #N`).
+- **Adding one:** add an entry with `upstream` (link, or "not filed"), `done` (when it can be removed) and, only if deleting the marked code isn't enough, `cleanup`. Mark the code with a `# workaround: <id>` comment. When `done` can be evaluated from the locked inputs, add a `fixed` check against `pkgsFor <host>` or the raw input, never a host's `pkgs`, which includes the workaround itself.
+- **Checking:** `scripts/workarounds.sh` lists workarounds, most urgent first. To check `manual` ones, follow `.agents/skills/check-workarounds/SKILL.md`.
+- **Removing one:** delete the marked code and its entry. The `workarounds` flake check fails once a `fixed` check holds, or when an entry marks no code.
 
 ### nixpkgs patches
 

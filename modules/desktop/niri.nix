@@ -15,15 +15,13 @@
         };
       };
 
-      # workaround: https://github.com/wongcallum/nixos/issues/82
-      # https://github.com/niri-wm/niri/discussions/2786
+      # workaround: niri-3fg-drag
       systemd.user.services.niri.environment.LD_PRELOAD = "${
         pkgs.callPackage ../../packages/enable-3fg-drag { }
       }/lib/libenable-3fg-drag.so";
 
       # fix dolphin file associations
-      # workaround: https://github.com/wongcallum/nixos/issues/78
-      # https://github.com/NixOS/nixpkgs/issues/409986
+      # workaround: dolphin-applications-menu
       environment.etc."xdg/menus/applications.menu".source =
         "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
 

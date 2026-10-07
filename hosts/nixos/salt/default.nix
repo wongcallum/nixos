@@ -66,7 +66,7 @@ in
       };
 
       services.punktfunk.host = {
-        # workaround: https://github.com/wongcallum/nixos/issues/83
+        # workaround: punktfunk-hevc
         # Gen9's HEVC encoder advertises no block sizes, and punktfunk's fallback
         # headers disagree with what it codes, so the stream is undecodable.
         package =

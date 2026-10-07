@@ -6,8 +6,7 @@
       nixpkgs.overlays = [ inputs.freesmlauncher.overlays.default ];
 
       environment.systemPackages = [
-        # workaround: https://github.com/wongcallum/nixos/issues/77
-        # https://github.com/FreesmTeam/FreesmLauncher/pull/233
+        # workaround: freesmlauncher-java-paths
         ((pkgs.freesmlauncher.override { jdks = [ ]; }).overrideAttrs (old: {
           qtWrapperArgs = builtins.filter (
             a: !lib.hasPrefix "--prefix FREESMLAUNCHER_JAVA_PATHS" a

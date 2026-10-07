@@ -6,7 +6,7 @@ let
 
   # Adds services.nixbot.evalNixOptions, which changes both the module and
   # the package, so the module is imported from the patched source too.
-  # workaround: https://github.com/wongcallum/nixos/issues/86
+  # workaround: nixbot-eval-options
   nixbotSrc = inputs.nixpkgs.legacyPackages.x86_64-linux.applyPatches {
     name = "nixbot-source";
     src = inputs.nixbot;

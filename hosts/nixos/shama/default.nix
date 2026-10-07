@@ -78,7 +78,7 @@ in
           "ntsync"
         ];
 
-        # workaround: https://github.com/wongcallum/nixos/issues/80
+        # workaround: shama-audio-patches
         kernelPatches = [
           {
             name = "cs35l41-omnibook7-8e3b";

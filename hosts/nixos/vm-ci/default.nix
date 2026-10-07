@@ -114,7 +114,7 @@ in
         # finishes, and each wakeup keeps more coroutine frames alive. With
         # crane's hundreds of per-crate derivations, the worker grew past the
         # daemon's then 6G cap. 2.35.2 wakes one waiter per finished build.
-        # workaround: https://github.com/wongcallum/nixos/issues/88
+        # workaround: vm-ci-nix-2-35
         nix.package = pkgs.nixVersions.nix_2_35;
 
         nix.settings = {
