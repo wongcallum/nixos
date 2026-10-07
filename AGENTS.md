@@ -4,6 +4,8 @@
 
 - Deploy or commit only when explicitly requested.
 - Secrets: leave `inputs.secrets` and its repository untouched. Ask the user to make any required secret changes.
+- GitHub issues and PRs: never link to issues or PRs in other repos. This means no `owner/repo#123`, no URLs to another repo's issue/PR, in issue bodies, comments, PR descriptions, or commit messages.
+  When an outside reference is needed, write it as plain prose.
 - Store inspection: follow known `/nix/store/...` paths; never scan the whole store.
 
 ## Workflow
