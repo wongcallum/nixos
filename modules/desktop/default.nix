@@ -32,10 +32,8 @@
         );
       };
 
-      security.pam.services.greetd.kwallet = {
-        enable = true;
-        package = pkgs.kdePackages.kwallet-pam;
-      };
+      # the greetd service's own `kwallet` option is ignored
+      security.pam.services.login.kwallet.enable = true;
 
       environment.systemPackages = [
         pkgs.adw-gtk3
