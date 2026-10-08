@@ -73,6 +73,14 @@ in
       cleanup = "delete patches/nixbot-eval-nix-options.patch, import inputs.nixbot.nixosModules.nixbot directly, and move evalNixOptions to the upstream option";
     };
 
+    paper-mono-1-000 = {
+      upstream = "not filed; open a PR at https://github.com/NixOS/nixpkgs (it ships 0.320)";
+      done = "nixpkgs ships paper-mono >= 1.000";
+      # Only the nixpkgs inputs that provide paper-mono matter: the stable input
+      # does not have the package at all, and only unstable hosts import fonts.
+      fixed = lib.versionAtLeast (pkgsFor "salt").paper-mono.version "1.000";
+    };
+
     punktfunk-hevc = {
       upstream = "not filed; git.unom.io/unom/punktfunk, crates/pf-vaapi/src/enc_h265.rs";
       done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";

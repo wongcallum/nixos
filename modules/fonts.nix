@@ -7,6 +7,15 @@ _: {
       harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
       chivo-mono = pkgs.callPackage ../packages/fonts/chivo-mono { };
       xanh-mono = pkgs.callPackage ../packages/fonts/xanh-mono { };
+
+      # workaround: paper-mono-1-000
+      paper-mono = pkgs.paper-mono.overrideAttrs (_: {
+        version = "1.000";
+        src = pkgs.fetchzip {
+          url = "https://github.com/paper-design/paper-mono/releases/download/v1.000/paper-mono-v1.000.zip";
+          hash = "sha256-h5yTJS+Oln2r4HcuHu3gjrw41udw/Uj/rmV/niPfaEg=";
+        };
+      });
     in
     {
       modules.fonts.enable = lib.mkDefault true;
@@ -33,6 +42,7 @@ _: {
           nerd-fonts."m+"
           chivo-mono
           xanh-mono
+          paper-mono
           comic-mono-nf
           ioskeley-mono.standard
           libertinus
