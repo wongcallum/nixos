@@ -2,14 +2,11 @@
 {
   flake.modules.nixos.desktop =
     {
+      config,
       pkgs,
       lib,
-      config,
       ...
     }:
-    let
-      sessions = config.services.displayManager.sessionData.desktops;
-    in
     {
       imports = with inputs.self.modules.nixos; [
         audio
@@ -55,10 +52,13 @@
       xdg.portal.enable = true;
 
       services = {
-        greetd = {
+        displayManager.defaultSession = "niri";
+
+        displayManager.dms-greeter = {
           enable = true;
-          useTextGreeter = true;
-          settings.default_session.command = "${lib.getExe pkgs.tuigreet} --asterisks --time --remember --remember-session --sessions ${sessions}/share/wayland-sessions --xsessions ${sessions}/share/xsessions --cmd niri-session";
+          compositor.name = "niri";
+          # keep the greeter's theme/wallpaper in sync with my DMS config
+          configHome = config.users.users.callum.home;
         };
 
         gnome.gnome-keyring.enable = true;
