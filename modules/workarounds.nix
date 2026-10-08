@@ -27,11 +27,6 @@ in
       ];
     };
 
-    dolphin-applications-menu = {
-      upstream = "https://github.com/NixOS/nixpkgs/issues/409986";
-      done = "the issue is fixed and the fix is in nixpkgs-unstable";
-    };
-
     flux-mcman = {
       upstream = "https://github.com/IogaMaster/flux";
       done = "flux's flake.lock pins deniz-blue/mcman at 2665efb or a later main commit";
@@ -80,8 +75,23 @@ in
 
     punktfunk-hevc = {
       upstream = "not filed; git.unom.io/unom/punktfunk, crates/pf-vaapi/src/enc_h265.rs";
-      done = "the nix-stable branch's guessed HEVC fallback matches ffmpeg's (CTB and minimum CB sizes, diff_cu_qp_delta_depth)";
+      done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";
       cleanup = "delete patches/punktfunk-hevc-guessed-features.patch";
+      fixed =
+        let
+          src = builtins.readFile "${inputs.punktfunk}/crates/pf-vaapi/src/enc_h265.rs";
+          guessed = lib.head (
+            lib.splitString "\n    }\n" (lib.last (lib.splitString "pub fn guessed()" src))
+          );
+        in
+        lib.all (lib.flip lib.hasInfix guessed) [
+          "amp: true,"
+          "log2_ctb_minus3: 2,"
+          "log2_min_cb_minus3: 0,"
+          "max_transform_hierarchy_depth_inter: 3,"
+          "max_transform_hierarchy_depth_intra: 3,"
+          "diff_cu_qp_delta_depth: 0,"
+        ];
     };
 
     shama-audio-patches = {

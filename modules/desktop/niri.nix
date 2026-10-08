@@ -20,11 +20,6 @@
         pkgs.callPackage ../../packages/enable-3fg-drag { }
       }/lib/libenable-3fg-drag.so";
 
-      # fix dolphin file associations
-      # workaround: dolphin-applications-menu
-      environment.etc."xdg/menus/applications.menu".source =
-        "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
-
       # not sure if these are used
       fonts.packages = with pkgs; [
         material-symbols
