@@ -8,62 +8,74 @@
       has = e: builtins.elem e exporters;
     in
     {
-      services.prometheus.exporters = {
-        node = lib.mkIf (has "node") {
-          enable = true;
-          enabledCollectors = [
-            "logind"
-            "processes"
-            "systemd"
-            "tcpstat"
-          ];
-          port = 9002;
-        };
-
-        smartctl = lib.mkIf (has "smartctl") {
-          enable = true;
-          port = 9003;
-          devices = map (d: "/dev/disk/by-id/${d}") (hostCfg.smartctlDevices or [ ]);
-        };
-
-        zfs = lib.mkIf (has "zfs") {
-          enable = true;
-          port = 9004;
-        };
+      options.modules.metrics.textfileDirs = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          Directories whose `*.prom` files the node exporter publishes. Each
+          writer owns its own directory, so it can replace its file atomically.
+        '';
       };
 
-      services.cadvisor = lib.mkIf (has "cadvisor") {
-        enable = true;
-        listenAddress = "0.0.0.0";
-        port = 9005;
-        extraOptions = [
-          "--docker_only=false" # also report podman/systemd cgroups
+      config = {
+        services.prometheus.exporters = {
+          node = lib.mkIf (has "node") {
+            enable = true;
+            extraFlags = map (d: "--collector.textfile.directory=${d}") config.modules.metrics.textfileDirs;
+            enabledCollectors = [
+              "logind"
+              "processes"
+              "systemd"
+              "tcpstat"
+            ];
+            port = 9002;
+          };
 
-          # podman's graphRoot sits on ZFS, so cadvisor's filesystem collector
-          # shells out to the `zfs` binary rather than using a syscall. At the
-          # default 1s housekeeping that is ~3.3 execs/sec, each opening ~180
-          # files under /nix/store, and it burned ~11% of a core on liz.
-          "--housekeeping_interval=30s"
+          smartctl = lib.mkIf (has "smartctl") {
+            enable = true;
+            port = 9003;
+            devices = map (d: "/dev/disk/by-id/${d}") (hostCfg.smartctlDevices or [ ]);
+          };
 
-          # this option replaces the default set instead of appending
-          "--disable_metrics=disk,advtcp,cpu_topology,cpuset,hugetlb,memory_numa,process,referenced_memory,resctrl,sched,tcp,udp"
+          zfs = lib.mkIf (has "zfs") {
+            enable = true;
+            port = 9004;
+          };
+        };
+
+        services.cadvisor = lib.mkIf (has "cadvisor") {
+          enable = true;
+          listenAddress = "0.0.0.0";
+          port = 9005;
+          extraOptions = [
+            "--docker_only=false" # also report podman/systemd cgroups
+
+            # podman's graphRoot sits on ZFS, so cadvisor's filesystem collector
+            # shells out to the `zfs` binary rather than using a syscall. At the
+            # default 1s housekeeping that is ~3.3 execs/sec, each opening ~180
+            # files under /nix/store, and it burned ~11% of a core on liz.
+            "--housekeeping_interval=30s"
+
+            # this option replaces the default set instead of appending
+            "--disable_metrics=disk,advtcp,cpu_topology,cpuset,hugetlb,memory_numa,process,referenced_memory,resctrl,sched,tcp,udp"
+          ];
+        };
+
+        # workaround: cadvisor-overlay
+        nixpkgs.overlays = lib.mkIf (has "cadvisor") [
+          (_: prev: {
+            cadvisor = prev.cadvisor.overrideAttrs (_: {
+              version = "0.57.0";
+              src = prev.fetchFromGitHub {
+                owner = "google";
+                repo = "cadvisor";
+                rev = "v0.57.0";
+                hash = "sha256-9HeiSO6yedDpv6YUAdZU7CqfGkun4ugZs4RbSZ51MPU=";
+              };
+              vendorHash = "sha256-zPn7CqSw+SW0Air5dEs+/wNwNAJjd5XX7wC3hrOHJQU=";
+            });
+          })
         ];
       };
-
-      # workaround: cadvisor-overlay
-      nixpkgs.overlays = lib.mkIf (has "cadvisor") [
-        (_: prev: {
-          cadvisor = prev.cadvisor.overrideAttrs (_: {
-            version = "0.57.0";
-            src = prev.fetchFromGitHub {
-              owner = "google";
-              repo = "cadvisor";
-              rev = "v0.57.0";
-              hash = "sha256-9HeiSO6yedDpv6YUAdZU7CqfGkun4ugZs4RbSZ51MPU=";
-            };
-            vendorHash = "sha256-zPn7CqSw+SW0Air5dEs+/wNwNAJjd5XX7wC3hrOHJQU=";
-          });
-        })
-      ];
     };
 }

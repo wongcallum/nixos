@@ -270,7 +270,42 @@
               summary = "NVMe {{ $labels.device }} on {{ $labels.instance }} is wearing out or raised a critical warning.";
             })
           ])
-        ];
+        ]
+        ++ lib.optional (config.systemd.timers ? thsconline-sync) (
+          mkGroup "thsconline" [
+            (mkRule {
+              uid = "thsconline-stale";
+              title = "THSC Online sync stale";
+              # no data means the metrics file is missing, which is worth hearing about too
+              expr = "time() - max by (instance) (thsconline_sync_last_success_timestamp_seconds)";
+              threshold = {
+                type = "gt";
+                params = [ (36 * 3600) ];
+              };
+              summary = "The THSC Online mirror on {{ $labels.instance }} last synced successfully {{ humanizeDuration $values.A.Value }} ago; check thsconline-sync.service.";
+            })
+            (mkRule {
+              uid = "thsconline-removal-refused";
+              title = "THSC Online sync refused removals";
+              for = "0s";
+              noDataState = "OK";
+              expr = "thsconline_sync_removal_refused";
+              summary = "The THSC Online sync on {{ $labels.instance }} stopped rather than delete more than 2% of the mirror. Check with sync.py --dry-run, then rerun with --force if the site really dropped them.";
+            })
+            (mkRule {
+              uid = "thsconline-unavailable-jump";
+              title = "THSC Online papers unavailable";
+              for = "0s";
+              noDataState = "OK";
+              expr = "thsconline_sync_unavailable_change";
+              threshold = {
+                type = "gt";
+                params = [ 50 ];
+              };
+              summary = ''The THSC Online site stopped serving {{ printf "%.0f" $values.A.Value }} more papers in the last sync on {{ $labels.instance }}; its download servers may be broken.'';
+            })
+          ]
+        );
       };
     };
 }

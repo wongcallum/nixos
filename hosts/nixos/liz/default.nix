@@ -57,6 +57,7 @@ in
         samba
         syncthing-server
         qbittorrent
+        thsconline
 
         radicale
         quadlet-productivity
