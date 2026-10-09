@@ -49,7 +49,6 @@ in
         ssh
         tailscale
         gateway
-        cloudflared
         libvirt
         metrics
         monitoring
@@ -184,11 +183,6 @@ in
       modules = {
         sensors.chips = [ "nct6775" ];
         watchdog.driver = "sp5100_tco";
-
-        cloudflared = {
-          tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
-          credentialsSecret = "cloudflared/liz-credentials.json";
-        };
 
         samba.shares = {
           tank_colin = "/tank/colin";

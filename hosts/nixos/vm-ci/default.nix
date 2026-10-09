@@ -52,6 +52,7 @@ in
           # anon overflow past the daemon's cap compresses instead of thrashing
           zram
 
+          cloudflared
           nixbot
         ]);
 
@@ -176,6 +177,13 @@ in
             # pushed there by an earlier run, and it answers in about a
             # millisecond, whereas a public cache costs a TLS handshake.
             priority = 10;
+          };
+
+          cloudflared = {
+            tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
+            credentialsSecret = "cloudflared/vm-ci-credentials.json";
+            # nixbot listens on every interface; reach it over loopback
+            ingress.${domain} = "http://127.0.0.1:${toString nixbotPort}";
           };
 
           nixbot = {
@@ -422,8 +430,6 @@ in
 
         modules = {
           attic.guestAddress = hostAddr;
-
-          cloudflared.ingress.${domain} = "http://${guestAddr}:${toString nixbotPort}";
 
           gateway.services.nixbot = {
             name = "nixbot";
