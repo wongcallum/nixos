@@ -8,7 +8,19 @@
     }:
     let
       root = "/tank/thsconline";
+      dataset = "tank/thsconline";
       metricsDir = config.utils.dataDir "thsconline";
+
+      snapshot = pkgs.writeShellApplication {
+        name = "thsconline-snapshot";
+        runtimeInputs = [
+          pkgs.coreutils
+          config.boot.zfs.package
+        ];
+        text = ''
+          zfs snapshot "${dataset}@$(date +%Y-%m-%d-%H%M%S)-$(cat "$RUNTIME_DIRECTORY/mode")"
+        '';
+      };
 
       sync = pkgs.writeShellApplication {
         name = "thsconline-sync";
@@ -41,6 +53,8 @@
               exit 2
               ;;
           esac
+          # names the snapshot taken after a successful run
+          echo "$mode" >"$RUNTIME_DIRECTORY/mode"
 
           cd ${root}/_sync
           started=$(date +%s)
@@ -123,6 +137,9 @@
             User = "thsconline";
             Group = "thsconline";
             ExecStart = lib.getExe sync;
+            # `+` runs it as root; systemd skips it if the sync failed
+            ExecStartPost = "+${lib.getExe snapshot}";
+            RuntimeDirectory = "thsconline-sync";
             # a monthly recheck downloads the whole mirror again
             TimeoutStartSec = "12h";
             Nice = 10;
