@@ -74,6 +74,9 @@ let
         useNetworkd = true;
       };
 
+      # the gateway's hostname doesn't resolve here; use liz's guest port
+      modules.attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
+
       # Direct kernel boot: no bootloader and a tmpfs root.
       boot = {
         loader.grub.enable = false;
@@ -470,6 +473,7 @@ in
     #   guest 10.0.1.3 (on the tap)
     #     |
     #     +- to host -> nixos-fw -> gpu-vm-in -+- tcp/445 ---------> ACCEPT
+    #     |                                    +- tcp/8081 (attic) -> ACCEPT
     #     |                                    +- any other NEW ---> DROP
     #     |
     #     +- routed --> FORWARD --> gpu-vm-fwd +- ESTABLISHED,RELATED -> ACCEPT
@@ -482,6 +486,7 @@ in
     firewall.extraCommands = ''
       iptables -N gpu-vm-in 2>/dev/null || iptables -F gpu-vm-in
       iptables -A gpu-vm-in -p tcp --dport 445 -j nixos-fw-accept
+      iptables -A gpu-vm-in -p tcp --dport ${toString config.modules.attic.guestPort} -j nixos-fw-accept
       iptables -A gpu-vm-in -m conntrack --ctstate NEW -j DROP
       iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
       iptables -I nixos-fw -i ${tap} -j gpu-vm-in
