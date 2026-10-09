@@ -60,6 +60,8 @@ in
         profiles.system = {
           user = "root";
           sshUser = "callum";
+          # prompt for callum's sudo password, unless it is locked (passwordless sudo)
+          interactiveSudo = !(hostConfiguration.config.modules.users.callum.lockPassword or false);
           path = deployLib.activate.nixos hostConfiguration;
         };
       }) machines;

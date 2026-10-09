@@ -12,7 +12,7 @@ Structure ~~copied from~~ inspired by https://github.com/HarrisonCentner/nixconf
 
 ## Deploy (rebuild)
 
-`deploy --skip-checks .#{{host}}`
+`nix develop --command deploy .#{{host}}` (the devshell's `deploy` always passes `--skip-checks`)
 
 ## Deploy (install)
 

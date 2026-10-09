@@ -85,7 +85,6 @@
 
       security.sudo = {
         enable = true;
-        wheelNeedsPassword = false;
         extraConfig = ''
           Defaults lecture = always
           Defaults lecture_file = ${pkgs.writeText "sudo-lecture" ''
