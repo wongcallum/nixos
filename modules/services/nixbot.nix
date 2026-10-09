@@ -157,9 +157,10 @@ in
             # one build at a time, nixbot defaults to the core count
             buildConcurrency = 1;
             # Unlike buildbot, the eval budget (workers * size) is a hard cap.
-            # A single host's toplevel peaks around 3.5 GiB (liz).
+            # Resolving cache status for a toplevel's constituents is what
+            # dominates: liz peaks around 5.3 GiB and shama around 3.9 GiB.
             evalWorkerCount = 1;
-            evalMaxMemorySize = 5120;
+            evalMaxMemorySize = 6144;
 
             # --check-cache-status asks every substituter about every path
             # until one has it, and a path no cache has costs a TLS handshake
