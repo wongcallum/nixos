@@ -55,6 +55,21 @@ in
             XDG_CONFIG_HOME="$config_home" attic push --stdin --jobs 1 ${cacheName}
           '';
         };
+
+        # The eval prefetch copies private `ssh://` flake inputs (the
+        # nixos-secrets input) into the store before the sandboxed evaluator
+        # runs. It fetches with a throwaway HOME and nixbot's GitHub
+        # integration only ever supplies an https token, so git's ssh has no
+        # key to authenticate with. OpenSSH resolves `~/.ssh` through the
+        # service user's passwd home rather than $HOME, so a config written
+        # there reaches the prefetch. It cannot live in the system
+        # ssh_config: `Match user` tests the remote user, which is `git` for
+        # git's own ssh invocations.
+        fetchSshConfig = pkgs.writeText "nixbot-fetch-ssh-config" ''
+          Host github.com
+            IdentityFile ${config.sops.secrets."nixbot/github-deploy-key".path}
+            IdentitiesOnly yes
+        '';
       in
       {
         imports = [ "${nixbotSrc}/nixosModules/nixbot.nix" ];
@@ -115,7 +130,20 @@ in
               group = "nixbot";
               mode = "0400";
             };
+
+            # read by the fetch prefetch's git/ssh as the service user
+            "nixbot/github-deploy-key" = {
+              owner = "nixbot";
+              group = "nixbot";
+              mode = "0400";
+              restartUnits = [ "nixbot.service" ];
+            };
           };
+
+          # git's ssh needs github.com's host key; the key itself is
+          # written into the service user's home by the unit below.
+          programs.ssh.knownHosts."github.com".publicKey =
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
 
           services.nixbot = {
             enable = true;
@@ -190,6 +218,13 @@ in
 
             # evaluation workers plus the service itself; builds run in the nix daemon
             services.nixbot.serviceConfig.MemoryMax = "7G";
+
+            # rewrite the fetch identity on every start, so it survives a
+            # deploy moving the secret or home directory
+            services.nixbot.preStart = ''
+              install -d -m 700 /var/lib/nixbot/.ssh
+              install -m 600 ${fetchSshConfig} /var/lib/nixbot/.ssh/config
+            '';
           };
         };
       };
