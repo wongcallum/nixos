@@ -30,6 +30,10 @@ in
           hostname = "vm-coder";
         })
         (microvmLib.mkHostNetworking {
+          n = 3;
+          hostname = "vm-thsconline";
+        })
+        (microvmLib.mkHostNetworking {
           n = 4;
           hostname = "vm-hsctikzbench";
         })
@@ -99,6 +103,16 @@ in
           restartIfChanged = true;
         };
 
+        vm-thsconline = {
+          config.imports = [
+            nixos.base
+            nixos.global
+            nixos."hosts/nixos/vm-thsconline"
+          ];
+          pkgs = null;
+          restartIfChanged = true;
+        };
+
         vm-hsctikzbench = {
           config.imports = [
             nixos.base
@@ -112,6 +126,9 @@ in
       };
 
       _module.args.sshKeys = keys.callum;
+
+      # the mirror share lives on tank, which isn't a systemd mount
+      systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];
 
       # keep CI off the cores the GPU VM is pinned to (_gpu-vm.nix)
       systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
