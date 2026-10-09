@@ -26,7 +26,7 @@
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
     hsctikzbench.url = "github:wongcallum/hsctikzbench";
-    punktfunk.url = "git+https://git.unom.io/unom/punktfunk?ref=nix-stable"; # don't follow nixpkgs to use their cache
+    punktfunk.url = "git+https://git.unom.io/unom/punktfunk?ref=nix-stable";
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
     nix-monitored.url = "github:ners/nix-monitored";
@@ -63,6 +63,8 @@
     cryptomatord.inputs.nixpkgs.follows = "unstable";
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
     hsctikzbench.inputs.nixpkgs.follows = "unstable";
+    # its GUI client dlopens the host's GPU drivers, so it must share their glibc
+    punktfunk.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =
