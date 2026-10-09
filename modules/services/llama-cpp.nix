@@ -87,7 +87,7 @@
           name = "llama.cpp";
           domainName = "llama";
           iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
-          addr = "10.0.0.4:${toString port}";
+          addr = "10.0.1.3:${toString port}";
           category = "Development";
         };
       };
