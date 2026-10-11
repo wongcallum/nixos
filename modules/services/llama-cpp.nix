@@ -16,29 +16,21 @@
           modelsPreset = pkgs.writeText "llama-cpp-models.ini" ''
             version = 1
 
-            [ling-3.0-tiny]
-            hf-repo = bartowski/Ling-3.0-tiny-GGUF:Q6_K_L
-            ctx-size = 131072
-            load-on-startup = true
-
-            [hy-mt2-1.8b]
-            hf-repo = tencent/Hy-MT2-1.8B-GGUF:Q8_0
-            ctx-size = 131072
-
-            [lfm2.5-2.6b]
-            hf-repo = LiquidAI/LFM2.5-2.6B-GGUF:F16
-            spec-draft-hf = LiquidAI/LFM2.5-2.6B-DSpark-GGUF:F16
-            spec-type = draft-dspark
-            spec-draft-n-max = 9
-            spec-draft-n-min = 0
-            ctx-size = 131072
+            # default: https://github.com/bilibili/Index-Translate#default-inference-settings
+            [*]
+            ctx-size = 32768
+            temp = 0
+            n-predict = 4096
+            chat-template-kwargs = {"enable_thinking":false}
+            reasoning = off
 
             # mmproj automatically downloads
-            [unlimited-ocr]
-            hf-repo = sahilchachra/Unlimited-OCR-GGUF:BF16
-            ctx-size = 8192
-            # deterministic output recommended for OCR
-            temp = 0
+            [index-translate-2b]
+            hf-repo = IndexTeam/Index-Translate-2B-GGUF:Q8_0
+            load-on-startup = true
+
+            [index-translate-9b]
+            hf-repo = IndexTeam/Index-Translate-9B-GGUF:Q6_K
           '';
         in
         {
@@ -56,11 +48,6 @@
               kv-offload = true;
               flash-attn = "on";
               parallel = 1;
-
-              temp = 0.6;
-              top-p = 0.95;
-              top-k = 20;
-              min-p = 0.00;
             };
           };
 

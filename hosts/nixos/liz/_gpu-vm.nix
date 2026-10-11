@@ -63,7 +63,7 @@ let
         ssh
         remote-desktop
 
-        # llama-cpp
+        llama-cpp
       ];
 
       system.stateVersion = "26.05";
