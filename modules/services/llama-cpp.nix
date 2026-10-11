@@ -47,7 +47,10 @@
               n-gpu-layers = 999;
               kv-offload = true;
               flash-attn = "on";
-              parallel = 1;
+              # translation clients send one request per paragraph
+              parallel = 4;
+              # share the full ctx-size across slots instead of splitting it
+              kv-unified = true;
             };
           };
 
