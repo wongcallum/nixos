@@ -24,7 +24,6 @@
         lobehub-desktop = unstablePkgs.callPackage ../../packages/lobehub-desktop { };
         kinochrome = unstablePkgs.callPackage ../../packages/kinochrome { };
         chainner = unstablePkgs.callPackage ../../packages/chainner { };
-        zapfast = unstablePkgs.callPackage ../../packages/zapfast { };
         inherit (openscq30) openscq30-cli openscq30-gui;
       };
 

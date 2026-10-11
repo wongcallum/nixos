@@ -1,6 +1,7 @@
 { inputs, pkgs, ... }:
 let
-  inherit (inputs.self.packages.${pkgs.stdenv.hostPlatform.system}) openscq30-cli zapfast;
+  inherit (inputs.self.packages.${pkgs.stdenv.hostPlatform.system}) openscq30-cli;
+  inherit (inputs.zapfast.packages.${pkgs.stdenv.hostPlatform.system}) zapfast;
 in
 {
   imports = with inputs.self.modules.nixos; [

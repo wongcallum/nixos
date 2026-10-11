@@ -34,6 +34,7 @@
     cryptomatord.url = "github:wongcallum/cryptomatord";
     freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
     crane.url = "github:ipetkov/crane";
+    zapfast.url = "github:crmne/zapfast";
     openscq30 = {
       url = "github:Oppzippy/OpenSCQ30/409460e16c44324b35aeb5c99ea9acb7896726f4";
       flake = false;
@@ -63,6 +64,7 @@
     cryptomatord.inputs.nixpkgs.follows = "unstable";
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
     hsctikzbench.inputs.nixpkgs.follows = "unstable";
+    zapfast.inputs.nixpkgs.follows = "unstable";
     # its GUI client dlopens the host's GPU drivers, so it must share their glibc
     punktfunk.inputs.nixpkgs.follows = "unstable";
   };
