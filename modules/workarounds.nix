@@ -108,6 +108,13 @@ in
       cleanup = "drop the LinuxLatest specialisation's `kernelPatches = mkForce [ ]` too if it's no longer needed";
     };
 
+    smokeping-reload-panic = {
+      upstream = "https://github.com/SuperQ/smokeping_prober/releases/tag/v0.12.0";
+      done = "liz's nixpkgs ships prometheus-smokeping-prober >= 0.12.0, whose reload unregisters its metrics before re-creating them";
+      cleanup = "give prometheus-smokeping-exporter an ExecReload that sends SIGHUP, and reload it instead of restarting";
+      fixed = lib.versionAtLeast (pkgsFor "liz").prometheus-smokeping-prober.version "0.12.0";
+    };
+
     vm-ci-nix-2-35 = {
       upstream = "https://github.com/NixOS/nix/commit/6fae3a25f1a07472b45c56862c0ffe2050159e0f (2.35.0), plus https://github.com/NixOS/nix/pull/16220 (2.35.2)";
       done = "vm-ci's nixpkgs defaults to nix >= 2.35.2";
