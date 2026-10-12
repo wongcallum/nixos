@@ -6,11 +6,11 @@
 
 let
   pname = "lobehub-desktop";
-  version = "2.2.8";
+  version = "2.2.19";
 
   src = fetchurl {
     url = "https://github.com/lobehub/lobehub/releases/download/v${version}/LobeHub-${version}.AppImage";
-    hash = "sha256-xpcdQWk4Zkgv5k5x0iuyQ20GCcsLxx9+TPHl5FUpLHc=";
+    hash = "sha256-vrTVgxLvbyJyuri1wuwOSSKvyb9Ql68fOJhpokFvMts=";
   };
 
   appimageContents = appimageTools.extractType2 { inherit pname version src; };
