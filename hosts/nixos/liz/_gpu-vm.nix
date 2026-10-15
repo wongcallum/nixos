@@ -4,7 +4,6 @@
   lib,
   pkgs,
   self,
-  sshKeys,
   ...
 }:
 let
@@ -152,14 +151,7 @@ let
         ];
       };
 
-      users.users.root.openssh.authorizedKeys.keys = sshKeys;
-
       services = {
-        openssh.settings = {
-          PermitRootLogin = lib.mkForce "yes";
-          PasswordAuthentication = lib.mkForce true;
-        };
-
         xserver.videoDrivers = [ "nvidia" ];
 
         # Stock Moonlight clients; the guest is only reachable through liz.
@@ -498,7 +490,7 @@ in
   systemd = {
     tmpfiles.rules = [
       "d ${stateDir} 0755 root root -"
-      "d ${stateDir}/etc/ssh 0700 root root -"
+      "d ${stateDir}/etc/ssh 0755 root root -"
       "d ${runDir} 0700 root root -"
       "d /scratch/gpu 0755 root root -"
     ];
