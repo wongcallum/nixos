@@ -18,7 +18,7 @@ let
 
   guestCpus = "3-5 9-11";
   guestVcpus = 6;
-  guestMemory = "8G";
+  guestMemory = "4G";
 
   qmpSocket = "${runDir}/qmp.sock";
   shareSocket = tag: "${runDir}/${tag}.sock";

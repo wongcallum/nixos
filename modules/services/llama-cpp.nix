@@ -19,6 +19,7 @@
             # no load-on-startup because it would also apply to cached models
             [*]
             ctx-size = 8192
+            cache-ram = 0
 
             # default: https://github.com/bilibili/Index-Translate#default-inference-settings
             # mmproj automatically downloads
@@ -30,6 +31,8 @@
             n-predict = 4096
             chat-template-kwargs = {"enable_thinking":false}
             reasoning = off
+            # paragraphs share the instruction prefix
+            cache-ram = 512
 
             [granite-speech-4.1-2b]
             hf-repo = ibm-granite/granite-speech-4.1-2b-GGUF:Q8_0
