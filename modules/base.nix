@@ -86,16 +86,7 @@
       security.sudo = {
         enable = true;
         extraConfig = ''
-          Defaults lecture = always
-          Defaults lecture_file = ${pkgs.writeText "sudo-lecture" ''
-            A friendly reminder:
-
-            This system is managed by NixOS. Direct modifications
-            to the system will be lost. The root filesystem is
-            ephemeral and wiped on every boot.
-
-            Make changes to /persist/nixos-conf instead.
-          ''}
+          Defaults lecture = never
         '';
       };
     };
