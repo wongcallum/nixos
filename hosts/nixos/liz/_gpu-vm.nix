@@ -196,8 +196,6 @@ let
               "${pkgs.bash}/bin/bash -c 'until ${config.hardware.nvidia.package.bin}/bin/nvidia-smi -L >/dev/null 2>&1; do ${pkgs.coreutils}/bin/sleep 1; done'"
             ];
             TimeoutStartSec = "infinity";
-            DynamicUser = lib.mkForce false;
-            User = "root";
           };
         };
       };
