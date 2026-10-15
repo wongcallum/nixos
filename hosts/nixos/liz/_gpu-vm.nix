@@ -18,7 +18,7 @@ let
 
   guestCpus = "3-5 9-11";
   guestVcpus = 6;
-  guestMemory = "16G";
+  guestMemory = "8G";
 
   qmpSocket = "${runDir}/qmp.sock";
   shareSocket = tag: "${runDir}/${tag}.sock";
@@ -61,7 +61,7 @@ let
         callum
 
         ssh
-        remote-desktop
+        # remote-desktop
 
         llama-cpp
       ];
@@ -120,6 +120,9 @@ let
       ];
 
       hardware = {
+        # links libcuda into /run/opengl-driver for llama.cpp
+        graphics.enable = true;
+
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.latest;
           # sway renders through nvidia-drm.
@@ -135,7 +138,7 @@ let
         systemPackages = [
           pkgs.ffmpeg-full
           pkgs.nvtopPackages.nvidia
-          (pkgs.blender.override { cudaSupport = true; })
+          # (pkgs.blender.override { cudaSupport = true; })
         ];
 
         persistence.${config.modules.persistence.persistDir}.directories = [
@@ -159,7 +162,7 @@ let
         xserver.videoDrivers = [ "nvidia" ];
 
         # Stock Moonlight clients; the guest is only reachable through liz.
-        punktfunk.host.gamestream = true;
+        # punktfunk.host.gamestream = true;
       };
 
       systemd = {
@@ -394,8 +397,9 @@ in
         gpu-vm = {
           description = "GPU Virtual Machine";
 
-          # unit changes apply through systemctl restart only, not in-VM restart
-          restartIfChanged = false;
+          # the launch script embeds the guest toplevel, so a new guest closure
+          # changes the unit and switch-to-configuration restarts the VM.
+          wantedBy = [ "multi-user.target" ];
 
           requires = [
             "gpu-vm-volumes.service"

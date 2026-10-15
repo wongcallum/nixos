@@ -16,21 +16,47 @@
           modelsPreset = pkgs.writeText "llama-cpp-models.ini" ''
             version = 1
 
-            # default: https://github.com/bilibili/Index-Translate#default-inference-settings
+            # no load-on-startup because it would also apply to cached models
             [*]
+            ctx-size = 8192
+
+            # default: https://github.com/bilibili/Index-Translate#default-inference-settings
+            # mmproj automatically downloads
+            [index-translate-2b]
+            hf-repo = IndexTeam/Index-Translate-2B-GGUF:Q8_0
+            load-on-startup = true
             ctx-size = 32768
             temp = 0
             n-predict = 4096
             chat-template-kwargs = {"enable_thinking":false}
             reasoning = off
 
-            # mmproj automatically downloads
-            [index-translate-2b]
-            hf-repo = IndexTeam/Index-Translate-2B-GGUF:Q8_0
+            [granite-speech-4.1-2b]
+            hf-repo = ibm-granite/granite-speech-4.1-2b-GGUF:Q8_0
             load-on-startup = true
+            # trained context per its config and GGUF metadata
+            ctx-size = 4096
+            temp = 0
 
-            [index-translate-9b]
-            hf-repo = IndexTeam/Index-Translate-9B-GGUF:Q6_K
+            # queries need an "Instruct: ...\nQuery: " prefix; documents don't
+            [harrier-oss-v1-0.6b]
+            hf-repo = mradermacher/harrier-oss-v1-0.6b-GGUF:Q8_0
+            load-on-startup = true
+            embedding = true
+            pooling = last
+            # inputs must fit in one ubatch; compute buffers grow with it
+            # (8192 needed ~5 GiB), so cap inputs at 1024 tokens
+            ctx-size = 4096
+            batch-size = 1024
+            ubatch-size = 1024
+
+            [qwen3-reranker-0.6b]
+            hf-repo = ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF:Q8_0
+            load-on-startup = true
+            reranking = true
+            ctx-size = 4096
+            batch-size = 1024
+            ubatch-size = 1024
           '';
         in
         {
@@ -42,7 +68,7 @@
               host = "0.0.0.0";
 
               models-preset = modelsPreset;
-              models-max = 1;
+              models-max = 4;
 
               n-gpu-layers = 999;
               kv-offload = true;
