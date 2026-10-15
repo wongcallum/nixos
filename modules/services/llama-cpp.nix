@@ -1,113 +1,163 @@
+{ lib, ... }:
+let
+  iniAtom = lib.types.oneOf [
+    lib.types.bool
+    lib.types.int
+    lib.types.float
+    lib.types.str
+  ];
+
+  hfFile = lib.types.submodule {
+    options = {
+      repo = lib.mkOption {
+        type = lib.types.str;
+        example = "ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF";
+      };
+      rev = lib.mkOption {
+        type = lib.types.str;
+        description = "Commit to download from, so a re-upload can't change the file";
+      };
+      file = lib.mkOption {
+        type = lib.types.str;
+        example = "qwen3-reranker-0.6b-q8_0.gguf";
+        description = "Path of the file within the repo";
+      };
+      sha256 = lib.mkOption {
+        type = lib.types.str;
+        description = "Hex sha256 of the file, which is also its blob name in a Hugging Face cache";
+      };
+    };
+  };
+in
 {
-  flake.modules.nixos =
+  # This module sets up llama.cpp in router mode and manages its models declaratively.
+  # The models are downloaded to the Nix store before the server starts on demand,
+  # so that building the system closure doesn't include the models.
+  flake.modules.nixos.llama-cpp =
+    { config, pkgs, ... }:
     let
-      port = 9931;
+      cfg = config.modules.llama-cpp;
+      gcroots = "/nix/var/nix/gcroots/llama-cpp";
+
+      files = lib.unique (
+        lib.concatMap (model: lib.filter lib.isAttrs (lib.attrValues model)) (lib.attrValues cfg.models)
+      );
+      fileName = file: baseNameOf file.file;
+      fileUrl = file: "https://huggingface.co/${file.repo}/resolve/${file.rev}/${file.file}";
+      storePath =
+        file:
+        builtins.unsafeDiscardStringContext
+          (pkgs.fetchurl {
+            name = fileName file;
+            url = fileUrl file;
+            inherit (file) sha256;
+          }).outPath;
+
+      # https://huggingface.co/blog/ggml-org/model-management-in-llamacpp
+      modelsPreset = pkgs.writeText "llama-cpp-models.ini" (
+        lib.generators.toINIWithGlobalSection { } {
+          globalSection.version = 1;
+          sections =
+            lib.optionalAttrs (cfg.defaults != { }) { "*" = cfg.defaults; }
+            // lib.mapAttrs (
+              _: lib.mapAttrs (_: value: if lib.isAttrs value then storePath value else value)
+            ) cfg.models;
+        }
+      );
+
+      fetchModels = pkgs.writeShellApplication {
+        name = "llama-cpp-fetch-models";
+        runtimeInputs = [
+          pkgs.coreutils
+          config.nix.package
+        ];
+        text = ''
+          # root before downloading so a concurrent GC can't take a fresh file
+          rm -rf "${gcroots}.new"
+          mkdir -p "${gcroots}.new"
+          ${lib.concatMapStrings (file: ''
+            ln -s ${lib.escapeShellArg (storePath file)} "${gcroots}.new/"
+          '') files}
+          rm -rf "${gcroots}"
+          mv "${gcroots}.new" "${gcroots}"
+
+          # nix-prefetch-url downloads into TMPDIR first; /tmp may be a tmpfs
+          # smaller than a model, so stage on the store's filesystem
+          TMPDIR=$(mktemp -d /nix/var/llama-cpp-fetch.XXXXXX)
+          export TMPDIR
+          trap 'rm -rf "$TMPDIR"' EXIT
+
+          fetch() {
+            local name="$1" url="$2" sha256="$3" path="$4"
+            nix-store --check-validity "$path" 2>/dev/null && return
+            echo "downloading $url"
+            fetched=$(nix-prefetch-url --print-path --type sha256 --name "$name" "$url" "$sha256" | tail -n 1)
+            if [ "$fetched" != "$path" ]; then
+              echo "$url was added as $fetched, expected $path" >&2
+              exit 1
+            fi
+          }
+          ${lib.concatMapStrings (file: ''
+            fetch ${
+              lib.escapeShellArgs [
+                (fileName file)
+                (fileUrl file)
+                file.sha256
+                (storePath file)
+              ]
+            }
+          '') files}
+        '';
+      };
     in
     {
-      llama-cpp =
-        {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-        let
-          # https://huggingface.co/blog/ggml-org/model-management-in-llamacpp
-          modelsPreset = pkgs.writeText "llama-cpp-models.ini" ''
-            version = 1
-
-            # no load-on-startup because it would also apply to cached models
-            [*]
-            ctx-size = 8192
-            cache-ram = 0
-
-            # default: https://github.com/bilibili/Index-Translate#default-inference-settings
-            # mmproj automatically downloads
-            [index-translate-2b]
-            hf-repo = IndexTeam/Index-Translate-2B-GGUF:Q8_0
-            load-on-startup = true
-            ctx-size = 32768
-            temp = 0
-            n-predict = 4096
-            chat-template-kwargs = {"enable_thinking":false}
-            reasoning = off
-            # paragraphs share the instruction prefix
-            cache-ram = 512
-
-            [granite-speech-4.1-2b]
-            hf-repo = ibm-granite/granite-speech-4.1-2b-GGUF:Q8_0
-            load-on-startup = true
-            # trained context per its config and GGUF metadata
-            ctx-size = 4096
-            temp = 0
-
-            # queries need an "Instruct: ...\nQuery: " prefix; documents don't
-            [harrier-oss-v1-0.6b]
-            hf-repo = mradermacher/harrier-oss-v1-0.6b-GGUF:Q8_0
-            load-on-startup = true
-            embedding = true
-            pooling = last
-            # inputs must fit in one ubatch; compute buffers grow with it
-            # (8192 needed ~5 GiB), so cap inputs at 1024 tokens
-            ctx-size = 4096
-            batch-size = 1024
-            ubatch-size = 1024
-
-            [qwen3-reranker-0.6b]
-            hf-repo = ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF:Q8_0
-            load-on-startup = true
-            reranking = true
-            ctx-size = 4096
-            batch-size = 1024
-            ubatch-size = 1024
-          '';
-        in
-        {
-          services.llama-cpp = {
-            enable = true;
-            package = pkgs.llama-cpp.override { cudaSupport = true; };
-            settings = {
-              inherit port;
-              host = "0.0.0.0";
-
-              models-preset = modelsPreset;
-              models-max = 4;
-
-              n-gpu-layers = 999;
-              kv-offload = true;
-              flash-attn = "on";
-              # translation clients send one request per paragraph
-              parallel = 4;
-              # share the full ctx-size across slots instead of splitting it
-              kv-unified = true;
-            };
-          };
-
-          networking.firewall.allowedTCPPorts = [ port ];
-
-          systemd.services.llama-cpp = lib.mkIf config.services.llama-cpp.enable {
-            unitConfig = {
-              Wants = [ "systemd-modules-load.service" ];
-              After = [ "systemd-modules-load.service" ];
-            };
-
-            serviceConfig = {
-              ExecStartPre = "${pkgs.bash}/bin/bash -c 'until ${config.hardware.nvidia.package.bin}/bin/nvidia-smi -L >/dev/null 2>&1; do ${pkgs.coreutils}/bin/sleep 1; done'";
-              TimeoutStartSec = "infinity";
-              DynamicUser = lib.mkForce false;
-              User = "root";
-              Environment = [ "LLAMA_CACHE=/work/llama-cache" ];
-              ReadWritePaths = [ "/work/llama-cache" ];
-            };
-          };
+      options.modules.llama-cpp = {
+        defaults = lib.mkOption {
+          type = lib.types.attrsOf iniAtom;
+          default = { };
+          description = "Preset settings shared by every model, the `[*]` section";
         };
-      gateway = {
-        modules.gateway.services.llama-cpp = {
-          name = "llama.cpp";
-          domainName = "llama";
-          iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
-          addr = "10.0.1.3:${toString port}";
-          category = "Development";
+
+        models = lib.mkOption {
+          type = lib.types.attrsOf (lib.types.attrsOf (lib.types.either iniAtom hfFile));
+          default = { };
+          example = {
+            "qwen3-reranker-0.6b" = {
+              model = {
+                repo = "ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF";
+                rev = "a02f48bb4f057028298c21fa033da2b30d7742d5";
+                file = "qwen3-reranker-0.6b-q8_0.gguf";
+                sha256 = "22c9979ce4fbcdc5acdc310c6641c32797eff1aa980b8f7a2db8a8ea23429a48";
+              };
+              reranking = true;
+            };
+          };
+          description = ''
+            Model presets by name, written to the models-preset INI.
+          '';
+        };
+      };
+
+      config = {
+        assertions = lib.mapAttrsToList (name: model: {
+          assertion = !lib.any (lib.hasPrefix "hf-repo") (lib.attrNames model);
+          message = "modules.llama-cpp.models.${name}: declare files instead of hf-repo* so they are pinned and garbage collected";
+        }) cfg.models;
+
+        services.llama-cpp = {
+          enable = true;
+          settings.models-preset = modelsPreset;
+        };
+
+        systemd.services.llama-cpp = {
+          wants = [ "network-online.target" ];
+          after = [ "network-online.target" ];
+          serviceConfig = {
+            # "+" for the nix daemon and gcroots, outside the sandbox
+            ExecStartPre = [ "+${lib.getExe fetchModels}" ];
+            # first start downloads every model
+            TimeoutStartSec = lib.mkDefault "infinity";
+          };
         };
       };
     };

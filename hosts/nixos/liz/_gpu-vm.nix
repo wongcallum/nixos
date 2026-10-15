@@ -15,6 +15,7 @@ let
   hostAddr = "10.0.1.1";
   guestAddr = "10.0.1.3";
   guestMac = "02:00:00:00:01:03";
+  llamaPort = 9931;
 
   guestCpus = "3-5 9-11";
   guestVcpus = 6;
@@ -163,6 +164,25 @@ let
 
         # Stock Moonlight clients; the guest is only reachable through liz.
         # punktfunk.host.gamestream = true;
+
+        llama-cpp = {
+          package = pkgs.llama-cpp.override { cudaSupport = true; };
+          openFirewall = true;
+          settings = {
+            port = llamaPort;
+            host = "0.0.0.0";
+
+            models-max = 4;
+
+            n-gpu-layers = 999;
+            kv-offload = true;
+            flash-attn = "on";
+            # translation clients send one request per paragraph
+            parallel = 4;
+            # share the full ctx-size across slots instead of splitting it
+            kv-unified = true;
+          };
+        };
       };
 
       systemd = {
@@ -173,9 +193,105 @@ let
           networkConfig.DNS = [ "1.1.1.1" ];
         };
 
-        tmpfiles.rules = [
-          "d /work/llama-cache 0755 root root -"
-        ];
+        services.llama-cpp = {
+          unitConfig = {
+            Wants = [ "systemd-modules-load.service" ];
+            After = [ "systemd-modules-load.service" ];
+          };
+
+          serviceConfig = {
+            ExecStartPre = [
+              "${pkgs.bash}/bin/bash -c 'until ${config.hardware.nvidia.package.bin}/bin/nvidia-smi -L >/dev/null 2>&1; do ${pkgs.coreutils}/bin/sleep 1; done'"
+            ];
+            TimeoutStartSec = "infinity";
+            DynamicUser = lib.mkForce false;
+            User = "root";
+          };
+        };
+      };
+
+      modules.llama-cpp = {
+        defaults = {
+          ctx-size = 8192;
+          cache-ram = 0;
+        };
+
+        models = {
+          # default: https://github.com/bilibili/Index-Translate#default-inference-settings
+          index-translate-2b = {
+            model = {
+              repo = "IndexTeam/Index-Translate-2B-GGUF";
+              rev = "3a0eca6ce931d88d00614d427ab3ed8ff0743902";
+              file = "Index-Translate-2B.Q8_0.gguf";
+              sha256 = "a09d287f41d297206947a2e51acc29dd03c8b22356111fdb1e289c0c97c173f3";
+            };
+            mmproj = {
+              repo = "IndexTeam/Index-Translate-2B-GGUF";
+              rev = "3a0eca6ce931d88d00614d427ab3ed8ff0743902";
+              file = "Index-Translate-2B.mmproj-Q8_0.gguf";
+              sha256 = "b100ca29aaf437461d0b22ada7492d5d2dfeaa15959e329c4267598ddebe446d";
+            };
+            load-on-startup = true;
+            ctx-size = 32768;
+            temp = 0;
+            n-predict = 4096;
+            chat-template-kwargs = ''{"enable_thinking":false}'';
+            reasoning = "off";
+            # paragraphs share the instruction prefix
+            cache-ram = 512;
+          };
+
+          "granite-speech-4.1-2b" = {
+            model = {
+              repo = "ibm-granite/granite-speech-4.1-2b-GGUF";
+              rev = "8267dad2adc84209b0efd2702ec68a98356125eb";
+              file = "granite-speech-4.1-2b-Q8_0.gguf";
+              sha256 = "87320ee80cc6e638837bd2e9b7920252a87148613930bcdc11fcafad0b00beea";
+            };
+            mmproj = {
+              repo = "ibm-granite/granite-speech-4.1-2b-GGUF";
+              rev = "8267dad2adc84209b0efd2702ec68a98356125eb";
+              file = "mmproj-model-f16.gguf";
+              sha256 = "0d3615076cbe1d35c3f60c43a60a4047b3e2eeee1b2c233580be60186faab5c5";
+            };
+            load-on-startup = true;
+            # trained context per its config and GGUF metadata
+            ctx-size = 4096;
+            temp = 0;
+          };
+
+          # queries need an "Instruct: ...\nQuery: " prefix; documents don't
+          "harrier-oss-v1-0.6b" = {
+            model = {
+              repo = "mradermacher/harrier-oss-v1-0.6b-GGUF";
+              rev = "d79decec1ab9442e969e79804515b9c31683d30e";
+              file = "harrier-oss-v1-0.6b.Q8_0.gguf";
+              sha256 = "ba2c9408f82cfdb73aaf70aaea9f125f3fb24c5e76ce0efb469e1530e5ec53e4";
+            };
+            load-on-startup = true;
+            embedding = true;
+            pooling = "last";
+            # inputs must fit in one ubatch; compute buffers grow with it
+            # (8192 needed ~5 GiB), so cap inputs at 1024 tokens
+            ctx-size = 4096;
+            batch-size = 1024;
+            ubatch-size = 1024;
+          };
+
+          "qwen3-reranker-0.6b" = {
+            model = {
+              repo = "ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF";
+              rev = "a02f48bb4f057028298c21fa033da2b30d7742d5";
+              file = "qwen3-reranker-0.6b-q8_0.gguf";
+              sha256 = "22c9979ce4fbcdc5acdc310c6641c32797eff1aa980b8f7a2db8a8ea23429a48";
+            };
+            load-on-startup = true;
+            reranking = true;
+            ctx-size = 4096;
+            batch-size = 1024;
+            ubatch-size = 1024;
+          };
+        };
       };
     };
 
@@ -362,6 +478,14 @@ let
   };
 in
 {
+  modules.gateway.services.llama-cpp = {
+    name = "llama.cpp";
+    domainName = "llama";
+    iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
+    addr = "${guestAddr}:${toString llamaPort}";
+    category = "Development";
+  };
+
   environment.etc."gpu-vm/README".text = ''
     Guest /nix: ${nixVolumePath} (${nixVolumeSize}, independent ext4 store)
     Before each QEMU start, the host mounts this volume privately, copies and
