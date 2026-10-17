@@ -39,6 +39,7 @@
         pkgs.adw-gtk3
         pkgs.qt6Packages.qt6ct
         pkgs.libsForQt5.qt5ct
+        pkgs.simple-scan
       ];
 
       environment.variables = {
@@ -48,6 +49,17 @@
       };
 
       xdg.portal.enable = true;
+
+      hardware.sane = {
+        enable = true;
+        # epson2's `net autodiscovery` gets no reply, so point it at the WF-3520 directly
+        extraBackends = [
+          (pkgs.writeTextDir "etc/sane.d/epson2.conf" ''
+            usb
+            net EPSONWF-3520.local
+          '')
+        ];
+      };
 
       services = {
         displayManager.defaultSession = "niri";
