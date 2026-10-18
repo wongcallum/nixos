@@ -1,4 +1,5 @@
-#!/usr/bin/env -S nix shell nixpkgs#nushell nixpkgs#sops nixpkgs#ssh-to-age nixpkgs#openssh nixpkgs#git nixpkgs#nixos-anywhere --command nu
+#!/usr/bin/env nix
+#! nix shell nixpkgs#nushell nixpkgs#sops nixpkgs#ssh-to-age nixpkgs#openssh nixpkgs#git nixpkgs#nixos-anywhere --command nu
 
 def interactive []: nothing -> bool {
     is-terminal --stdin

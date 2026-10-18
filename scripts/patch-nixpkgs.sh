@@ -1,4 +1,5 @@
-#!/usr/bin/env -S nix shell nixpkgs#ghcherry nixpkgs#jq --command bash
+#!/usr/bin/env nix
+#! nix shell nixpkgs#ghcherry nixpkgs#jq --command bash
 set -euo pipefail
 
 nixpkgs_rev=$(nix flake metadata --json \

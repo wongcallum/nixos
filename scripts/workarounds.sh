@@ -1,4 +1,5 @@
-#!/usr/bin/env -S nix shell nixpkgs#jq --command bash
+#!/usr/bin/env nix
+#! nix shell nixpkgs#jq --command bash
 # Lists the workarounds in modules/workarounds.nix, most urgent first:
 #   unmarked  the entry marks no code
 #   fixed     its `fixed` check holds for the locked inputs, so remove it
