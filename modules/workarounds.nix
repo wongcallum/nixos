@@ -73,6 +73,15 @@ in
       cleanup = "delete patches/nixbot-eval-nix-options.patch, import inputs.nixbot.nixosModules.nixbot directly, and move evalNixOptions to the upstream option";
     };
 
+    openscq30-softbuffer-orphaned = {
+      upstream = "not filed; OpenSCQ30's Cargo.lock locks Oppzippy/softbuffer at 0c81b1b, which a force-push removed from master";
+      done = "the locked openscq30 no longer locks softbuffer at 0c81b1b";
+      fixed =
+        !lib.hasInfix "softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e" (
+          builtins.readFile "${inputs.openscq30}/Cargo.lock"
+        );
+    };
+
     punktfunk-hevc = {
       upstream = "not filed; git.unom.io/unom/punktfunk, crates/pf-vaapi/src/enc_h265.rs";
       done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";

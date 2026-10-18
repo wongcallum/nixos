@@ -60,6 +60,11 @@ let
       makeWrapper
     ];
     buildInputs = commonBuildInputs ++ guiOnlyBuildInputs;
+    # workaround: openscq30-softbuffer-orphaned
+    # the locked rev is no longer on any branch, so fetch it by hash rather
+    # than with builtins.fetchGit, which only finds it in a warm fetcher cache
+    outputHashes."git+https://github.com/Oppzippy/softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e" =
+      "sha256-mirNFskxOpL0cxoT97mvTJ7H4Jg7GkyCaK6ldZGi53g=";
   };
 
   cargoArtifacts = craneLib.buildDepsOnly commonArgs;
