@@ -7,7 +7,7 @@
   };
 
   config.flake.keys.callum = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKEkOx5xtPpJhIow56T2UNu+vFJITPCpjmGaaUILfbAQ callum@acid"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINVWggYwR03buagFQafziFDQXnZc+4Ehw3oYlrRZYo64 callum@hackintosh"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIInBiS3lc/8BUJLibu1+6KSu+pEOLXPCRxY/FLF5GMo5 callum@shama"
   ];
 
