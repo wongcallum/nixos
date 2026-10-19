@@ -124,10 +124,10 @@
           "nvme-Patriot_M.2_P300_128GB_P300ADBB22111800174"
           "nvme-Samsung_SSD_980_PRO_1TB_S5GXNX0T913718H"
         ];
-        salt.exporters = [
-          "node"
-          "cadvisor"
-        ];
+        # salt.exporters = [
+        #   "node"
+        #   "cadvisor"
+        # ];
       };
     };
   };

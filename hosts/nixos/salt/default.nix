@@ -30,8 +30,8 @@ in
         sops
         remote-desktop
 
-        metrics
-        logs
+        # metrics
+        # logs
 
         # cottage-witch
       ]);
