@@ -18,6 +18,7 @@ in
         ./_console.nix
         ./_vfio.nix
         ./_gpu-vm.nix
+        ./_persist-backup.nix
 
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
