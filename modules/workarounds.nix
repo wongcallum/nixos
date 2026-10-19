@@ -128,5 +128,11 @@ in
       done = "xnviewmp ships a desktop entry in nixpkgs-unstable, from a package fix or a general fix for the issue";
       cleanup = "remove the commit from scripts/patch-nixpkgs.sh and rerun it; the fork stays";
     };
+
+    zapfast-waproto-oom = {
+      upstream = "not filed; zapfast's release profile builds whatsapp-rust's generated waproto crate as one codegen unit";
+      done = "zapfast's Cargo.toml gives waproto its own release profile, or shama's zapfast builds on vm-ci without the override";
+      fixed = (lib.importTOML "${inputs.zapfast}/Cargo.toml").profile.release ? package.waproto;
+    };
   };
 }
