@@ -76,9 +76,10 @@ in
     openscq30-softbuffer-orphaned = {
       upstream = "not filed; OpenSCQ30's Cargo.lock locks Oppzippy/softbuffer at 0c81b1b, which a force-push removed from master";
       done = "the locked openscq30 no longer locks softbuffer at 0c81b1b";
+      # line by line: hasInfix on the whole file overflows libstdc++'s regex stack
       fixed =
-        !lib.hasInfix "softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e" (
-          builtins.readFile "${inputs.openscq30}/Cargo.lock"
+        !lib.any (lib.hasInfix "softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e") (
+          lib.splitString "\n" (builtins.readFile "${inputs.openscq30}/Cargo.lock")
         );
     };
 
