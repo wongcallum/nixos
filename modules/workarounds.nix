@@ -83,12 +83,12 @@ in
     };
 
     punktfunk-hevc = {
-      upstream = "not filed; git.unom.io/unom/punktfunk, crates/pf-vaapi/src/enc_h265.rs";
+      upstream = "not filed; git.unom.io/unom/punktfunk, crates/codec/pf-vaapi/src/enc_h265.rs";
       done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";
       cleanup = "delete patches/punktfunk-hevc-guessed-features.patch";
       fixed =
         let
-          src = builtins.readFile "${inputs.punktfunk}/crates/pf-vaapi/src/enc_h265.rs";
+          src = builtins.readFile "${inputs.punktfunk}/crates/codec/pf-vaapi/src/enc_h265.rs";
           guessed = lib.head (
             lib.splitString "\n    }\n" (lib.last (lib.splitString "pub fn guessed()" src))
           );
