@@ -1,62 +1,80 @@
 { inputs, lib, ... }:
 {
   flake.modules.nixos.quadlet-automation =
-    { config, ... }:
+    { config, pkgs, ... }:
+    let
+      yaml = pkgs.formats.yaml { };
+    in
     {
       imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
 
-      systemd.tmpfiles.rules = [
-        "d ${config.utils.dataDir "home-assistant"} 0755 root root -"
-        "d ${config.users.users.colin.home}/mongo_data 0755 colin users -"
-      ];
-
-      modules.containers = {
-        homeassistant = lib.mkDefault true;
-        mongo = lib.mkDefault true;
+      options.modules.homeassistant.packages = lib.mkOption {
+        type = lib.types.attrsOf yaml.type;
+        default = { };
+        description = ''
+          Home Assistant packages by name, mounted read-only into /config/packages.
+          configuration.yaml has to load them with
+          `homeassistant: packages: !include_dir_named packages`.
+        '';
       };
 
-      virtualisation.quadlet = {
-        autoUpdate.enable = true;
+      config = {
+        systemd.tmpfiles.rules = [
+          "d ${config.utils.dataDir "home-assistant"} 0755 root root -"
+          "d ${config.users.users.colin.home}/mongo_data 0755 colin users -"
+        ];
 
-        containers = {
-          homeassistant = lib.mkIf config.modules.containers.homeassistant (
-            config.utils.mkContainer {
-              containerConfig = {
-                image = "ghcr.io/home-assistant/home-assistant:stable";
-                autoUpdate = "registry";
-                podmanArgs = [
-                  "--privileged"
-                  "--network=host"
-                ];
-                volumes = [
-                  "${config.utils.dataDir "home-assistant"}:/config"
-                  "/etc/localtime:/etc/localtime:ro"
-                  "/run/dbus:/run/dbus:ro"
-                ];
-              };
-            }
-          );
-
-          mongo = lib.mkIf config.modules.containers.mongo (
-            config.utils.mkContainer {
-              containerConfig = {
-                image = "docker.io/library/mongo:8";
-                environments = {
-                  MONGO_INITDB_ROOT_USERNAME = "admin";
-                  MONGO_INITDB_ROOT_PASSWORD = "secretpassword";
-                };
-                volumes = [ "${config.users.users.colin.home}/mongo_data:/data/db" ];
-                publishPorts = [ "27017:27017" ];
-              };
-            }
-          );
+        modules.containers = {
+          homeassistant = lib.mkDefault true;
+          mongo = lib.mkDefault true;
         };
-      };
 
-      networking.firewall.allowedTCPPorts = lib.mkMerge [
-        (lib.mkIf config.modules.containers.homeassistant [ 8123 ])
-        (lib.mkIf config.modules.containers.mongo [ 27017 ])
-      ];
+        virtualisation.quadlet = {
+          autoUpdate.enable = true;
+
+          containers = {
+            homeassistant = lib.mkIf config.modules.containers.homeassistant (
+              config.utils.mkContainer {
+                containerConfig = {
+                  image = "ghcr.io/home-assistant/home-assistant:stable";
+                  autoUpdate = "registry";
+                  podmanArgs = [
+                    "--privileged"
+                    "--network=host"
+                  ];
+                  volumes = [
+                    "${config.utils.dataDir "home-assistant"}:/config"
+                    "/etc/localtime:/etc/localtime:ro"
+                    "/run/dbus:/run/dbus:ro"
+                  ]
+                  ++ lib.mapAttrsToList (
+                    name: package: "${yaml.generate "${name}.yaml" package}:/config/packages/${name}.yaml:ro"
+                  ) config.modules.homeassistant.packages;
+                };
+              }
+            );
+
+            mongo = lib.mkIf config.modules.containers.mongo (
+              config.utils.mkContainer {
+                containerConfig = {
+                  image = "docker.io/library/mongo:8";
+                  environments = {
+                    MONGO_INITDB_ROOT_USERNAME = "admin";
+                    MONGO_INITDB_ROOT_PASSWORD = "secretpassword";
+                  };
+                  volumes = [ "${config.users.users.colin.home}/mongo_data:/data/db" ];
+                  publishPorts = [ "27017:27017" ];
+                };
+              }
+            );
+          };
+        };
+
+        networking.firewall.allowedTCPPorts = lib.mkMerge [
+          (lib.mkIf config.modules.containers.homeassistant [ 8123 ])
+          (lib.mkIf config.modules.containers.mongo [ 27017 ])
+        ];
+      };
     };
 
   flake.modules.nixos.gateway =

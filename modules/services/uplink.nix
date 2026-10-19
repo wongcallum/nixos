@@ -1,3 +1,20 @@
+let
+  ispHost = "ISP gateway";
+
+  # PromQL shared by the Grafana dashboard and the Home Assistant sensors
+  queries = cfg: {
+    router = ''host="${cfg.router}"'';
+    isp = ''host="${ispHost}"'';
+    internet = ''host!="${cfg.router}",host!="${ispHost}"'';
+
+    loss =
+      selector: window:
+      "clamp_min(1 - sum by (host) (rate(smokeping_response_duration_seconds_count{${selector}}[${window}])) / sum by (host) (rate(smokeping_requests_total{${selector}}[${window}])), 0)";
+    rtt =
+      q: selector: window:
+      "histogram_quantile(${toString q}, sum by (host, le) (rate(smokeping_response_duration_seconds_bucket{${selector}}[${window}])))";
+  };
+in
 {
   flake.modules.nixos.monitoring =
     {
@@ -8,6 +25,13 @@
     }:
     let
       cfg = config.modules.uplink;
+      inherit (queries cfg)
+        router
+        isp
+        internet
+        loss
+        rtt
+        ;
       exporter = config.services.prometheus.exporters.smokeping;
 
       promUid =
@@ -21,12 +45,6 @@
 
       # found at runtime by uplink-isp-gateway, so the ISP stays out of this public repo
       ispConfig = "/run/uplink/isp-gateway.yml";
-      ispHost = "ISP gateway";
-
-      router = ''host="${cfg.router}"'';
-      isp = ''host="${ispHost}"'';
-      internet = ''host!="${cfg.router}",host!="${ispHost}"'';
-
       lossThresholds = {
         mode = "absolute";
         steps = [
@@ -44,13 +62,6 @@
           }
         ];
       };
-
-      loss =
-        selector: window:
-        "clamp_min(1 - sum by (host) (rate(smokeping_response_duration_seconds_count{${selector}}[${window}])) / sum by (host) (rate(smokeping_requests_total{${selector}}[${window}])), 0)";
-      rtt =
-        q: selector: window:
-        "histogram_quantile(${toString q}, sum by (host, le) (rate(smokeping_response_duration_seconds_bucket{${selector}}[${window}])))";
 
       target = expr: legendFormat: { inherit datasource expr legendFormat; };
 
@@ -400,6 +411,106 @@
             }
           ];
         };
+      };
+    };
+
+  # The headline numbers as Home Assistant sensors, queried straight from
+  # Prometheus over the host network
+  flake.modules.nixos.quadlet-automation =
+    { config, lib, ... }:
+    let
+      inherit (queries config.modules.uplink)
+        router
+        isp
+        internet
+        loss
+        rtt
+        ;
+      prometheus = config.services.prometheus;
+
+      sensor =
+        {
+          id,
+          name,
+          query,
+          scale,
+          unit,
+          extra ? { },
+        }:
+        {
+          resource = "http://${prometheus.listenAddress}:${toString prometheus.port}/api/v1/query";
+          params = { inherit query; };
+          scan_interval = 60;
+          sensor = [
+            (
+              {
+                inherit name;
+                unique_id = "uplink_${id}";
+                unit_of_measurement = unit;
+                state_class = "measurement";
+                # an empty result, like the ISP gateway before it is found, is unavailable rather than 0
+                availability = "{{ value_json is not none and value_json.data.result | count > 0 }}";
+                value_template = "{{ (value_json.data.result[0].value[1] | float * ${toString scale}) | round(3) }}";
+              }
+              // extra
+            )
+          ];
+        };
+      percent = {
+        scale = 100;
+        unit = "%";
+      };
+      ms = {
+        scale = 1000;
+        unit = "ms";
+        extra.device_class = "duration";
+      };
+    in
+    {
+      modules.homeassistant.packages.uplink = lib.mkIf prometheus.exporters.smokeping.enable {
+        rest = [
+          (sensor (
+            {
+              id = "availability";
+              name = "Uplink availability";
+              # the dashboard's default range
+              query = "1 - min(${loss internet "24h"})";
+            }
+            // percent
+          ))
+          (sensor (
+            {
+              id = "internet_loss";
+              name = "Uplink internet loss";
+              query = "min(${loss internet "5m"})";
+            }
+            // percent
+          ))
+          (sensor (
+            {
+              id = "isp_loss";
+              name = "Uplink ISP loss";
+              query = loss isp "5m";
+            }
+            // percent
+          ))
+          (sensor (
+            {
+              id = "internet_ping";
+              name = "Uplink internet ping";
+              query = "min(${rtt 0.5 internet "5m"})";
+            }
+            // ms
+          ))
+          (sensor (
+            {
+              id = "router_ping";
+              name = "Uplink router ping";
+              query = rtt 0.5 router "5m";
+            }
+            // ms
+          ))
+        ];
       };
     };
 }
