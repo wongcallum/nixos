@@ -31,9 +31,7 @@ in
           immich = lib.mkDefault true;
         };
 
-        sops.secrets."docker/immich-stack_env" = {
-          owner = "root";
-          group = "root";
+        sops.secrets."docker/immich-stack_env" = lib.mkIf config.modules.containers.immich {
           mode = "0440";
           restartUnits = [ "immich-stack.service" ];
         };
@@ -140,30 +138,32 @@ in
               }
             );
 
-            immich-stack = config.utils.mkContainer {
-              containerConfig = {
-                image = "ghcr.io/majorfi/immich-stack:latest";
-                autoUpdate = "registry";
-                environmentFiles = [ config.sops.secrets."docker/immich-stack_env".path ];
-                environments = {
-                  API_URL = "http://172.25.0.5:2283/api";
-                  RUN_MODE = "cron";
-                  CRON_INTERVAL = "3600";
-                  LOG_LEVEL = "info";
-                  LOG_FORMAT = "text";
-                  LOG_FILE = "/app/logs/immich-stack.log";
+            immich-stack = lib.mkIf config.modules.containers.immich (
+              config.utils.mkContainer {
+                containerConfig = {
+                  image = "ghcr.io/majorfi/immich-stack:latest";
+                  autoUpdate = "registry";
+                  environmentFiles = [ config.sops.secrets."docker/immich-stack_env".path ];
+                  environments = {
+                    API_URL = "http://172.25.0.5:2283/api";
+                    RUN_MODE = "cron";
+                    CRON_INTERVAL = "3600";
+                    LOG_LEVEL = "info";
+                    LOG_FORMAT = "text";
+                    LOG_FILE = "/app/logs/immich-stack.log";
+                  };
+                  networks = [ networks.${networkName}.ref ];
+                  ip = "172.25.0.6";
+                  volumes = [
+                    "${config.utils.dataDir "immich/immich-stack/logs"}:/app/logs"
+                  ];
                 };
-                networks = [ networks.${networkName}.ref ];
-                ip = "172.25.0.6";
-                volumes = [
-                  "${config.utils.dataDir "immich/immich-stack/logs"}:/app/logs"
-                ];
-              };
-              unitConfig = {
-                Requires = [ "immich-server.service" ];
-                After = [ "immich-server.service" ];
-              };
-            };
+                unitConfig = {
+                  Requires = [ "immich-server.service" ];
+                  After = [ "immich-server.service" ];
+                };
+              }
+            );
           };
         };
       };

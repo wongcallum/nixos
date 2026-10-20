@@ -49,11 +49,7 @@ in
       );
     in
     {
-      flake.nixosConfigurations = lib.mkMerge [
-        machines
-
-        (config.flake.modules.iso or { })
-      ];
+      flake.nixosConfigurations = machines;
 
       flake.deploy.nodes = lib.mapAttrs (hostname: hostConfiguration: {
         inherit hostname;

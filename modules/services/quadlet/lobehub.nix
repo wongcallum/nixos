@@ -43,8 +43,6 @@ in
       };
 
       sops.secrets."docker/lobehub_env" = {
-        owner = "root";
-        group = "root";
         mode = "0440";
         restartUnits = [ "lobehub.service" ];
       };
@@ -206,10 +204,10 @@ in
     };
 
   flake.modules.nixos.gateway =
-    { config, ... }:
+    { config, lib, ... }:
     {
       modules.gateway.services = {
-        lobehub = {
+        lobehub = lib.mkIf config.modules.containers.lobehub {
           name = "LobeChat";
           domainName = "lobehub";
           addr = "${config.modules.hostAddrs.liz}:3210";
@@ -217,7 +215,7 @@ in
           category = "Productivity";
         };
 
-        lobehub-storage = {
+        lobehub-storage = lib.mkIf config.modules.containers.lobehub {
           name = "LobeChat Storage";
           domainName = "lobehub-storage";
           addr = "${config.modules.hostAddrs.liz}:9000";

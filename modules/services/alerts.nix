@@ -94,15 +94,6 @@
     {
       services.grafana.provision.alerting.rules.settings = {
         apiVersion = 1;
-        # Dropping a rule from `groups` leaves it running: file provisioning only
-        # deletes rules listed here. "Target down" was retired, so it needs a
-        # tombstone until someone removes it from the live instance by hand.
-        deleteRules = [
-          {
-            orgId = 1;
-            uid = "cfoxgrt2f1ji8b";
-          }
-        ];
         groups = [
           (mkGroup "system" [
             (mkRule {

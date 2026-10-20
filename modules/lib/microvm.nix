@@ -47,7 +47,6 @@
         };
 
         systemd.network = {
-          enable = true;
           networks."10-eth" = {
             matchConfig.MACAddress = addr.mac;
             address = [ "${addr.guestAddr}/32" ];

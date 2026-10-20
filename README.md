@@ -22,11 +22,9 @@ or, https://github.com/nix-community/disko/blob/master/docs/quickstart.md
 
 ### Initialise a new host
 
-Create a new `hosts/{{host}}/default.nix`, then import `./_configuration.nix`
-
-Either manually create and fill in the file or pass in
-`--generate-hardware-config nixos-generate-config hosts/{{host}}/_configuration.nix`
-when running `nixos-anywhere`
+Create `hosts/nixos/{{host}}/default.nix`; `hosts/default.nix` turns it into `nixosConfigurations.{{host}}`.
+Keep hardware settings inline in `default.nix` and disk layout in `_disko.nix`.
+Set `flake.nixpkgs.{{host}} = "unstable";` if the host should follow unstable.
 
 Add `{{host}}` to `ciHosts` in `modules/flake/checks.nix` so CI builds it and `deploy-schema` covers it.
 

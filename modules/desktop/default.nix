@@ -48,8 +48,6 @@
         GOBIN = "/home/callum/.local/bin";
       };
 
-      xdg.portal.enable = true;
-
       hardware.sane = {
         enable = true;
         # epson2's `net autodiscovery` gets no reply, so point it at the WF-3520 directly
@@ -62,16 +60,12 @@
       };
 
       services = {
-        displayManager.defaultSession = "niri";
-
         displayManager.dms-greeter = {
           enable = true;
           compositor.name = "niri";
           # keep the greeter's theme/wallpaper in sync with my DMS config
           configHome = config.users.users.callum.home;
         };
-
-        gnome.gnome-keyring.enable = true;
 
         speechd.enable = false;
 

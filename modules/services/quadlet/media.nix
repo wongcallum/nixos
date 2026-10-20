@@ -40,8 +40,6 @@ in
       };
 
       sops.secrets."docker/slskd_env" = lib.mkIf config.modules.containers.media-slskd {
-        owner = "root";
-        group = "root";
         mode = "0440";
         restartUnits = [ "media-slskd.service" ];
       };

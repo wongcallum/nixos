@@ -24,7 +24,7 @@ in
 
       system.stateVersion = "25.11";
 
-      environment.persistence."/persist".directories = [
+      environment.persistence.${config.modules.persistence.persistDir}.directories = [
         "/var/lib/containers"
       ];
 

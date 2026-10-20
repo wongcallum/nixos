@@ -223,8 +223,8 @@ in
             # rewrite the fetch identity on every start, so it survives a
             # deploy moving the secret or home directory
             services.nixbot.preStart = ''
-              install -d -m 700 /var/lib/nixbot/.ssh
-              install -m 600 ${fetchSshConfig} /var/lib/nixbot/.ssh/config
+              install -d -m 700 ${stateDir}/.ssh
+              install -m 600 ${fetchSshConfig} ${stateDir}/.ssh/config
             '';
           };
         };

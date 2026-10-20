@@ -14,19 +14,14 @@
         services = {
           logind.settings.Login = {
             HandleLidSwitch = sleepAction;
-            HandleLidSwitchExternalPower = sleepAction;
             HandleLidSwitchDocked = sleepAction;
             HandlePowerKey = sleepAction;
           };
 
           tuned.enable = true;
-          upower.enable = true;
         };
 
-        powerManagement = {
-          enable = true;
-          powertop.enable = true;
-        };
+        powerManagement.powertop.enable = true;
 
         # tuned-ppd thinks that no_turbo=1 means that the cpu is thermal throttling
         # we automatically disable turbo in the power saving profile, so the report is misleading

@@ -73,7 +73,7 @@ in
         gotosocial = lib.mkIf config.modules.containers.gotosocial {
           name = "GoToSocial";
           domainName = "social";
-          addr = "172.31.0.2:8080";
+          addr = "${gotosocialIp}:8080";
           iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gotosocial.png";
           category = "Social";
         };

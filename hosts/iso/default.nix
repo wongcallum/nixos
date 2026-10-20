@@ -88,10 +88,6 @@ let
             nix = {
               package = pkgs.nixVersions.latest;
               settings = {
-                experimental-features = [
-                  "nix-command"
-                  "flakes"
-                ];
                 substituters = [
                   "https://nix-community.cachix.org"
                 ];

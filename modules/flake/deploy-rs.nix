@@ -8,7 +8,7 @@
 let
   system = "x86_64-linux";
 
-  pkgs = import inputs.nixpkgs { inherit system; };
+  pkgs = inputs.nixpkgs.legacyPackages.${system};
 
   deployPkgs = import inputs.nixpkgs {
     inherit system;

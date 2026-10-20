@@ -3,7 +3,7 @@
   perSystem =
     { system, ... }:
     let
-      pkgs = import inputs.unstable { inherit system; };
+      pkgs = inputs.unstable.legacyPackages.${system};
     in
     {
       packages.coder-tools = pkgs.buildEnv {

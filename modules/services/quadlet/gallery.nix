@@ -20,8 +20,6 @@ in
       };
 
       sops.secrets."docker/gallery_env" = {
-        owner = "root";
-        group = "root";
         mode = "0440";
         restartUnits = [ "gallery-app.service" ];
       };

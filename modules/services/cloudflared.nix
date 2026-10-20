@@ -43,9 +43,6 @@
 
         (lib.mkIf (cfg.tunnelId != "") {
           sops.secrets.${cfg.credentialsSecret} = {
-            owner = "root";
-            group = "root";
-            mode = "0400";
             restartUnits = [ "cloudflared-tunnel-${cfg.tunnelId}.service" ];
           };
 

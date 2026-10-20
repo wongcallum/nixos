@@ -32,8 +32,6 @@
       };
 
       config = {
-        modules.samba.enable = lib.mkDefault true;
-
         services = {
           samba = {
             package = pkgs.samba4Full;
@@ -81,7 +79,7 @@
     { config, ... }:
     {
       environment.persistence.${config.modules.persistence.persistDir}.directories =
-        lib.mkIf config.modules.samba.enable
+        lib.mkIf config.services.samba.enable
           [ "/var/lib/samba" ];
     };
 }

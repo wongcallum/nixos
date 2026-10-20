@@ -11,7 +11,6 @@
       ssh.enable = lib.mkEnableOption "OpenSSH";
       tailscale.enable = lib.mkEnableOption "Tailscale";
       fonts.enable = lib.mkEnableOption "fonts";
-      samba.enable = lib.mkEnableOption "Samba";
       velocity.enable = lib.mkEnableOption "Velocity proxy";
 
       hostAddrs = lib.mkOption {
@@ -89,7 +88,6 @@
         searxng = lib.mkEnableOption "SearXNG";
 
         cottage-witch = lib.mkEnableOption "Minecraft Server (Cottage Witch)";
-        minecraft-server = lib.mkEnableOption "Minecraft Server";
 
         gallery = lib.mkEnableOption "Gallery";
 

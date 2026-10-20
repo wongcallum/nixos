@@ -44,10 +44,7 @@ in
 
       modules = {
         syncthing-desktop.user = "callum";
-        firefox.transparency = {
-          enableToolbox = true;
-          enablePage = false;
-        };
+        firefox.transparency.enableToolbox = true;
       };
 
       users.users.callum.extraGroups = [

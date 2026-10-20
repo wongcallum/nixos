@@ -87,9 +87,7 @@ in
       {
         nix.settings = {
           extra-substituters = [ cfg.substituter ];
-          extra-trusted-public-keys = lib.optional (
-            config.modules.attic.publicKey != ""
-          ) config.modules.attic.publicKey;
+          extra-trusted-public-keys = lib.optional (cfg.publicKey != "") cfg.publicKey;
         };
       };
 
@@ -153,9 +151,6 @@ in
           users.groups.atticd = { };
 
           sops.secrets."attic/server-env" = {
-            owner = "root";
-            group = "root";
-            mode = "0400";
             restartUnits = [ "atticd.service" ];
           };
 

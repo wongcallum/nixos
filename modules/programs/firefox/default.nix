@@ -8,6 +8,8 @@
     }:
     let
       cfg = config.modules.firefox;
+      inherit (config.modules.gateway) tld;
+      prismUrl = "https://prism.tower.${tld}";
 
       withOpacity =
         builtins.replaceStrings
@@ -69,7 +71,7 @@
               Add = [
                 {
                   Name = "SearXNG";
-                  URLTemplate = "https://search.7sref/search?q={searchTerms}";
+                  URLTemplate = "https://search.${tld}/search?q={searchTerms}";
                   Method = "GET";
                   Alias = "searx";
                 }
@@ -88,7 +90,7 @@
             # if unset firefox overrides the autoConfig
             NewTabPage = false;
             Homepage = {
-              URL = "https://prism.tower.7sref";
+              URL = prismUrl;
               StartPage = "previous-session";
             };
 
@@ -130,7 +132,7 @@
 
           preferences = lib.mkMerge [
             {
-              "browser.fixup.domainsuffixwhitelist.${config.modules.gateway.tld}" = true;
+              "browser.fixup.domainsuffixwhitelist.${tld}" = true;
               "browser.download.panel.shown" = true;
               "browser.search.suggest.enable" = false;
               "browser.urlbar.suggest.searches" = false;
@@ -158,7 +160,7 @@
             try {
               ChromeUtils.importESModule(
                 "resource:///modules/AboutNewTab.sys.mjs",
-              ).AboutNewTab.newTabURL = "https://prism.tower.7sref";
+              ).AboutNewTab.newTabURL = "${prismUrl}";
             } catch (e) {
               Cu.reportError(e);
             } // report errors in the Browser Console

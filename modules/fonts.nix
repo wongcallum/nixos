@@ -1,4 +1,4 @@
-_: {
+{
   flake.modules.nixos.fonts =
     { lib, pkgs, ... }:
     let
@@ -44,7 +44,6 @@ _: {
           bitmap-fonts
         ];
         fontconfig = {
-          enable = true;
           allowBitmaps = true;
 
           defaultFonts = {

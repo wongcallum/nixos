@@ -34,7 +34,6 @@ in
         docker
         keyd
         bluetooth
-        opentabletdriver
       ]);
 
       system.stateVersion = "26.05";
@@ -52,15 +51,11 @@ in
       modules = {
         limine.rememberLastEntry = true;
         syncthing-desktop.user = "callum";
-        firefox.transparency = {
-          enableToolbox = true;
-          enablePage = false;
-        };
+        firefox.transparency.enableToolbox = true;
       };
 
       users.users.callum.extraGroups = [
         "networkmanager"
-        "adbusers"
       ];
 
       boot = {
