@@ -83,6 +83,11 @@ in
         );
     };
 
+    pkexec-display-forwarding = {
+      upstream = "not filed";
+      done = "nixpkgs' gparted and gsmartcontrol keep DISPLAY and XAUTHORITY through pkexec, so both open from the desktop without rewriting their wrappers";
+    };
+
     punktfunk-hevc = {
       upstream = "not filed; git.unom.io/unom/punktfunk, crates/codec/pf-vaapi/src/enc_h265.rs";
       done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";
@@ -115,6 +120,11 @@ in
       done = "liz's nixpkgs ships prometheus-smokeping-prober >= 0.12.0, whose reload unregisters its metrics before re-creating them";
       cleanup = "give prometheus-smokeping-exporter an ExecReload that sends SIGHUP, and reload it instead of restarting";
       fixed = lib.versionAtLeast (pkgsFor "liz").prometheus-smokeping-prober.version "0.12.0";
+    };
+
+    tuned-ppd-no-turbo = {
+      upstream = "not filed; https://github.com/redhat-performance/tuned, tuned/ppd/controller.py";
+      done = "the locked tuned's PPD controller only reports no_turbo=1 as PerformanceDegraded=high-operating-temperature under the performance profile";
     };
 
     vm-ci-nix-2-35 = {
