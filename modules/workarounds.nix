@@ -76,19 +76,20 @@ in
     openscq30-softbuffer-orphaned = {
       upstream = "not filed; OpenSCQ30's Cargo.lock locks Oppzippy/softbuffer at 0c81b1b, which a force-push removed from master";
       done = "the locked openscq30 no longer locks softbuffer at 0c81b1b";
+      # line by line: hasInfix on the whole file overflows libstdc++'s regex stack
       fixed =
-        !lib.hasInfix "softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e" (
-          builtins.readFile "${inputs.openscq30}/Cargo.lock"
+        !lib.any (lib.hasInfix "softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e") (
+          lib.splitString "\n" (builtins.readFile "${inputs.openscq30}/Cargo.lock")
         );
     };
 
     punktfunk-hevc = {
-      upstream = "not filed; git.unom.io/unom/punktfunk, crates/pf-vaapi/src/enc_h265.rs";
+      upstream = "not filed; git.unom.io/unom/punktfunk, crates/codec/pf-vaapi/src/enc_h265.rs";
       done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";
       cleanup = "delete patches/punktfunk-hevc-guessed-features.patch";
       fixed =
         let
-          src = builtins.readFile "${inputs.punktfunk}/crates/pf-vaapi/src/enc_h265.rs";
+          src = builtins.readFile "${inputs.punktfunk}/crates/codec/pf-vaapi/src/enc_h265.rs";
           guessed = lib.head (
             lib.splitString "\n    }\n" (lib.last (lib.splitString "pub fn guessed()" src))
           );
@@ -126,6 +127,12 @@ in
       upstream = "https://github.com/NixOS/nixpkgs/issues/533948 (buildFHSEnv skips install phases, so appimageTools.wrapType2 drops desktopItems)";
       done = "xnviewmp ships a desktop entry in nixpkgs-unstable, from a package fix or a general fix for the issue";
       cleanup = "remove the commit from scripts/patch-nixpkgs.sh and rerun it; the fork stays";
+    };
+
+    zapfast-waproto-oom = {
+      upstream = "not filed; zapfast's release profile builds whatsapp-rust's generated waproto crate as one codegen unit";
+      done = "zapfast's Cargo.toml gives waproto its own release profile, or shama's zapfast builds on vm-ci without the override";
+      fixed = (lib.importTOML "${inputs.zapfast}/Cargo.toml").profile.release ? package.waproto;
     };
   };
 }

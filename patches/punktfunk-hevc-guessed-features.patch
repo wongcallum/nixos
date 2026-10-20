@@ -1,6 +1,6 @@
-diff -ru a/crates/pf-vaapi/src/enc_h265.rs b/crates/pf-vaapi/src/enc_h265.rs
---- a/crates/pf-vaapi/src/enc_h265.rs	2026-10-01 22:37:40.843253547 +1000
-+++ b/crates/pf-vaapi/src/enc_h265.rs	2026-10-01 22:37:55.960483285 +1000
+diff -ru a/crates/codec/pf-vaapi/src/enc_h265.rs b/crates/codec/pf-vaapi/src/enc_h265.rs
+--- a/crates/codec/pf-vaapi/src/enc_h265.rs	2026-10-01 22:37:40.843253547 +1000
++++ b/crates/codec/pf-vaapi/src/enc_h265.rs	2026-10-01 22:37:55.960483285 +1000
 @@ -49,6 +49,8 @@
      pub log2_max_tb_minus2: u8,
      pub max_transform_hierarchy_depth_inter: u8,
@@ -64,9 +64,9 @@ diff -ru a/crates/pf-vaapi/src/enc_h265.rs b/crates/pf-vaapi/src/enc_h265.rs
              gpb: false,
          }
      }
-diff -ru a/crates/pf-vaapi/src/hevc.rs b/crates/pf-vaapi/src/hevc.rs
---- a/crates/pf-vaapi/src/hevc.rs	2026-10-01 22:37:40.843253547 +1000
-+++ b/crates/pf-vaapi/src/hevc.rs	2026-10-01 22:37:55.961923029 +1000
+diff -ru a/crates/codec/pf-vaapi/src/hevc.rs b/crates/codec/pf-vaapi/src/hevc.rs
+--- a/crates/codec/pf-vaapi/src/hevc.rs	2026-10-01 22:37:40.843253547 +1000
++++ b/crates/codec/pf-vaapi/src/hevc.rs	2026-10-01 22:37:55.961923029 +1000
 @@ -217,10 +217,9 @@
          })
      }
