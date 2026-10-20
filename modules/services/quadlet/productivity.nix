@@ -1,5 +1,5 @@
 let
-  networkName = "ai";
+  networkName = "productivity";
   valkeyIp = "172.22.0.2";
   searxngIp = "172.22.0.3";
 in

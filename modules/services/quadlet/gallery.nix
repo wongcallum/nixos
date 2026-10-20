@@ -59,30 +59,28 @@ in
             }
           );
 
-          gallery-app = lib.mkIf config.modules.containers.gallery {
-            containerConfig = {
-              image = "ghcr.io/wongcallum/gallery.callumwong.com:master";
-              autoUpdate = "registry";
-              environmentFiles = [ config.sops.secrets."docker/gallery_env".path ];
-              environments = {
-                DATABASE_URL = "postgresql://postgres:postgres@172.24.0.2:5432/gallery";
+          gallery-app = lib.mkIf config.modules.containers.gallery (
+            config.utils.mkContainer {
+              containerConfig = {
+                image = "ghcr.io/wongcallum/gallery.callumwong.com:master";
+                autoUpdate = "registry";
+                environmentFiles = [ config.sops.secrets."docker/gallery_env".path ];
+                environments = {
+                  DATABASE_URL = "postgresql://postgres:postgres@172.24.0.2:5432/gallery";
+                };
+                networks = [ networks.${networkName}.ref ];
+                ip = "172.24.0.4";
               };
-              networks = [ networks.${networkName}.ref ];
-              ip = "172.24.0.4";
-            };
-            unitConfig = {
-              Requires = [
-                "gallery-db.service"
-              ];
-              After = [
-                "gallery-db.service"
-              ];
-            };
-            serviceConfig = {
-              Restart = "always";
-              RestartSec = "10";
-            };
-          };
+              unitConfig = {
+                Requires = [
+                  "gallery-db.service"
+                ];
+                After = [
+                  "gallery-db.service"
+                ];
+              };
+            }
+          );
         };
       };
     };

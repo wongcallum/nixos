@@ -48,6 +48,9 @@
         GOBIN = "/home/callum/.local/bin";
       };
 
+      networking.networkmanager.enable = true;
+      users.users.callum.extraGroups = [ "networkmanager" ];
+
       hardware.sane = {
         enable = true;
         # epson2's `net autodiscovery` gets no reply, so point it at the WF-3520 directly
@@ -60,6 +63,8 @@
       };
 
       services = {
+        resolved.enable = true;
+
         displayManager.dms-greeter = {
           enable = true;
           compositor.name = "niri";

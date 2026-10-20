@@ -90,15 +90,10 @@
 
         sops.secrets."caddy/ca.pem" = {
           owner = "caddy";
-          group = "caddy";
           mode = "0440";
         };
 
-        sops.secrets."caddy/ca.key" = {
-          owner = "caddy";
-          group = "caddy";
-          mode = "0400";
-        };
+        sops.secrets."caddy/ca.key".owner = "caddy";
 
         services.technitium-dns-server.enable = true;
 

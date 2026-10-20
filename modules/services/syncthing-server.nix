@@ -4,13 +4,11 @@
     {
       sops.secrets."syncthing/key.pem" = {
         owner = "syncthing";
-        group = "syncthing";
         mode = "0440";
       };
 
       sops.secrets."syncthing/cert.pem" = {
         owner = "syncthing";
-        group = "syncthing";
         mode = "0440";
       };
 

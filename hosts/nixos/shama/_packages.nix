@@ -21,15 +21,11 @@ in
   ];
 
   environment.systemPackages = with pkgs; [
-    coder
     trilium-desktop
     xournalpp
     scrcpy
     (obs-studio.override { browserSupport = false; })
     picard
-    equibop
-    feishin
-    faugus-launcher
     tigervnc
     openscq30-cli
     zapfast

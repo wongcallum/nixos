@@ -45,18 +45,11 @@ in
         ZE_ENABLE_ALT_DRIVERS = "/run/opengl-driver/lib/libze_intel_npu.so.1";
       };
 
-      networking.networkmanager.enable = true;
-      services.resolved.enable = true;
-
       modules = {
         limine.rememberLastEntry = true;
         syncthing-desktop.user = "callum";
         firefox.transparency.enableToolbox = true;
       };
-
-      users.users.callum.extraGroups = [
-        "networkmanager"
-      ];
 
       boot = {
         # Clang ThinLTO + BORE scheduler, optimized for this CPU.

@@ -125,17 +125,11 @@ in
             "nixbot/github-oauth-secret".restartUnits = [ "nixbot.service" ];
 
             # read directly by the attic client running as the service user
-            "attic/push-token" = {
-              owner = "nixbot";
-              group = "nixbot";
-              mode = "0400";
-            };
+            "attic/push-token".owner = "nixbot";
 
             # read by the fetch prefetch's git/ssh as the service user
             "nixbot/github-deploy-key" = {
               owner = "nixbot";
-              group = "nixbot";
-              mode = "0400";
               restartUnits = [ "nixbot.service" ];
             };
           };

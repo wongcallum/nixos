@@ -36,20 +36,12 @@ in
 
       system.stateVersion = "26.05";
 
-      networking.networkmanager.enable = true;
-      services = {
-        resolved.enable = true;
-        xserver.videoDrivers = [ "nvidia" ];
-      };
+      services.xserver.videoDrivers = [ "nvidia" ];
 
       modules = {
         syncthing-desktop.user = "callum";
         firefox.transparency.enableToolbox = true;
       };
-
-      users.users.callum.extraGroups = [
-        "networkmanager"
-      ];
 
       boot = {
         loader.efi.canTouchEfiVariables = true;

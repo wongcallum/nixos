@@ -20,6 +20,8 @@ in
       "vm-ci"
       "vm-coder"
       "vm-gallery"
+      "vm-hsctikzbench"
+      "vm-thsconline"
     ];
 
     flake.checks.${system} = lib.genAttrs config.flake.ciHosts (
