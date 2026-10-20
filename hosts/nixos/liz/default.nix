@@ -7,6 +7,7 @@
 let
   inherit (config.flake.modules) nixos;
   inherit (config.flake) keys;
+  hostNixpkgs = config.flake.nixpkgs;
 in
 {
   flake.modules.nixos."hosts/nixos/liz" =
@@ -22,23 +23,8 @@ in
 
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
-        (microvmLib.mkHostNetworking {
-          n = 1;
-          hostname = "vm-gallery";
-        })
-        (microvmLib.mkHostNetworking {
-          n = 2;
-          hostname = "vm-coder";
-        })
-        (microvmLib.mkHostNetworking {
-          n = 3;
-          hostname = "vm-thsconline";
-        })
-        (microvmLib.mkHostNetworking {
-          n = 4;
-          hostname = "vm-hsctikzbench";
-        })
       ]
+      ++ map microvmLib.mkHostNetworking (lib.attrNames microvmLib.guests)
       ++ (with nixos; [
         uefi
         zram
@@ -79,52 +65,20 @@ in
 
       # https://microvm-nix.github.io/microvm.nix/declarative.html#fully-declarative
 
-      microvm.vms = {
-        vm-gallery = {
-          config.imports = [
-            nixos.base
-            nixos.global
-            nixos."hosts/nixos/vm-gallery"
-          ];
-          # nixos.base sets nixpkgs.config, which nixpkgs forbids once pkgs is
-          # instantiated externally; force config-mode's eval-config to build
-          # its own pkgs instead of reusing liz's already-built instance.
-          pkgs = null;
-          restartIfChanged = true;
-        };
-
-        vm-coder = {
-          config.imports = [
-            nixos.base
-            nixos.global
-            nixos."hosts/nixos/vm-coder"
-          ];
-          pkgs = null;
-          nixpkgs = inputs.unstable;
-          restartIfChanged = true;
-        };
-
-        vm-thsconline = {
-          config.imports = [
-            nixos.base
-            nixos.global
-            nixos."hosts/nixos/vm-thsconline"
-          ];
-          pkgs = null;
-          restartIfChanged = true;
-        };
-
-        vm-hsctikzbench = {
-          config.imports = [
-            nixos.base
-            nixos.global
-            nixos."hosts/nixos/vm-hsctikzbench"
-          ];
-          pkgs = null;
-          nixpkgs = inputs.unstable;
-          restartIfChanged = true;
-        };
-      };
+      microvm.vms = lib.mapAttrs (hostname: _: {
+        config.imports = [
+          nixos.base
+          nixos.global
+          nixos."hosts/nixos/${hostname}"
+        ];
+        # nixos.base sets nixpkgs.config, which nixpkgs forbids once pkgs is
+        # instantiated externally; force config-mode's eval-config to build
+        # its own pkgs instead of reusing liz's already-built instance.
+        pkgs = null;
+        # the same nixpkgs as the guest's standalone nixosConfiguration
+        nixpkgs = inputs.${hostNixpkgs.${hostname} or "nixpkgs"};
+        restartIfChanged = true;
+      }) microvmLib.guests;
 
       _module.args.sshKeys = keys.callum;
 

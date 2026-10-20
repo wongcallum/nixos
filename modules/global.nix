@@ -1,4 +1,12 @@
 { lib, ... }:
+let
+  exporterPorts = {
+    node = 9002;
+    smartctl = 9003;
+    zfs = 9004;
+    cadvisor = 9005;
+  };
+in
 {
   flake.modules.nixos.global = _: {
     options.modules = {
@@ -19,18 +27,18 @@
         description = "hostname to tailscale IP address";
       };
 
+      metrics.ports = lib.mkOption {
+        type = lib.types.attrsOf lib.types.port;
+        default = exporterPorts;
+        readOnly = true;
+        description = "Port each exporter listens on, shared by the exporting and scraping hosts.";
+      };
+
       metrics.hosts = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule {
             options.exporters = lib.mkOption {
-              type = lib.types.listOf (
-                lib.types.enum [
-                  "node"
-                  "zfs"
-                  "smartctl"
-                  "cadvisor"
-                ]
-              );
+              type = lib.types.listOf (lib.types.enum (lib.attrNames exporterPorts));
             };
 
             options.smartctlDevices = lib.mkOption {

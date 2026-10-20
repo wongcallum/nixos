@@ -1,16 +1,38 @@
-{ inputs, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   _module.args.microvmLib = rec {
-    addressing = n: {
-      hostAddr = "10.0.0.1";
-      guestAddr = "10.0.0.${toString (n + 1)}";
-      mac = "02:00:00:00:00:${lib.fixedWidthString 2 "0" (lib.toLower (lib.toHexString n))}";
+    # liz's microVM guests; each index fixes the guest's MAC and 10.0.0.x address
+    guests = {
+      vm-gallery = 1;
+      vm-coder = 2;
+      vm-thsconline = 3;
+      vm-hsctikzbench = 4;
     };
 
-    mkGuestModule =
-      { n, hostname }:
+    addressing =
+      hostname:
       let
-        addr = addressing n;
+        n = guests.${hostname};
+      in
+      {
+        hostAddr = "10.0.0.1";
+        guestAddr = "10.0.0.${toString (n + 1)}";
+        mac = "02:00:00:00:00:${lib.fixedWidthString 2 "0" (lib.toLower (lib.toHexString n))}";
+      };
+
+    # lockRoot: key-only root SSH instead of the default password login
+    mkGuestModule =
+      {
+        hostname,
+        lockRoot ? false,
+      }:
+      let
+        addr = addressing hostname;
       in
       {
         imports = [ inputs.microvm.nixosModules.microvm ];
@@ -60,16 +82,21 @@
           };
         };
 
+        users.users.root = lib.mkIf lockRoot {
+          hashedPassword = "!";
+          openssh.authorizedKeys.keys = config.flake.keys.callum;
+        };
+
         services.openssh.settings = {
-          PermitRootLogin = lib.mkForce "yes";
-          PasswordAuthentication = lib.mkForce true;
+          PermitRootLogin = lib.mkForce (if lockRoot then "prohibit-password" else "yes");
+          PasswordAuthentication = lib.mkForce (!lockRoot);
         };
       };
 
     mkHostNetworking =
-      { n, hostname }:
+      hostname:
       let
-        addr = addressing n;
+        addr = addressing hostname;
         vmDir = "/persist/microvms/${hostname}";
 
         blockedDestinations = [

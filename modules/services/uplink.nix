@@ -34,13 +34,9 @@ in
         ;
       exporter = config.services.prometheus.exporters.smokeping;
 
-      promUid =
-        (lib.findFirst (d: d.name == "prometheus") (throw "no Grafana datasource named prometheus")
-          config.services.grafana.provision.datasources.settings.datasources
-        ).uid;
       datasource = {
         type = "prometheus";
-        uid = promUid;
+        uid = config.modules.monitoring.datasourceUids.prometheus;
       };
 
       # found at runtime by uplink-isp-gateway, so the ISP stays out of this public repo

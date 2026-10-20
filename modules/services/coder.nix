@@ -7,9 +7,8 @@
 let
   inherit (config.flake.modules) nixos;
 
-  n = 2;
   hostname = "vm-coder";
-  addr = microvmLib.addressing n;
+  addr = microvmLib.addressing hostname;
 in
 {
   flake.modules.nixos.coder =
@@ -19,9 +18,7 @@ in
         nixos.docker
         nixos.persistence
         nixos.ssh
-        (microvmLib.mkGuestModule {
-          inherit n hostname;
-        })
+        (microvmLib.mkGuestModule { inherit hostname; })
       ];
 
       environment.persistence.${config.modules.persistence.persistDir}.directories = [

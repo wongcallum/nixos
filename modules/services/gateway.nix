@@ -25,6 +25,18 @@
           ''
         else
           "reverse_proxy ${service.addr}${reverseProxyConfig service}";
+      gatewayServices = builtins.attrValues config.modules.gateway.services;
+      # serve plain http too, for devices that can't install the internal CA
+      mkVhost = domainName: body: {
+        "http://${fqdn domainName}, https://${fqdn domainName}".extraConfig = ''
+          tls {
+            issuer internal {
+              ca 7sref_ca
+            }
+          }
+          ${body}
+        '';
+      };
     in
     {
       options.modules.gateway = {
@@ -121,6 +133,14 @@
           WorkingDirectory = lib.mkForce technitiumDataDir;
         };
 
+        # vhosts are keyed by domain, so a clash would silently merge two sites
+        assertions = [
+          {
+            assertion = lib.allUnique ([ "prism.tower" ] ++ map (s: s.domainName) gatewayServices);
+            message = "modules.gateway.services: each domainName must be unique and not prism.tower";
+          }
+        ];
+
         networking.firewall = {
           allowedTCPPorts = [
             53
@@ -149,53 +169,32 @@
             skip_install_trust
             auto_https disable_redirects
           '';
-          # for devices where we are unable to install CA, use http
-          virtualHosts =
-            (builtins.listToAttrs (
-              map (service: {
-                name = "http://${fqdn service.domainName}, https://${fqdn service.domainName}";
-                value = {
-                  extraConfig = ''
-                    tls {
-                      issuer internal {
-                        ca 7sref_ca
+          virtualHosts = lib.mkMerge (
+            map (service: mkVhost service.domainName (serviceConfig service)) gatewayServices
+            ++ [
+              (mkVhost "prism.tower" ''
+                root * ${
+                  pkgs.prism-tower.override {
+                    services = map (service: {
+                      inherit (service) name iconUrl category;
+                      url = "https://${fqdn service.domainName}";
+                    }) (builtins.filter (s: !s.hidden) gatewayServices);
+                    links = [
+                      {
+                        name = "Sentral";
+                        url = "https://fortstreeths.sentral.com.au/auth/portal";
                       }
-                    }
-                    ${serviceConfig service}
-                  '';
-                };
-              }) (builtins.attrValues config.modules.gateway.services)
-            ))
-            // {
-              "http://${fqdn "prism.tower"}, https://${fqdn "prism.tower"}" = {
-                extraConfig = ''
-                  tls {
-                    issuer internal {
-                      ca 7sref_ca
-                    }
+                    ];
+                    # TODO: derive this value from the config somehow
+                    searchUrl = "https://${fqdn "search"}/search";
                   }
-                  root * ${
-                    pkgs.prism-tower.override {
-                      services = map (service: {
-                        inherit (service) name iconUrl category;
-                        url = "https://${fqdn service.domainName}";
-                      }) (builtins.filter (s: !s.hidden) (builtins.attrValues config.modules.gateway.services));
-                      links = [
-                        {
-                          name = "Sentral";
-                          url = "https://fortstreeths.sentral.com.au/auth/portal";
-                        }
-                      ];
-                      # TODO: derive this value from the config somehow
-                      searchUrl = "https://${fqdn "search"}/search";
-                    }
-                  }
-                  header /_astro/* Cache-Control "public, max-age=31536000, immutable"
-                  header /index.html Cache-Control "public, no-cache"
-                  file_server
-                '';
-              };
-            };
+                }
+                header /_astro/* Cache-Control "public, max-age=31536000, immutable"
+                header /index.html Cache-Control "public, no-cache"
+                file_server
+              '')
+            ]
+          );
         };
       };
     };

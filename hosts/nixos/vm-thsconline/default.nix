@@ -6,7 +6,6 @@
 }:
 let
   inherit (config.flake.modules) nixos;
-  inherit (config.flake) keys;
 
   domain = "thsconline.callumwong.com";
   port = 5000;
@@ -18,8 +17,8 @@ in
     {
       imports = [
         (microvmLib.mkGuestModule {
-          n = 3;
           hostname = "vm-thsconline";
+          lockRoot = true;
         })
       ]
       ++ (with nixos; [
@@ -50,16 +49,6 @@ in
             posixAcl = false;
           }
         ];
-      };
-
-      users.users.root = {
-        hashedPassword = "!";
-        openssh.authorizedKeys.keys = keys.callum;
-      };
-
-      services.openssh.settings = {
-        PermitRootLogin = lib.mkOverride 40 "prohibit-password";
-        PasswordAuthentication = lib.mkOverride 40 false;
       };
 
       systemd.services.thsconline-listing = {

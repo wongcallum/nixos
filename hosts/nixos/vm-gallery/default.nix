@@ -7,10 +7,7 @@ in
     { config, ... }:
     {
       imports = [
-        (microvmLib.mkGuestModule {
-          n = 1;
-          hostname = "vm-gallery";
-        })
+        (microvmLib.mkGuestModule { hostname = "vm-gallery"; })
       ]
       ++ (with nixos; [
         persistence

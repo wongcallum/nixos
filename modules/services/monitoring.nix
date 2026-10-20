@@ -2,12 +2,6 @@
   flake.modules.nixos.monitoring =
     { config, lib, ... }:
     let
-      exporterPorts = {
-        node = 9002;
-        smartctl = 9003;
-        zfs = 9004;
-        cadvisor = 9005;
-      };
       lokiDir = config.utils.dataDir "loki";
       activeExporters = lib.unique (
         lib.concatMap (h: h.exporters) (lib.attrValues config.modules.metrics.hosts)
@@ -19,7 +13,7 @@
         static_configs =
           lib.mapAttrsToList
             (host: _: {
-              targets = [ "${addrOf host}:${toString exporterPorts.${exporter}}" ];
+              targets = [ "${addrOf host}:${toString config.modules.metrics.ports.${exporter}}" ];
               labels.instance = host;
             })
             (
@@ -28,109 +22,120 @@
       };
     in
     {
-      services = {
-        grafana = {
-          enable = true;
-          dataDir = config.utils.dataDir "grafana";
-          settings = {
-            server = {
-              http_addr = "127.0.0.1";
-              http_port = 2342;
-              domain = "grafana.${config.modules.gateway.tld}";
-              root_url = "https://%(domain)s/";
-            };
-            # internal
-            security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
-            auth.disable_login_form = false;
-            "auth.anonymous" = {
-              enabled = true;
-              org_name = "Main Org.";
-              org_role = "Viewer";
-            };
-          };
-
-          # UIDs are the ones these got when created in the UI, so provisioning
-          # took them over in place
-          provision.datasources.settings = {
-            apiVersion = 1;
-            datasources = [
-              {
-                name = "prometheus";
-                type = "prometheus";
-                uid = "aff001un1301sb";
-                access = "proxy";
-                url = "http://${config.services.prometheus.listenAddress}:${toString config.services.prometheus.port}";
-                isDefault = true;
-              }
-              {
-                name = "loki";
-                type = "loki";
-                uid = "afolga78njz7kd";
-                access = "proxy";
-                url = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}";
-                jsonData.manageAlerts = false;
-              }
-            ];
-          };
+      options.modules.monitoring.datasourceUids = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        readOnly = true;
+        # the ones these got when created in the UI, so provisioning took them over in place
+        default = {
+          prometheus = "aff001un1301sb";
+          loki = "afolga78njz7kd";
         };
+        description = "UID of each provisioned Grafana datasource, by name.";
+      };
 
-        prometheus = {
-          enable = true;
-          listenAddress = "127.0.0.1";
-          port = 9001;
-          scrapeConfigs = map mkJob activeExporters;
-        };
-
-        # https://keyruu.de/blog/monitoring/#loki
-        loki = {
-          enable = true;
-          dataDir = lokiDir;
-          configuration = {
-            auth_enabled = false;
-            server = {
-              http_listen_address = "0.0.0.0";
-              http_listen_port = 3100;
-              grpc_listen_port = 9096;
-              log_level = "warn";
-            };
-            common = {
-              path_prefix = lokiDir;
-              replication_factor = 1;
-              ring = {
-                instance_addr = "127.0.0.1";
-                kvstore.store = "inmemory";
+      config = {
+        services = {
+          grafana = {
+            enable = true;
+            dataDir = config.utils.dataDir "grafana";
+            settings = {
+              server = {
+                http_addr = "127.0.0.1";
+                http_port = 2342;
+                domain = "grafana.${config.modules.gateway.tld}";
+                root_url = "https://%(domain)s/";
+              };
+              # internal
+              security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
+              auth.disable_login_form = false;
+              "auth.anonymous" = {
+                enabled = true;
+                org_name = "Main Org.";
+                org_role = "Viewer";
               };
             };
-            schema_config.configs = [
-              {
-                from = "2024-01-01";
-                store = "tsdb";
-                object_store = "filesystem";
-                schema = "v13";
-                index = {
-                  prefix = "index_";
-                  period = "24h";
-                };
-              }
-            ];
-            storage_config.filesystem.directory = "${lokiDir}/chunks";
-            compactor = {
-              working_directory = "${lokiDir}/compactor";
-              retention_enabled = true;
-              delete_request_store = "filesystem";
+
+            provision.datasources.settings = {
+              apiVersion = 1;
+              datasources = [
+                {
+                  name = "prometheus";
+                  type = "prometheus";
+                  uid = config.modules.monitoring.datasourceUids.prometheus;
+                  access = "proxy";
+                  url = "http://${config.services.prometheus.listenAddress}:${toString config.services.prometheus.port}";
+                  isDefault = true;
+                }
+                {
+                  name = "loki";
+                  type = "loki";
+                  uid = config.modules.monitoring.datasourceUids.loki;
+                  access = "proxy";
+                  url = "http://127.0.0.1:${toString config.services.loki.configuration.server.http_listen_port}";
+                  jsonData.manageAlerts = false;
+                }
+              ];
             };
-            limits_config.retention_period = "30d";
+          };
+
+          prometheus = {
+            enable = true;
+            listenAddress = "127.0.0.1";
+            port = 9001;
+            scrapeConfigs = map mkJob activeExporters;
+          };
+
+          # https://keyruu.de/blog/monitoring/#loki
+          loki = {
+            enable = true;
+            dataDir = lokiDir;
+            configuration = {
+              auth_enabled = false;
+              server = {
+                http_listen_address = "0.0.0.0";
+                http_listen_port = 3100;
+                grpc_listen_port = 9096;
+                log_level = "warn";
+              };
+              common = {
+                path_prefix = lokiDir;
+                replication_factor = 1;
+                ring = {
+                  instance_addr = "127.0.0.1";
+                  kvstore.store = "inmemory";
+                };
+              };
+              schema_config.configs = [
+                {
+                  from = "2024-01-01";
+                  store = "tsdb";
+                  object_store = "filesystem";
+                  schema = "v13";
+                  index = {
+                    prefix = "index_";
+                    period = "24h";
+                  };
+                }
+              ];
+              storage_config.filesystem.directory = "${lokiDir}/chunks";
+              compactor = {
+                working_directory = "${lokiDir}/compactor";
+                retention_enabled = true;
+                delete_request_store = "filesystem";
+              };
+              limits_config.retention_period = "30d";
+            };
           };
         };
-      };
 
-      fileSystems."/var/lib/${config.services.prometheus.stateDir}" = {
-        device = config.utils.dataDir "prometheus2";
-        fsType = "none";
-        options = [ "bind" ];
-      };
+        fileSystems."/var/lib/${config.services.prometheus.stateDir}" = {
+          device = config.utils.dataDir "prometheus2";
+          fsType = "none";
+          options = [ "bind" ];
+        };
 
-      systemd.tmpfiles.rules = [ "d ${lokiDir} 0750 loki loki -" ];
+        systemd.tmpfiles.rules = [ "d ${lokiDir} 0750 loki loki -" ];
+      };
     };
 
   flake.modules.nixos.gateway =

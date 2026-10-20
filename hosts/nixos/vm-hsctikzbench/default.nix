@@ -7,7 +7,6 @@
 }:
 let
   inherit (config.flake.modules) nixos;
-  inherit (config.flake) keys;
 
   domain = "hsctikzbench.callumwong.com";
   port = 8787;
@@ -48,8 +47,8 @@ in
     {
       imports = [
         (microvmLib.mkGuestModule {
-          n = 4;
           hostname = "vm-hsctikzbench";
+          lockRoot = true;
         })
       ]
       ++ (with nixos; [
@@ -70,15 +69,6 @@ in
           home = dataDir;
         };
         groups.${user} = { };
-        users.root = {
-          hashedPassword = "!";
-          openssh.authorizedKeys.keys = keys.callum;
-        };
-      };
-
-      services.openssh.settings = {
-        PermitRootLogin = lib.mkOverride 40 "prohibit-password";
-        PasswordAuthentication = lib.mkOverride 40 false;
       };
 
       systemd.tmpfiles.rules = [

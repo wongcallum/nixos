@@ -6,6 +6,7 @@
       hostCfg = config.modules.metrics.hosts.${hostname} or { };
       exporters = hostCfg.exporters or [ ];
       has = e: builtins.elem e exporters;
+      inherit (config.modules.metrics) ports;
     in
     {
       options.modules.metrics.textfileDirs = lib.mkOption {
@@ -28,25 +29,25 @@
               "systemd"
               "tcpstat"
             ];
-            port = 9002;
+            port = ports.node;
           };
 
           smartctl = lib.mkIf (has "smartctl") {
             enable = true;
-            port = 9003;
+            port = ports.smartctl;
             devices = map (d: "/dev/disk/by-id/${d}") (hostCfg.smartctlDevices or [ ]);
           };
 
           zfs = lib.mkIf (has "zfs") {
             enable = true;
-            port = 9004;
+            port = ports.zfs;
           };
         };
 
         services.cadvisor = lib.mkIf (has "cadvisor") {
           enable = true;
           listenAddress = "0.0.0.0";
-          port = 9005;
+          port = ports.cadvisor;
           extraOptions = [
             "--docker_only=false" # also report podman/systemd cgroups
 
