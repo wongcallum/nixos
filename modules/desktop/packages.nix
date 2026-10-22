@@ -11,6 +11,7 @@
       thunderbird
       cryptomatord
       nix-discord-rpc
+      nix-output-monitor
       opentabletdriver
     ];
 
@@ -24,7 +25,6 @@
       ripgrep
       unzip
       wl-clipboard
-      nix-output-monitor
       nh
 
       git

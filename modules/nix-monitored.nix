@@ -3,7 +3,10 @@
   flake.modules.nixos.nix-monitored =
     { pkgs, ... }:
     {
-      imports = [ inputs.nix-monitored.nixosModules.default ];
+      imports = [
+        inputs.nix-monitored.nixosModules.default
+        inputs.self.modules.nixos.nix-output-monitor
+      ];
 
       nix.monitored = {
         enable = true;

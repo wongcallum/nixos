@@ -30,6 +30,7 @@
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
     nix-monitored.url = "github:ners/nix-monitored";
+    nix-output-monitor.url = "github:wongcallum/nix-output-monitor/feat/program-status";
     nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
     cryptomatord.url = "github:wongcallum/cryptomatord";
     freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
@@ -65,6 +66,7 @@
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
     hsctikzbench.inputs.nixpkgs.follows = "unstable";
     zapfast.inputs.nixpkgs.follows = "unstable";
+    nix-output-monitor.inputs.nixpkgs.follows = "unstable";
     # its GUI client dlopens the host's GPU drivers, so it must share their glibc
     punktfunk.inputs.nixpkgs.follows = "unstable";
   };
