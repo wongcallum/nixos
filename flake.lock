@@ -744,17 +744,17 @@
     "openscq30": {
       "flake": false,
       "locked": {
-        "lastModified": 1784701150,
-        "narHash": "sha256-mUHepCw7sHBXbJpWMEz3wDIIpAoX9ce2lIRlDCzx+ms=",
+        "lastModified": 1792212751,
+        "narHash": "sha256-u9bOq1oAIrm6161t/SFbPprc9851+Yq38jX43aZ8Ut4=",
         "owner": "Oppzippy",
         "repo": "OpenSCQ30",
-        "rev": "409460e16c44324b35aeb5c99ea9acb7896726f4",
+        "rev": "c730b832f8d409b215fcd7f59c07c8a624dea9aa",
         "type": "github"
       },
       "original": {
         "owner": "Oppzippy",
+        "ref": "v2.13.0",
         "repo": "OpenSCQ30",
-        "rev": "409460e16c44324b35aeb5c99ea9acb7896726f4",
         "type": "github"
       }
     },

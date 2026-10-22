@@ -18,6 +18,11 @@ let
 in
 {
   flake.workarounds = {
+    askama-config-path-symlink = {
+      upstream = "https://github.com/askama-rs/askama/pull/744 (closed unmerged); crane side: https://github.com/ipetkov/crane/issues/965";
+      done = "the askama_derive in openscq30's Cargo.lock includes askama PR 744 or another fix for askama.toml reached through a symlink, or crane vendors crates without per-crate symlinks";
+    };
+
     cadvisor-overlay = {
       upstream = "https://github.com/NixOS/nixpkgs/pull/520137";
       done = "liz's and salt's nixpkgs ship cadvisor >= 0.57.0 (liz is on stable, so it may need a backport)";
@@ -71,16 +76,6 @@ in
       upstream = "not filed; https://github.com/Mic92/nixbot hard-codes --check-cache-status and leaves EvalSettings.extra_args unset";
       done = "upstream nixbot can pass nix options or extra arguments to nix-eval-jobs, or turn off --check-cache-status";
       cleanup = "delete patches/nixbot-eval-nix-options.patch, import inputs.nixbot.nixosModules.nixbot directly, and move evalNixOptions to the upstream option";
-    };
-
-    openscq30-softbuffer-orphaned = {
-      upstream = "not filed; OpenSCQ30's Cargo.lock locks Oppzippy/softbuffer at 0c81b1b, which a force-push removed from master";
-      done = "the locked openscq30 no longer locks softbuffer at 0c81b1b";
-      # line by line: hasInfix on the whole file overflows libstdc++'s regex stack
-      fixed =
-        !lib.any (lib.hasInfix "softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e") (
-          lib.splitString "\n" (builtins.readFile "${inputs.openscq30}/Cargo.lock")
-        );
     };
 
     pkexec-display-forwarding = {

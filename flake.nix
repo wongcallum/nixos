@@ -37,7 +37,7 @@
     crane.url = "github:ipetkov/crane";
     zapfast.url = "github:crmne/zapfast";
     openscq30 = {
-      url = "github:Oppzippy/OpenSCQ30/409460e16c44324b35aeb5c99ea9acb7896726f4";
+      url = "github:Oppzippy/OpenSCQ30/v2.13.0";
       flake = false;
     };
 

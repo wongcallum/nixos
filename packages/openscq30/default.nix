@@ -16,6 +16,7 @@
   udev,
   vulkan-loader,
   cosmic-icons,
+  fetchpatch,
 }:
 
 let
@@ -52,19 +53,42 @@ let
     vulkan-loader
   ];
 
+  # workaround: askama-config-path-symlink
+  # askama_derive mangles askama.toml's path when the crate is reached
+  # through a symlink, as every crate in crane's vendor directory is
+  cargoVendorDir = craneLib.vendorCargoDeps {
+    src = source;
+    overrideVendorCargoPackage =
+      p: drv:
+      if p.name == "askama_derive" then
+        drv.overrideAttrs (old: {
+          # the commits of askama PR 744
+          patches = (old.patches or [ ]) ++ [
+            (fetchpatch {
+              url = "https://github.com/askama-rs/askama/commit/80bfe085108e642e47715a764292c66ad0c2babb.patch";
+              relative = "askama_derive";
+              hash = "sha256-jGSvr+R6xmaEW6/20R29+z1aNceYFXazuCEEgD/nABI=";
+            })
+            (fetchpatch {
+              url = "https://github.com/askama-rs/askama/commit/711b4202640c93d0b75bcc137f8be1bf2f46c496.patch";
+              relative = "askama_derive";
+              hash = "sha256-2ZCaitfKZMcCj6tSmc9DFHMosQkhuJ50XzjIigo8y+E=";
+            })
+          ];
+        })
+      else
+        drv;
+  };
+
   commonArgs = {
     src = source;
     pname = "openscq30";
+    inherit cargoVendorDir;
     nativeBuildInputs = [
       pkg-config
       makeWrapper
     ];
     buildInputs = commonBuildInputs ++ guiOnlyBuildInputs;
-    # workaround: openscq30-softbuffer-orphaned
-    # the locked rev is no longer on any branch, so fetch it by hash rather
-    # than with builtins.fetchGit, which only finds it in a warm fetcher cache
-    outputHashes."git+https://github.com/Oppzippy/softbuffer.git#0c81b1b57e41414bef5ec1494315bf27b67d992e" =
-      "sha256-mirNFskxOpL0cxoT97mvTJ7H4Jg7GkyCaK6ldZGi53g=";
   };
 
   cargoArtifacts = craneLib.buildDepsOnly commonArgs;
@@ -74,7 +98,7 @@ in
 {
   openscq30-cli = mkPackage {
     inherit cargoArtifacts;
-    version = "2.10.1";
+    version = "2.13.0";
     pname = "openscq30-cli";
     cargoExtraArgs = "--package openscq30-cli";
     buildInputs = commonBuildInputs;
@@ -83,7 +107,7 @@ in
 
   openscq30-gui = mkPackage {
     inherit cargoArtifacts;
-    version = "2.10.1";
+    version = "2.13.0";
     pname = "openscq30-gui";
     cargoExtraArgs = "--package openscq30-gui";
     meta.mainProgram = "openscq30-gui";
