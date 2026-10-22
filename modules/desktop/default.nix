@@ -49,7 +49,11 @@
       };
 
       networking.networkmanager.enable = true;
-      users.users.callum.extraGroups = [ "networkmanager" ];
+      users.users.callum.extraGroups = [
+        "networkmanager"
+        "scanner"
+        "lp"
+      ];
 
       hardware.sane = {
         enable = true;
@@ -60,6 +64,13 @@
             net EPSONWF-3520.local
           '')
         ];
+        brscan4 = {
+          enable = true;
+          netDevices.brother = {
+            model = "MFC-L2740DW";
+            nodename = "BRW7429AF3996F0.local";
+          };
+        };
       };
 
       services = {
