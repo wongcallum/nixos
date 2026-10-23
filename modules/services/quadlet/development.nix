@@ -30,7 +30,7 @@ in
         containers.gitea = lib.mkIf config.modules.containers.gitea (
           config.utils.mkContainer {
             containerConfig = {
-              image = "docker.io/gitea/gitea:1.24";
+              image = "docker.io/gitea/gitea:28";
               environments = {
                 USER_UID = "1000";
                 USER_GID = "1000";
