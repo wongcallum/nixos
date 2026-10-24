@@ -79,8 +79,15 @@ in
             # It still installs the removable-media path, which OVMF boots.
             efi.canTouchEfiVariables = false;
           };
-          # boot output lands in liz's journal for the vm-ci unit
-          kernelParams = [ "console=ttyS0" ];
+          kernelParams = [
+            # boot output lands in liz's journal for the vm-ci unit
+            "console=ttyS0"
+            # Free page reporting only hands back free blocks of at least this
+            # order. The default 9 (2 MiB) returned ~1 of 7 GiB free after a
+            # build, as unmovable kernel pages keep compaction from rebuilding
+            # 2 MiB blocks. 5 (128 KiB) returned ~4 GiB more.
+            "page_reporting.page_reporting_order=5"
+          ];
         };
 
         networking.useNetworkd = true;
