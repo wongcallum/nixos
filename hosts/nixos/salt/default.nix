@@ -3,7 +3,8 @@ let
   inherit (config.flake.modules) nixos;
 in
 {
-  # Matches vm-coder, so the coder database migrates forward, never back.
+  # coder moved here from unstable vm-coder, and its database must only
+  # migrate forward.
   flake.nixpkgs.salt = "unstable";
 
   flake.modules.nixos."hosts/nixos/salt" =

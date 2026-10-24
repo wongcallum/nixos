@@ -9,7 +9,6 @@
     # liz's microVM guests; each index fixes the guest's MAC and 10.0.0.x address
     guests = {
       vm-gallery = 1;
-      vm-coder = 2;
       vm-thsconline = 3;
       vm-hsctikzbench = 4;
     };

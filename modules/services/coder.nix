@@ -1,14 +1,6 @@
-{
-  config,
-  lib,
-  microvmLib,
-  ...
-}:
+{ config, lib, ... }:
 let
   inherit (config.flake.modules) nixos;
-
-  hostname = "vm-coder";
-  addr = microvmLib.addressing hostname;
 in
 {
   flake.modules.nixos.coder =
@@ -23,7 +15,7 @@ in
 
       services.coder = {
         enable = true;
-        listenAddress = lib.mkDefault "0.0.0.0:3000";
+        listenAddress = "0.0.0.0:3000";
         accessUrl = "https://coder.${config.modules.gateway.tld}";
         wildcardAccessUrl = "*.coder.${config.modules.gateway.tld}";
         database.createLocally = true;
@@ -37,21 +29,27 @@ in
       users.users.coder.extraGroups = [ "docker" ];
     };
 
-  flake.modules.nixos.gateway = {
-    modules.gateway.services.coder = {
-      name = "Coder";
-      domainName = "coder";
-      addr = "${addr.guestAddr}:3000";
-      category = "Development";
-      iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/coder-light.svg"; # mislabelled, actually for dark
+  # coder runs on salt, which liz reaches over tailscale.
+  flake.modules.nixos.gateway =
+    { config, ... }:
+    let
+      addr = "${config.modules.hostAddrs.salt}:3000";
+    in
+    {
+      modules.gateway.services.coder = {
+        name = "Coder";
+        domainName = "coder";
+        inherit addr;
+        category = "Development";
+        iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/coder-light.svg"; # mislabelled, actually for dark
+      };
+      # Route generated Coder app subdomains to the Coder server.
+      modules.gateway.services.coder-apps = {
+        name = "Coder workspace apps";
+        domainName = "*.coder";
+        inherit addr;
+        category = "Development";
+        hidden = true;
+      };
     };
-    # Route generated Coder app subdomains to the Coder server.
-    modules.gateway.services.coder-apps = {
-      name = "Coder workspace apps";
-      domainName = "*.coder";
-      addr = "${addr.guestAddr}:3000";
-      category = "Development";
-      hidden = true;
-    };
-  };
 }

@@ -18,7 +18,6 @@ in
       "salt"
       "shama"
       "vm-ci"
-      "vm-coder"
       "vm-gallery"
       "vm-hsctikzbench"
       "vm-thsconline"
