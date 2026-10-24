@@ -12,7 +12,9 @@ terraform {
 }
 
 locals {
-  coder_internal_url = "http://10.0.0.3:3000"
+  # salt's docker0, which both the provisioner and the workspace containers
+  # reach; the coder module pins the bridge to this address.
+  coder_internal_url = "http://172.17.0.1:3000"
 }
 
 data "coder_provisioner" "me" {}

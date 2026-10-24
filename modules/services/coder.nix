@@ -8,6 +8,12 @@ in
     {
       imports = [ nixos.docker ];
 
+      # Workspace containers reach coder through the default bridge, at the
+      # coder_internal_url in coder/templates/nix-docker/main.tf. Pin the
+      # bridge so that address holds, and let only the bridge through.
+      virtualisation.docker.daemon.settings.bip = "172.17.0.1/16";
+      networking.firewall.interfaces.docker0.allowedTCPPorts = [ 3000 ];
+
       systemd.services.coder.after = [ "postgresql.service" ];
 
       # Coder's Terraform provisioner is part of the service closure.
