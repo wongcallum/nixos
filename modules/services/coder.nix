@@ -14,39 +14,16 @@ in
   flake.modules.nixos.coder =
     { config, ... }:
     {
-      imports = [
-        nixos.docker
-        nixos.persistence
-        nixos.ssh
-        (microvmLib.mkGuestModule { inherit hostname; })
-      ];
-
-      environment.persistence.${config.modules.persistence.persistDir}.directories = [
-        "/var/lib/coder"
-        "/var/lib/postgresql"
-      ];
-
-      # Docker's overlayfs snapshotter cannot use the virtiofs-backed
-      # persistence directory as its upper/work filesystem. Keep the
-      # Docker state persistent, but put it on a guest-local ext4 volume.
-      microvm.volumes = [
-        {
-          image = "/persist/microvms/${hostname}-docker.img";
-          mountPoint = "/var/lib/docker";
-          size = 131072;
-        }
-      ];
+      imports = [ nixos.docker ];
 
       systemd.services.coder.after = [ "postgresql.service" ];
 
       # Coder's Terraform provisioner is part of the service closure.
       nixpkgs.config.allowUnfreePredicate = pkg: lib.elem (lib.getName pkg) [ "terraform" ];
 
-      networking.firewall.allowedTCPPorts = [ 3000 ];
-
       services.coder = {
         enable = true;
-        listenAddress = "${addr.guestAddr}:3000";
+        listenAddress = lib.mkDefault "0.0.0.0:3000";
         accessUrl = "https://coder.${config.modules.gateway.tld}";
         wildcardAccessUrl = "*.coder.${config.modules.gateway.tld}";
         database.createLocally = true;
