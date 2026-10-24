@@ -262,6 +262,9 @@ let
               patchedSha256 = "8e011479092c5e82c8c1c2d85d52b9ac48df12183c5c7bc3190190732259db09";
             };
             temp = 0;
+            # the boxes are <|LOC_n|> tokens, which the GGUF marks as control
+            # tokens, so llama-server drops them from the reply without this
+            special = true;
           };
 
           # https://huggingface.co/tencent/HunyuanOCR#c-pc-side-deployment-via-llamacpp
@@ -283,10 +286,11 @@ let
             ctx-size = 10240;
             n-predict = 4096;
             # the model card's sampling; its repetition_penalty covers the
-            # whole sequence, not llama.cpp's default last 64 tokens
+            # whole sequence, not llama.cpp's default last 64 tokens. The flag
+            # rejects -1, so the context size stands in for it
             temp = 0;
             repeat-penalty = 1.08;
-            repeat-last-n = -1;
+            repeat-last-n = 10240;
           };
         };
       };
