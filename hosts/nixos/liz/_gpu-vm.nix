@@ -231,55 +231,49 @@ let
             cache-ram = 512;
           };
 
-          "granite-speech-4.1-2b" = {
+          # https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6-GGUF
+          # "Spotting:" needs clip.vision.image_max_pixels raised in the mmproj
+          # metadata; llama.cpp ignores --image-max-tokens for this projector
+          "paddleocr-vl-1.6" = {
             model = {
-              repo = "ibm-granite/granite-speech-4.1-2b-GGUF";
-              rev = "8267dad2adc84209b0efd2702ec68a98356125eb";
-              file = "granite-speech-4.1-2b-Q8_0.gguf";
-              sha256 = "87320ee80cc6e638837bd2e9b7920252a87148613930bcdc11fcafad0b00beea";
+              repo = "PaddlePaddle/PaddleOCR-VL-1.6-GGUF";
+              rev = "511b09642bb324401f15f97cc23bc67e8f0a291d";
+              file = "PaddleOCR-VL-1.6-GGUF.gguf";
+              sha256 = "f3ae46ec885050acf4b3d31944431e1fd90d50664fb09126af4a3c050ba14ee8";
             };
             mmproj = {
-              repo = "ibm-granite/granite-speech-4.1-2b-GGUF";
-              rev = "8267dad2adc84209b0efd2702ec68a98356125eb";
-              file = "mmproj-model-f16.gguf";
-              sha256 = "0d3615076cbe1d35c3f60c43a60a4047b3e2eeee1b2c233580be60186faab5c5";
+              repo = "PaddlePaddle/PaddleOCR-VL-1.6-GGUF";
+              rev = "511b09642bb324401f15f97cc23bc67e8f0a291d";
+              file = "PaddleOCR-VL-1.6-GGUF-mmproj.gguf";
+              sha256 = "204d757d7610d9b3faab10d506d69e5b244e32bf765e2bab2d0167e65e0a058a";
             };
             load-on-startup = true;
-            # trained context per its config and GGUF metadata
-            ctx-size = 4096;
             temp = 0;
           };
 
-          # queries need an "Instruct: ...\nQuery: " prefix; documents don't
-          "harrier-oss-v1-0.6b" = {
+          # https://huggingface.co/tencent/HunyuanOCR#c-pc-side-deployment-via-llamacpp
+          # tencent publishes no GGUF of 1.5; this is a community f16 conversion
+          "hunyuanocr-1.5" = {
             model = {
-              repo = "mradermacher/harrier-oss-v1-0.6b-GGUF";
-              rev = "d79decec1ab9442e969e79804515b9c31683d30e";
-              file = "harrier-oss-v1-0.6b.Q8_0.gguf";
-              sha256 = "ba2c9408f82cfdb73aaf70aaea9f125f3fb24c5e76ce0efb469e1530e5ec53e4";
+              repo = "prithivMLmods/HunyuanOCR-1.5-GGUF-Updated";
+              rev = "9ddd3b47beb0de305ecd89a717748bac080d7aee";
+              file = "HunyuanOCR.F16.gguf";
+              sha256 = "59eb3992dac3d34c168af3538d6d5792ee1451508b621e9788b04d78a675ef1f";
+            };
+            mmproj = {
+              repo = "prithivMLmods/HunyuanOCR-1.5-GGUF-Updated";
+              rev = "9ddd3b47beb0de305ecd89a717748bac080d7aee";
+              file = "HunyuanOCR.mmproj-f16.gguf";
+              sha256 = "2c9c459f68a9a3c221b1a8088d9c91ac1007ef22aa89045108d14d949f9a3994";
             };
             load-on-startup = true;
-            embedding = true;
-            pooling = "last";
-            # inputs must fit in one ubatch; compute buffers grow with it
-            # (8192 needed ~5 GiB), so cap inputs at 1024 tokens
-            ctx-size = 4096;
-            batch-size = 1024;
-            ubatch-size = 1024;
-          };
-
-          "qwen3-reranker-0.6b" = {
-            model = {
-              repo = "ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF";
-              rev = "a02f48bb4f057028298c21fa033da2b30d7742d5";
-              file = "qwen3-reranker-0.6b-q8_0.gguf";
-              sha256 = "22c9979ce4fbcdc5acdc310c6641c32797eff1aa980b8f7a2db8a8ea23429a48";
-            };
-            load-on-startup = true;
-            reranking = true;
-            ctx-size = 4096;
-            batch-size = 1024;
-            ubatch-size = 1024;
+            ctx-size = 10240;
+            n-predict = 4096;
+            # the model card's sampling; its repetition_penalty covers the
+            # whole sequence, not llama.cpp's default last 64 tokens
+            temp = 0;
+            repeat-penalty = 1.08;
+            repeat-last-n = -1;
           };
         };
       };
