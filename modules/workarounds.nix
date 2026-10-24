@@ -83,27 +83,6 @@ in
       done = "nixpkgs' gparted and gsmartcontrol keep DISPLAY and XAUTHORITY through pkexec, so both open from the desktop without rewriting their wrappers";
     };
 
-    punktfunk-hevc = {
-      upstream = "not filed; git.unom.io/unom/punktfunk, crates/codec/pf-vaapi/src/enc_h265.rs";
-      done = "the nix-stable branch's guessed HEVC fallback writes what ffmpeg's hw_base_encode_h265.c does: 32×32 CTB, 8×8 minimum CB, AMP, transform hierarchy depth 3, diff_cu_qp_delta_depth 0";
-      cleanup = "delete patches/punktfunk-hevc-guessed-features.patch";
-      fixed =
-        let
-          src = builtins.readFile "${inputs.punktfunk}/crates/codec/pf-vaapi/src/enc_h265.rs";
-          guessed = lib.head (
-            lib.splitString "\n    }\n" (lib.last (lib.splitString "pub fn guessed()" src))
-          );
-        in
-        lib.all (lib.flip lib.hasInfix guessed) [
-          "amp: true,"
-          "log2_ctb_minus3: 2,"
-          "log2_min_cb_minus3: 0,"
-          "max_transform_hierarchy_depth_inter: 3,"
-          "max_transform_hierarchy_depth_intra: 3,"
-          "diff_cu_qp_delta_depth: 0,"
-        ];
-    };
-
     shama-audio-patches = {
       upstream = "https://lore.kernel.org/linux-sound/0108019f32ada4d0-8ff2c576-8eb9-4ac4-803e-8ff4e1ce57d3-000000@ap-southeast-2.amazonses.com/ (Cirrus replied that this laptop's _DSD values are wrong, so our settings are too, and plans one patch for all affected laptops)";
       done = "shama's cachyos kernel no longer maps SSID 0x8e3b to \"HP Agusta\"/ALC287_FIXUP_CS35L41_I2C_2 in sound/hda/codecs/realtek/alc269.c, or has a 103C8E3B entry in cs35l41_hda_property.c; prefer Cirrus's values over ours";

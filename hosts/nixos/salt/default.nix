@@ -3,16 +3,10 @@ let
   inherit (config.flake.modules) nixos;
 in
 {
-  # Matches liz's gpu-vm guest, which runs the same headless sway session.
   flake.nixpkgs.salt = "unstable";
 
   flake.modules.nixos."hosts/nixos/salt" =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
+    { config, lib, ... }:
     {
       imports = [
         ./_disko.nix
@@ -28,7 +22,6 @@ in
         ssh
         tailscale
         sops
-        remote-desktop
 
         # metrics
         # logs
@@ -45,37 +38,11 @@ in
           "sd_mod"
         ];
         kernelModules = [ "kvm-intel" ];
-        # Load HuC for the UHD 630's low-power (VDENC) encoder; Gen9 has no GuC submission.
-        kernelParams = [ "i915.enable_guc=2" ];
       };
 
       hardware = {
         enableRedistributableFirmware = true;
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-
-        # punktfunk encodes through VAAPI on Intel.
-        graphics.extraPackages = [ pkgs.intel-media-driver ];
-      };
-
-      environment = {
-        sessionVariables.LIBVA_DRIVER_NAME = "iHD";
-        systemPackages = [
-          pkgs.libva-utils
-          pkgs.intel-gpu-tools
-        ];
-      };
-
-      services.punktfunk.host = {
-        # workaround: punktfunk-hevc
-        # Gen9's HEVC encoder advertises no block sizes, and punktfunk's fallback
-        # headers disagree with what it codes, so the stream is undecodable.
-        package =
-          inputs.punktfunk.packages.${pkgs.stdenv.hostPlatform.system}.punktfunk-host.overrideAttrs
-            (old: {
-              patches = (old.patches or [ ]) ++ [ ../../../patches/punktfunk-hevc-guessed-features.patch ];
-            });
-        # Stock Moonlight clients on the trusted LAN.
-        gamestream = true;
       };
 
       networking.useNetworkd = true;
