@@ -50,6 +50,7 @@ in
         thsconline
 
         radicale
+        trilium
         quadlet-productivity
         quadlet-leafwiki
         quadlet-media
