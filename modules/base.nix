@@ -25,6 +25,13 @@
         pkgs.ghostty.terminfo
       ];
 
+      # Unlike nix.gc, `nh clean all` also prunes users' ~/.local/state/nix profiles.
+      programs.nh.clean = {
+        enable = true;
+        dates = "weekly";
+        extraArgs = "--keep-since 30d --keep 5";
+      };
+
       nix = {
         # https://jackson.dev/post/nix-reasonable-defaults/
         extraOptions = ''
@@ -36,12 +43,6 @@
         optimise = {
           automatic = true;
           dates = [ "04:00" ];
-        };
-
-        gc = {
-          automatic = true;
-          dates = "weekly";
-          options = "--delete-older-than 30d";
         };
 
         settings = {
