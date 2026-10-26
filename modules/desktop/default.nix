@@ -76,7 +76,7 @@
       services = {
         resolved.enable = true;
 
-        displayManager.dms-greeter = {
+        displayManager.dux-greeter = {
           enable = true;
           compositor.name = "niri";
           # keep the greeter's theme/wallpaper in sync with my DMS config

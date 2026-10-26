@@ -47,6 +47,8 @@ let
           { pkgs, ... }:
           {
             boot.loader.grub.memtest86.enable = true;
+            # the live system's root isn't ZFS; this is the default from 26.11
+            boot.zfs.forceImportRoot = false;
             isoImage.makeBiosBootable = true;
 
             environment.systemPackages = with pkgs; [

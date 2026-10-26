@@ -76,11 +76,11 @@ in
             };
           }
           {
+            # the lore.kernel.org patch below, rebased onto 7.3, where a 0x8e43
+            # quirk landed in its context:
+            # https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/
             name = "alc245-omnibook7-8e3b";
-            patch = pkgs.fetchpatch {
-              url = "https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/raw";
-              hash = "sha256-VnzxUqQZGyTrkLcGXCU7/6xPLz/U4Pf9svUu1upNcF8=";
-            };
+            patch = ../../../patches/alc245-omnibook7-8e3b.patch;
           }
         ];
 
