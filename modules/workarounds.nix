@@ -96,7 +96,7 @@ in
     shama-audio-patches = {
       upstream = "https://lore.kernel.org/linux-sound/0108019f32ada4d0-8ff2c576-8eb9-4ac4-803e-8ff4e1ce57d3-000000@ap-southeast-2.amazonses.com/ (Cirrus replied that this laptop's _DSD values are wrong, so our settings are too, and plans one patch for all affected laptops)";
       done = "shama's cachyos kernel no longer maps SSID 0x8e3b to \"HP Agusta\"/ALC287_FIXUP_CS35L41_I2C_2 in sound/hda/codecs/realtek/alc269.c, or has a 103C8E3B entry in cs35l41_hda_property.c; prefer Cirrus's values over ours";
-      cleanup = "drop the LinuxLatest specialisation's `kernelPatches = mkForce [ ]` too if it's no longer needed";
+      cleanup = "delete patches/alc245-omnibook7-8e3b.patch; drop the LinuxLatest specialisation's `kernelPatches = mkForce [ ]` too if it's no longer needed";
     };
 
     smokeping-reload-panic = {
