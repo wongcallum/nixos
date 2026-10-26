@@ -1070,11 +1070,11 @@
     },
     "unstable": {
       "locked": {
-        "lastModified": 1792969906,
-        "narHash": "sha256-gfpwBNADouOMQ74MdwtJTGU3u70j/2O7pqtMcaSAFYc=",
+        "lastModified": 1793001353,
+        "narHash": "sha256-e7OrylR0Shxgk1yDNyjOCZzK48kbiaqO9EE9s2Kbu7w=",
         "owner": "wongcallum",
         "repo": "nixpkgs",
-        "rev": "8aef6c6321b6d95c191b969807f773b052dfd815",
+        "rev": "6bd747f1e2994b8ea49b13e8d67ada391cf6205c",
         "type": "github"
       },
       "original": {

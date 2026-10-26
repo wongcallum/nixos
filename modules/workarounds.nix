@@ -52,6 +52,16 @@ in
           (inputs.freesmlauncher.packages.x86_64-linux.freesmlauncher.override { jdks = [ ]; }).qtWrapperArgs;
     };
 
+    ipp-usb-avahi-settings = {
+      upstream = "https://github.com/NixOS/nixpkgs/pull/577437";
+      done = "nixpkgs-unstable's ipp-usb module sets services.avahi.settings.publish instead of the obsolete services.avahi.publish options";
+      cleanup = "remove the PR from scripts/patch-nixpkgs.sh and rerun it";
+      fixed =
+        !lib.hasInfix "userServices = true" (
+          builtins.readFile "${inputs.unstable-upstream}/nixos/modules/services/printing/ipp-usb.nix"
+        );
+    };
+
     kdeconnect-no-bluetooth = {
       upstream = "https://bugs.kde.org/show_bug.cgi?id=513536";
       done = "the bug is fixed and the release with the fix reaches nixpkgs-unstable; 26.08 disabling the Bluetooth backend by default only hides it";
