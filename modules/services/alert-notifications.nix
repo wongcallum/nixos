@@ -1,8 +1,71 @@
 {
   flake.modules.nixos.monitoring =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
       tokenSecret = "grafana/telegram-bot-token";
+
+      # Explore is closed to the anonymous viewer a phone gets, so alerts link
+      # here instead, passing a rule's `logs` annotation as the query
+      logsDashboard =
+        let
+          datasource = {
+            type = "loki";
+            uid = config.modules.monitoring.datasourceUids.loki;
+          };
+          defaultQuery = ''{job="systemd-journal"}'';
+        in
+        {
+          uid = "alert-logs";
+          title = "Alert logs";
+          description = "Journal lines for the LogQL in the query box; Telegram alerts open it on the rule's logs";
+          schemaVersion = 39;
+          time = {
+            from = "now-1h";
+            to = "now";
+          };
+          templating.list = [
+            {
+              type = "textbox";
+              name = "query";
+              label = "LogQL";
+              query = defaultQuery;
+              current = {
+                text = defaultQuery;
+                value = defaultQuery;
+              };
+            }
+          ];
+          panels = [
+            {
+              type = "logs";
+              title = "Logs";
+              inherit datasource;
+              gridPos = {
+                x = 0;
+                y = 0;
+                w = 24;
+                h = 30;
+              };
+              targets = [
+                {
+                  refId = "A";
+                  inherit datasource;
+                  # raw, so Grafana passes the query through without escaping it
+                  expr = "\${query:raw}";
+                  queryType = "range";
+                  maxLines = 2000;
+                }
+              ];
+              options = {
+                showTime = true;
+                wrapLogMessage = true;
+                sortOrder = "Descending";
+                enableLogDetails = true;
+                dedupStrategy = "none";
+              };
+            }
+          ];
+        };
     in
     {
       sops.secrets.${tokenSecret} = {
@@ -63,10 +126,25 @@
             {
               orgId = 1;
               name = "My Templates";
-              template = builtins.readFile ./telegram-alerts.gotmpl;
+              template =
+                builtins.replaceStrings
+                  [ "@logsUrl@" ]
+                  [ "https://${config.services.grafana.settings.server.domain}/d/${logsDashboard.uid}" ]
+                  (builtins.readFile ./telegram-alerts.gotmpl);
             }
           ];
         };
+      };
+
+      services.grafana.provision.dashboards.settings = {
+        apiVersion = 1;
+        providers = [
+          {
+            name = "alert-logs";
+            folder = "Alerts";
+            options.path = pkgs.writeTextDir "alert-logs.json" (builtins.toJSON logsDashboard);
+          }
+        ];
       };
     };
 }

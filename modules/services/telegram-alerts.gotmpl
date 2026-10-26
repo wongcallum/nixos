@@ -36,7 +36,11 @@ $sep = " · " }}{{ end }}
 {{ else -}}
 🕐 since {{ .StartsAt.Format "Jan 02 15:04 MST" }}
 {{ end -}}
-{{- with .GeneratorURL }}🔗 <a href="{{ template "tg.href" . }}">View alert</a>{{ end }}
+{{/* the hour before the alert started, when the cause was logged, and the half hour after */}}
+{{- $from := (.StartsAt.Add -3600000000000).UnixMilli -}}
+{{- $to := (.StartsAt.Add 1800000000000).UnixMilli -}}
+🔗 {{ with .Annotations.logs }}<a href="{{ template "tg.href" (printf "@logsUrl@?var-query=%s&from=%d&to=%d" (urlquery .) $from $to) }}">Logs</a> · {{ end -}}
+{{- with .GeneratorURL }}<a href="{{ template "tg.href" . }}">View alert</a>{{ end }}
 {{- with .SilenceURL }} · <a href="{{ template "tg.href" . }}">Silence</a>{{ end }}
 {{- with .DashboardURL }} · <a href="{{ template "tg.href" . }}">Dashboard</a>{{ end }}
 {{ end }}

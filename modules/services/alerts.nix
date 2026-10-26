@@ -24,6 +24,8 @@
           },
           # queries that drop healthy series pass "OK", since empty means fine
           noDataState ? "NoData",
+          # LogQL behind the notification's "Logs" link, opened around the alert's start
+          logs ? null,
         }:
         {
           inherit
@@ -62,9 +64,20 @@
           ];
           execErrState = "Error";
           labels = { inherit severity; };
-          annotations = { inherit summary; };
+          annotations = {
+            inherit summary;
+          }
+          // lib.optionalAttrs (logs != null) { inherit logs; };
           notification_settings.receiver = "telegram";
         };
+
+      # Label values go in raw strings so escaped unit names such as
+      # mnt-usb\x2dcolin.mount match as written. hostLabel is "instance" for
+      # Prometheus rules and "host" for Loki ones.
+      logsOf = hostLabel: selectors: "{host=`{{ $labels.${hostLabel} }}`${selectors}}";
+      unitLogs = hostLabel: unit: logsOf hostLabel ", unit=`${unit}`";
+      # kernel lines carry no unit label
+      kernelLogs = hostLabel: unitLogs hostLabel "";
 
       # smartctl_exporter drops a disk it cannot reach instead of reporting an
       # error, so a dead link shows up as a missing series. Compare against the
@@ -94,6 +107,7 @@
             (mkRule {
               uid = "bfoy1tqcgcagwf";
               title = "Reboot";
+              logs = logsOf "instance" "";
               severity = "info";
               for = "0s";
               expr = "changes(node_boot_time_seconds[15m])";
@@ -102,6 +116,7 @@
             (mkRule {
               uid = "bfoy0zaeqm0w0a";
               title = "Failed systemd unit";
+              logs = unitLogs "instance" "{{ $labels.name }}";
               severity = "info";
               expr = ''node_systemd_unit_state{state="failed"}'';
               summary = "systemd unit {{ $labels.name }} failed on {{ $labels.instance }}.";
@@ -109,6 +124,7 @@
             (mkRule {
               uid = "cfoy1fcgfpjwga";
               title = "OOM kills";
+              logs = kernelLogs "instance";
               for = "0s";
               expr = "increase(node_vmstat_oom_kill[10m])";
               summary = ''{{ $labels.instance }} had {{ printf "%.0f" $values.A.Value }} processes killed for running out of memory in the last 10 minutes.'';
@@ -138,6 +154,7 @@
             (mkRule {
               uid = "afoy1avtbagaof";
               title = "Container restart loop";
+              logs = unitLogs "instance" "{{ $labels.name }}.service";
               for = "0s";
               expr = ''changes(container_start_time_seconds{name!=""}[5m])'';
               threshold = {
@@ -149,6 +166,7 @@
             (mkRule {
               uid = "afoy2895p9o8wc";
               title = "Error log spike";
+              logs = "${unitLogs "host" "{{ $labels.unit }}"} |~ `(?i)\\b(error|fatal|panic|segfault)\\b`";
               datasourceUid = lokiUid;
               expr = ''sum by (host, unit) (rate({job="systemd-journal"} |~ "(?i)\\b(error|fatal|panic|segfault)\\b" [5m]))'';
               threshold = {
@@ -164,6 +182,7 @@
             (mkRule {
               uid = "afoxi4vvr0u80d";
               title = "ZFS pool unhealthy";
+              logs = logsOf "instance" ", unit=~`|zfs-zed.service`";
               severity = "critical";
               for = "2m";
               expr = "zfs_pool_health";
@@ -188,6 +207,7 @@
             (mkRule {
               uid = "dfoxxttba5l34b";
               title = "SMART health failed";
+              logs = kernelLogs "instance";
               severity = "critical";
               for = "1m";
               expr = "smartctl_device_smart_status";
@@ -200,6 +220,7 @@
             (mkRule {
               uid = "disk-missing";
               title = "Disk missing from SMART";
+              logs = kernelLogs "instance";
               severity = "critical";
               for = "15m";
               noDataState = "OK";
@@ -214,6 +235,7 @@
               # replaced "SMART sectors degrading", which fired forever on any non-zero count
               uid = "afoy0sj8sycjkf";
               title = "SMART error counters rising";
+              logs = kernelLogs "instance";
               lookback = 3600;
               noDataState = "OK";
               # rise over the window's minimum: delta() extrapolates and inflates the
@@ -232,6 +254,7 @@
             (mkRule {
               uid = "kernel-disk-errors";
               title = "Kernel disk I/O errors";
+              logs = kernelLogs "host";
               severity = "critical";
               for = "0s";
               keepFiringFor = "30m";
@@ -239,13 +262,15 @@
               datasourceUid = lokiUid;
               # kernel lines carry no unit label; without that filter, Grafana's own
               # log of this query matches it and the rule fires on itself
-              expr = ''sum by (host) (count_over_time({job="systemd-journal", unit=""} |~ "I/O error, dev|iuCRC error|zio pool=" [10m]))'';
-              summary = ''{{ $labels.host }} logged {{ printf "%.0f" $values.A.Value }} disk I/O errors in 10 minutes.'';
+              # device is empty for iuCRC lines, which name only the ATA port
+              expr = ''sum by (host, device) (count_over_time({job="systemd-journal", unit=""} |~ "I/O error, dev|iuCRC error|zio pool=" | regexp `(?:dev |vdev=)(?P<device>[^\s,]+)` [10m]))'';
+              summary = ''{{ $labels.host }} logged {{ printf "%.0f" $values.A.Value }} disk I/O errors{{ with $labels.device }} on {{ . }}{{ end }} in 10 minutes.'';
             })
             (mkRule {
               # replaced "SmartCTL NVMe health", whose expression never produced data
               uid = "bfflrwn833kzke";
               title = "NVMe health";
+              logs = kernelLogs "instance";
               severity = "critical";
               noDataState = "OK";
               expr = ''
@@ -262,6 +287,7 @@
             (mkRule {
               uid = "thsconline-stale";
               title = "THSC Online sync stale";
+              logs = unitLogs "instance" "thsconline-sync.service";
               # no data means the metrics file is missing, which is worth hearing about too
               expr = "time() - max by (instance) (thsconline_sync_last_success_timestamp_seconds)";
               threshold = {
@@ -273,6 +299,7 @@
             (mkRule {
               uid = "thsconline-removal-refused";
               title = "THSC Online sync refused removals";
+              logs = unitLogs "instance" "thsconline-sync.service";
               for = "0s";
               noDataState = "OK";
               expr = "thsconline_sync_removal_refused";
@@ -281,6 +308,7 @@
             (mkRule {
               uid = "thsconline-unavailable-jump";
               title = "THSC Online papers unavailable";
+              logs = unitLogs "instance" "thsconline-sync.service";
               for = "0s";
               noDataState = "OK";
               expr = "thsconline_sync_unavailable_change";
