@@ -455,26 +455,6 @@
         "type": "github"
       }
     },
-    "hsctikzbench": {
-      "inputs": {
-        "nixpkgs": [
-          "unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1791109916,
-        "narHash": "sha256-MicTzJ9YHhYuLBLdB1n9hiDtUQKdU42qvWtJdOZs+m8=",
-        "owner": "wongcallum",
-        "repo": "hsctikzbench",
-        "rev": "16b914580a77fe8d39c9ac31975aa7feacd782f5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "wongcallum",
-        "repo": "hsctikzbench",
-        "type": "github"
-      }
-    },
     "impermanence": {
       "inputs": {
         "home-manager": "home-manager_2",
@@ -849,7 +829,6 @@
         "flake-parts": "flake-parts",
         "flux": "flux",
         "freesmlauncher": "freesmlauncher",
-        "hsctikzbench": "hsctikzbench",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
         "microvm": "microvm",
@@ -1070,11 +1049,11 @@
     },
     "unstable": {
       "locked": {
-        "lastModified": 1793071590,
-        "narHash": "sha256-JjWBhTjYkJ04MjgPKs4p90C0KKkQppAp/j3o5x6XPMo=",
+        "lastModified": 1793072322,
+        "narHash": "sha256-e7OrylR0Shxgk1yDNyjOCZzK48kbiaqO9EE9s2Kbu7w=",
         "owner": "wongcallum",
         "repo": "nixpkgs",
-        "rev": "477f3c14570553ad7ce945d3ce5d0c62f2f63bea",
+        "rev": "771006b3dd8441fb828634dbce5283b1c83445b6",
         "type": "github"
       },
       "original": {

@@ -19,7 +19,6 @@ in
       "shama"
       "vm-ci"
       "vm-gallery"
-      "vm-hsctikzbench"
       "vm-thsconline"
     ];
 

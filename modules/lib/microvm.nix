@@ -10,7 +10,6 @@
     guests = {
       vm-gallery = 1;
       vm-thsconline = 3;
-      vm-hsctikzbench = 4;
     };
 
     addressing =
