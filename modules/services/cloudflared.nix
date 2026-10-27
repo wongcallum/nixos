@@ -2,7 +2,7 @@
 {
   # requires flake.modules.nixos.sops
   flake.modules.nixos.cloudflared =
-    { config, ... }:
+    { config, pkgs, ... }:
     let
       cfg = config.modules.cloudflared;
     in
@@ -48,6 +48,26 @@
 
           services.cloudflared = {
             enable = true;
+
+            # workaround: cloudflared-2026-10-2
+            # Cloudflare requires >= 2026.10.2; this is release-26.05's 2026.10.3
+            package = lib.mkIf (lib.versionOlder pkgs.cloudflared.version "2026.10.2") (
+              (pkgs.cloudflared.override { buildGoModule = pkgs.buildGo127Module; }).overrideAttrs (old: {
+                version = "2026.10.3";
+                src = old.src.override {
+                  tag = "2026.10.3";
+                  hash = "sha256-k1OMkHHItOT5VHhQqgC8ODm/RCJEtwtZi0Lxyf/esLg=";
+                };
+                vendorHash = "sha256-KqTLXEm0jxJ1TsyYzxAwYMe8niIgJxBHQPz/aZKmS40=";
+                ldflags = map (lib.replaceStrings
+                  [ "main.Version=${old.version}" ]
+                  [ "main.Version=2026.10.3" ]
+                ) old.ldflags;
+                preCheck =
+                  lib.replaceStrings [ "edgediscovery/protocol_test.go" ] [ "connection/protocol_test.go" ]
+                    old.preCheck;
+              })
+            );
 
             tunnels.${cfg.tunnelId} = {
               credentialsFile = config.sops.secrets.${cfg.credentialsSecret}.path;

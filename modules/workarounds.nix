@@ -32,6 +32,18 @@ in
       ];
     };
 
+    cloudflared-2026-10-2 = {
+      upstream = "https://github.com/NixOS/nixpkgs/pull/576762 (backport: https://github.com/NixOS/nixpkgs/pull/579392)";
+      done = "every cloudflared host's nixpkgs ships cloudflared >= 2026.10.2, which Cloudflare requires";
+      cleanup = "remove the PR from scripts/patch-nixpkgs.sh and rerun it";
+      fixed = lib.all (host: lib.versionAtLeast (pkgsFor host).cloudflared.version "2026.10.2") [
+        "vm-ci"
+        "vm-gallery"
+        "vm-hsctikzbench"
+        "vm-thsconline"
+      ];
+    };
+
     flux-mcman = {
       upstream = "https://github.com/IogaMaster/flux";
       done = "flux's flake.lock pins deniz-blue/mcman at 2665efb or a later main commit";
