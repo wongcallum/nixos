@@ -1,7 +1,7 @@
 { self, lib, ... }:
 {
   flake.modules = lib.mkMerge [
-    (self.factory.user "colin" true false)
+    (self.factory.user "colin" true true)
     {
       nixos.colin.users.users.colin.openssh.authorizedKeys.keys = [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC2iI2HrNYTcubmMHil3MDRBI4mermU/o+37Gvx0zTse"
