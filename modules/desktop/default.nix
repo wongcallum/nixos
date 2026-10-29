@@ -104,8 +104,6 @@
 
         udisks2.enable = true;
         gvfs.enable = true;
-        # for tern
-        gnome.glib-networking.enable = true;
       };
     };
 }
