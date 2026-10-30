@@ -7,18 +7,18 @@
   ...
 }:
 let
+  cfg = config.gpuVm;
+
   stateDir = config.utils.dataDir "gpu-vm";
   runDir = "/run/gpu-vm";
 
   tap = "vmtap";
-  hostAddr = "10.0.1.1";
-  guestAddr = "10.0.1.3";
+  inherit (cfg) hostAddr guestAddr llamaPort;
   guestMac = "02:00:00:00:01:03";
-  llamaPort = 9931;
 
   guestCpus = "3-5 9-11";
   guestVcpus = 6;
-  guestMemory = "4G";
+  guestMemory = "8G";
 
   qmpSocket = "${runDir}/qmp.sock";
   shareSocket = tag: "${runDir}/${tag}.sock";
@@ -45,7 +45,8 @@ let
       readOnly = false;
       neededForBoot = false;
     }
-  ];
+  ]
+  ++ cfg.shares;
 
   guestModule =
     {
@@ -262,7 +263,8 @@ let
       self.modules.nixos.base
       self.modules.nixos.global
       guestModule
-    ];
+    ]
+    ++ cfg.guestModules;
   };
 
   kernel = "${guest.config.boot.kernelPackages.kernel}/${guest.config.system.boot.loader.kernelFile}";
@@ -418,6 +420,8 @@ let
   virtiofsdService = share: {
     description = "virtiofsd for the GPU VM ${share.tag} share";
     partOf = [ "gpu-vm.service" ];
+    # pool datasets aren't systemd mounts
+    after = [ "zfs-mount.service" ];
     serviceConfig = {
       Type = "exec";
       ExecStart = lib.concatStringsSep " " (
@@ -438,167 +442,208 @@ let
   };
 in
 {
-  modules.gateway.services.llama-cpp = {
-    name = "llama.cpp";
-    domainName = "llama";
-    iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
-    addr = "${guestAddr}:${toString llamaPort}";
-    category = "Development";
-  };
+  options.gpuVm = {
+    hostAddr = lib.mkOption {
+      type = lib.types.str;
+      default = "10.0.1.1";
+      readOnly = true;
+    };
+    guestAddr = lib.mkOption {
+      type = lib.types.str;
+      default = "10.0.1.3";
+      readOnly = true;
+    };
+    llamaPort = lib.mkOption {
+      type = lib.types.port;
+      default = 9931;
+      readOnly = true;
+    };
 
-  environment.etc."gpu-vm/README".text = ''
-    Guest /nix: ${nixVolumePath} (${nixVolumeSize}, independent ext4 store)
-    Before each QEMU start, the host mounts this volume privately, copies and
-    registers the configured guest closure, updates its system profile, and
-    pins the direct-boot closure at /nix/var/nix/gcroots/gpu-vm-boot.
-    The disk is unmounted before QEMU starts. Never mount it on the host while
-    QEMU is running. Guest GC and optimisation do not depend on the host store.
-  '';
-
-  systemd = {
-    tmpfiles.rules = [
-      "d ${stateDir} 0755 root root -"
-      "d ${stateDir}/etc/ssh 0755 root root -"
-      "d ${runDir} 0700 root root -"
-      "d /scratch/gpu 0755 root root -"
-    ];
-
-    services = lib.mkMerge [
-      (lib.listToAttrs (
-        map (share: lib.nameValuePair "gpu-vm-virtiofsd-${share.tag}" (virtiofsdService share)) shares
-      ))
-      {
-        gpu-vm-volumes = {
-          description = "Provision the GPU VM zvol";
-          after = [ "zfs.target" ];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-            ExecStart = lib.getExe createVolumes;
-          };
-        };
-
-        gpu-vm = {
-          description = "GPU Virtual Machine";
-
-          # the launch script embeds the guest toplevel, so a new guest closure
-          # changes the unit and switch-to-configuration restarts the VM.
-          wantedBy = [ "multi-user.target" ];
-
-          requires = [
-            "gpu-vm-volumes.service"
-          ]
-          ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
-          after = [
-            "gpu-vm-volumes.service"
-            "systemd-networkd.service"
-          ]
-          ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
-
-          # ExecStartPre completes and unmounts the disk before QEMU opens it.
-          # A failed copy aborts startup rather than booting an incomplete store.
-          path = [
-            pkgs.util-linux
-            pkgs.e2fsprogs
-          ];
-          preStart = ''
-            root="${runDir}/root"
-            mkdir -p "$root/nix"
-            mount -t ext4 "${nixVolumePath}" "$root/nix"
-            trap 'umount "$root/nix"' EXIT
-            # Online grow after a volsize increase; a no-op otherwise.
-            resize2fs "${nixVolumePath}"
-            ${lib.getExe seedStore} "$root"
-          '';
-
-          serviceConfig = {
-            Type = "exec";
-            PrivateMounts = true;
-            TimeoutStartSec = "infinity";
-            ExecStart = lib.getExe launch;
-            ExecStop = lib.getExe shutdown;
-
-            TimeoutStopSec = "600s";
-            Restart = "no";
-
-            # VFIO locks the guest's entire address space in the IOMMU.
-            LimitMEMLOCK = "infinity";
-
-            AllowedCPUs = guestCpus;
-          };
-        };
-      }
-    ];
-
-    network = {
-      netdevs."25-${tap}" = {
-        netdevConfig = {
-          Name = tap;
-          Kind = "tap";
-        };
-        tapConfig = {
-          User = "root";
-          Group = "root";
-        };
-      };
-
-      networks."25-${tap}" = {
-        matchConfig.Name = tap;
-        address = [ "${hostAddr}/24" ];
-        networkConfig.ConfigureWithoutCarrier = true;
-        linkConfig.RequiredForOnline = false;
-      };
+    guestModules = lib.mkOption {
+      type = lib.types.listOf lib.types.deferredModule;
+      default = [ ];
+      description = "Extra NixOS modules for the guest";
+    };
+    shares = lib.mkOption {
+      type = lib.types.listOf lib.types.attrs;
+      default = [ ];
+      description = "Extra virtiofs shares, shaped like the built-in ones";
+    };
+    hostPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.port;
+      default = [ ];
+      description = "TCP ports on the host the guest may connect to";
     };
   };
 
-  networking = {
-    nat = {
-      enable = true;
-      internalInterfaces = [ tap ];
+  config = {
+    modules.gateway.services.llama-cpp = {
+      name = "llama.cpp";
+      domainName = "llama";
+      iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
+      addr = "${guestAddr}:${toString llamaPort}";
+      category = "Development";
     };
 
-    #
-    #   guest 10.0.1.3 (on the tap)
-    #     |
-    #     +- to host -> nixos-fw -> gpu-vm-in -+- tcp/445 ---------> ACCEPT
-    #     |                                    +- tcp/8081 (attic) -> ACCEPT
-    #     |                                    +- any other NEW ---> DROP
-    #     |
-    #     +- routed --> FORWARD --> gpu-vm-fwd +- ESTABLISHED,RELATED -> ACCEPT
-    #                                          |  (replies to LAN/tailnet clients)
-    #                                          +- 10/8, 172.16/12, -> DROP
-    #                                          |  192.168/16,
-    #                                          |  100.64/10, 169.254/16
-    #                                          +- anything else ---> NAT -> internet
-    #
-    firewall.extraCommands = ''
-      iptables -N gpu-vm-in 2>/dev/null || iptables -F gpu-vm-in
-      iptables -A gpu-vm-in -p tcp --dport 445 -j nixos-fw-accept
-      iptables -A gpu-vm-in -p tcp --dport ${toString config.modules.attic.guestPort} -j nixos-fw-accept
-      iptables -A gpu-vm-in -m conntrack --ctstate NEW -j DROP
-      iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
-      iptables -I nixos-fw -i ${tap} -j gpu-vm-in
-
-      iptables -N gpu-vm-fwd 2>/dev/null || iptables -F gpu-vm-fwd
-      iptables -A gpu-vm-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-      ${lib.concatMapStringsSep "\n" (dest: "iptables -A gpu-vm-fwd -d ${dest} -j DROP") [
-        "10.0.0.0/8"
-        "172.16.0.0/12"
-        "192.168.0.0/16"
-        "100.64.0.0/10" # tailnet (CGNAT)
-        "169.254.0.0/16" # link-local, incl. cloud metadata
-      ]}
-      iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
-      iptables -I FORWARD -i ${tap} -j gpu-vm-fwd
+    environment.etc."gpu-vm/README".text = ''
+      Guest /nix: ${nixVolumePath} (${nixVolumeSize}, independent ext4 store)
+      Before each QEMU start, the host mounts this volume privately, copies and
+      registers the configured guest closure, updates its system profile, and
+      pins the direct-boot closure at /nix/var/nix/gcroots/gpu-vm-boot.
+      The disk is unmounted before QEMU starts. Never mount it on the host while
+      QEMU is running. Guest GC and optimisation do not depend on the host store.
     '';
 
-    firewall.extraStopCommands = ''
-      iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
-      iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
-      iptables -F gpu-vm-in 2>/dev/null || true
-      iptables -X gpu-vm-in 2>/dev/null || true
-      iptables -F gpu-vm-fwd 2>/dev/null || true
-      iptables -X gpu-vm-fwd 2>/dev/null || true
-    '';
+    systemd = {
+      tmpfiles.rules = [
+        "d ${stateDir} 0755 root root -"
+        "d ${stateDir}/etc/ssh 0755 root root -"
+        "d ${runDir} 0700 root root -"
+        "d /scratch/gpu 0755 root root -"
+      ];
+
+      services = lib.mkMerge [
+        (lib.listToAttrs (
+          map (share: lib.nameValuePair "gpu-vm-virtiofsd-${share.tag}" (virtiofsdService share)) shares
+        ))
+        {
+          gpu-vm-volumes = {
+            description = "Provision the GPU VM zvol";
+            after = [ "zfs.target" ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              ExecStart = lib.getExe createVolumes;
+            };
+          };
+
+          gpu-vm = {
+            description = "GPU Virtual Machine";
+
+            # the launch script embeds the guest toplevel, so a new guest closure
+            # changes the unit and switch-to-configuration restarts the VM.
+            wantedBy = [ "multi-user.target" ];
+
+            requires = [
+              "gpu-vm-volumes.service"
+            ]
+            ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
+            after = [
+              "gpu-vm-volumes.service"
+              "systemd-networkd.service"
+            ]
+            ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
+
+            # ExecStartPre completes and unmounts the disk before QEMU opens it.
+            # A failed copy aborts startup rather than booting an incomplete store.
+            path = [
+              pkgs.util-linux
+              pkgs.e2fsprogs
+            ];
+            preStart = ''
+              root="${runDir}/root"
+              mkdir -p "$root/nix"
+              mount -t ext4 "${nixVolumePath}" "$root/nix"
+              trap 'umount "$root/nix"' EXIT
+              # Online grow after a volsize increase; a no-op otherwise.
+              resize2fs "${nixVolumePath}"
+              ${lib.getExe seedStore} "$root"
+            '';
+
+            serviceConfig = {
+              Type = "exec";
+              PrivateMounts = true;
+              TimeoutStartSec = "infinity";
+              ExecStart = lib.getExe launch;
+              ExecStop = lib.getExe shutdown;
+
+              TimeoutStopSec = "600s";
+              Restart = "no";
+
+              # VFIO locks the guest's entire address space in the IOMMU.
+              LimitMEMLOCK = "infinity";
+
+              AllowedCPUs = guestCpus;
+            };
+          };
+        }
+      ];
+
+      network = {
+        netdevs."25-${tap}" = {
+          netdevConfig = {
+            Name = tap;
+            Kind = "tap";
+          };
+          tapConfig = {
+            User = "root";
+            Group = "root";
+          };
+        };
+
+        networks."25-${tap}" = {
+          matchConfig.Name = tap;
+          address = [ "${hostAddr}/24" ];
+          networkConfig.ConfigureWithoutCarrier = true;
+          linkConfig.RequiredForOnline = false;
+        };
+      };
+    };
+
+    networking = {
+      nat = {
+        enable = true;
+        internalInterfaces = [ tap ];
+      };
+
+      #
+      #   guest 10.0.1.3 (on the tap)
+      #     |
+      #     +- to host -> nixos-fw -> gpu-vm-in -+- tcp/445 ---------> ACCEPT
+      #     |                                    +- tcp/8081 (attic) -> ACCEPT
+      #     |                                    +- gpuVm.hostPorts --> ACCEPT
+      #     |                                    +- any other NEW ---> DROP
+      #     |
+      #     +- routed --> FORWARD --> gpu-vm-fwd +- ESTABLISHED,RELATED -> ACCEPT
+      #                                          |  (replies to LAN/tailnet clients)
+      #                                          +- 10/8, 172.16/12, -> DROP
+      #                                          |  192.168/16,
+      #                                          |  100.64/10, 169.254/16
+      #                                          +- anything else ---> NAT -> internet
+      #
+      firewall.extraCommands = ''
+        iptables -N gpu-vm-in 2>/dev/null || iptables -F gpu-vm-in
+        iptables -A gpu-vm-in -p tcp --dport 445 -j nixos-fw-accept
+        iptables -A gpu-vm-in -p tcp --dport ${toString config.modules.attic.guestPort} -j nixos-fw-accept
+        ${
+          lib.concatMapStrings (port: ''
+            iptables -A gpu-vm-in -p tcp --dport ${toString port} -j nixos-fw-accept
+          '') cfg.hostPorts
+        }      iptables -A gpu-vm-in -m conntrack --ctstate NEW -j DROP
+        iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
+        iptables -I nixos-fw -i ${tap} -j gpu-vm-in
+
+        iptables -N gpu-vm-fwd 2>/dev/null || iptables -F gpu-vm-fwd
+        iptables -A gpu-vm-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        ${lib.concatMapStringsSep "\n" (dest: "iptables -A gpu-vm-fwd -d ${dest} -j DROP") [
+          "10.0.0.0/8"
+          "172.16.0.0/12"
+          "192.168.0.0/16"
+          "100.64.0.0/10" # tailnet (CGNAT)
+          "169.254.0.0/16" # link-local, incl. cloud metadata
+        ]}
+        iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
+        iptables -I FORWARD -i ${tap} -j gpu-vm-fwd
+      '';
+
+      firewall.extraStopCommands = ''
+        iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
+        iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
+        iptables -F gpu-vm-in 2>/dev/null || true
+        iptables -X gpu-vm-in 2>/dev/null || true
+        iptables -F gpu-vm-fwd 2>/dev/null || true
+        iptables -X gpu-vm-fwd 2>/dev/null || true
+      '';
+    };
   };
 }

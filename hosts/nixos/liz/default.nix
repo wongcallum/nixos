@@ -19,6 +19,7 @@ in
         ./_console.nix
         ./_vfio.nix
         ./_gpu-vm.nix
+        ./_cameras.nix
         ./_persist-backup.nix
 
         inputs.disko.nixosModules.default
