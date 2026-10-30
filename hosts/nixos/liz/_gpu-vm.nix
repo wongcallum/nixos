@@ -16,19 +16,6 @@ let
   guestMac = "02:00:00:00:01:03";
   llamaPort = 9931;
 
-  paddleOcrModel = {
-    repo = "PaddlePaddle/PaddleOCR-VL-1.6-GGUF";
-    rev = "511b09642bb324401f15f97cc23bc67e8f0a291d";
-    file = "PaddleOCR-VL-1.6-GGUF.gguf";
-    sha256 = "f3ae46ec885050acf4b3d31944431e1fd90d50664fb09126af4a3c050ba14ee8";
-  };
-  paddleOcrMmproj = {
-    repo = "PaddlePaddle/PaddleOCR-VL-1.6-GGUF";
-    rev = "511b09642bb324401f15f97cc23bc67e8f0a291d";
-    file = "PaddleOCR-VL-1.6-GGUF-mmproj.gguf";
-    sha256 = "204d757d7610d9b3faab10d506d69e5b244e32bf765e2bab2d0167e65e0a058a";
-  };
-
   guestCpus = "3-5 9-11";
   guestVcpus = 6;
   guestMemory = "4G";
@@ -242,29 +229,6 @@ let
             reasoning = "off";
             # paragraphs share the instruction prefix
             cache-ram = 512;
-          };
-
-          # https://huggingface.co/PaddlePaddle/PaddleOCR-VL-1.6-GGUF
-          "paddleocr-vl-1.6" = {
-            model = paddleOcrModel;
-            mmproj = paddleOcrMmproj;
-            load-on-startup = true;
-            temp = 0;
-          };
-
-          # "Spotting:" needs a larger image_max_pixels, which the model card
-          # sets in the mmproj metadata and reverts for the other tasks;
-          # llama.cpp ignores --image-max-tokens for this projector
-          "paddleocr-vl-1.6-spotting" = {
-            model = paddleOcrModel;
-            mmproj = paddleOcrMmproj // {
-              metadata."clip.vision.image_max_pixels" = 1605632;
-              patchedSha256 = "8e011479092c5e82c8c1c2d85d52b9ac48df12183c5c7bc3190190732259db09";
-            };
-            temp = 0;
-            # the boxes are <|LOC_n|> tokens, which the GGUF marks as control
-            # tokens, so llama-server drops them from the reply without this
-            special = true;
           };
 
           # https://huggingface.co/tencent/HunyuanOCR#c-pc-side-deployment-via-llamacpp
