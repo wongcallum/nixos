@@ -215,12 +215,6 @@ let
               file = "Index-Translate-2B.Q8_0.gguf";
               sha256 = "a09d287f41d297206947a2e51acc29dd03c8b22356111fdb1e289c0c97c173f3";
             };
-            mmproj = {
-              repo = "IndexTeam/Index-Translate-2B-GGUF";
-              rev = "3a0eca6ce931d88d00614d427ab3ed8ff0743902";
-              file = "Index-Translate-2B.mmproj-Q8_0.gguf";
-              sha256 = "b100ca29aaf437461d0b22ada7492d5d2dfeaa15959e329c4267598ddebe446d";
-            };
             load-on-startup = true;
             ctx-size = 32768;
             temp = 0;
@@ -232,13 +226,14 @@ let
           };
 
           # https://huggingface.co/tencent/HunyuanOCR#c-pc-side-deployment-via-llamacpp
-          # tencent publishes no GGUF of 1.5; this is a community f16 conversion
+          # tencent publishes no GGUF of 1.5; this is a community conversion.
+          # The mmproj stays f16 since quantising the vision encoder hurts small text
           "hunyuanocr-1.5" = {
             model = {
               repo = "prithivMLmods/HunyuanOCR-1.5-GGUF-Updated";
               rev = "9ddd3b47beb0de305ecd89a717748bac080d7aee";
-              file = "HunyuanOCR.F16.gguf";
-              sha256 = "59eb3992dac3d34c168af3538d6d5792ee1451508b621e9788b04d78a675ef1f";
+              file = "HunyuanOCR.Q8_0.gguf";
+              sha256 = "675e2bc8d2d85b1fa86bb250e7e44fc1abfc96d0f760b74a6311c5d988c2a2bb";
             };
             mmproj = {
               repo = "prithivMLmods/HunyuanOCR-1.5-GGUF-Updated";
