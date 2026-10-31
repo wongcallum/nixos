@@ -113,15 +113,17 @@ let
       ];
       genai = {
         enabled = true;
-        objects = [
-          "person"
-          "car"
-        ];
+        objects = [ "person" ];
+        prompt = "Describe the {label} in one or two sentences: clothing, anything it carries, and what it does. State only what is visible.";
+        use_snapshot = true;
       };
     };
     review = {
       alerts.labels = [ "person" ];
-      genai.enabled = true;
+      genai = {
+        enabled = true;
+        image_source = "recordings";
+      };
     };
     genai.local = {
       provider = "llamacpp";
