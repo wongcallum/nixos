@@ -13,12 +13,54 @@ let
   rtspPort = 8554;
   mqttPort = 1883;
 
-  # DVR channel per camera; Hikvision serves <channel>01 as the main stream
-  # and <channel>02 as the substream.
-  cameras = {
-    camera_1 = 1;
-    camera_2 = 2;
+  # <channel>01 is the main stream, <channel>02 the 960x576 substream that
+  # polygons are measured in.
+  osdMasks = {
+    osd_name = "0,0 105,0 105,20 0,20";
+    osd_clock = "690,0 960,0 960,22 690,22";
   };
+  cameras = {
+    camera_1 = {
+      channel = 1;
+      zones.zone_1 = "140,195 410,152 665,118 722,118 905,220 884,308 960,350 960,576 360,576 285,445 235,300 165,240";
+      motionMasks = osdMasks // {
+        foliage = "45,195 205,195 250,300 335,415 335,478 265,482 95,505 35,330";
+        street_tree = "540,0 680,0 680,62 540,62";
+      };
+    };
+    camera_2 = {
+      channel = 2;
+      zones.zone_2 = "543,341 600,352 640,361 830,443 832,455 757,576 425,576 395,543 362,512 515,372";
+      motionMasks = osdMasks // {
+        street_tree = "105,0 210,0 210,110 60,110 60,20 105,20";
+      };
+    };
+    camera_3 = {
+      channel = 3;
+      zones.zone_3 = "445,195 615,225 725,250 690,465 640,576 150,576 175,360 260,290 360,230";
+      alerts = false;
+      motionMasks = osdMasks // {
+        street_tree = "525,0 670,0 670,92 525,92";
+      };
+    };
+  };
+
+  # Frigate takes fractions, and string-compares each to "1.0" to spot pixels
+  fraction =
+    pixels: size:
+    let
+      thousandths = (pixels * 2000 / size + 1) / 2;
+    in
+    if thousandths >= 1000 then "1" else "0.${lib.fixedWidthNumber 3 thousandths}";
+  coordinates =
+    polygon:
+    lib.concatMapStringsSep "," (
+      point:
+      let
+        xy = map lib.toInt (lib.splitString "," point);
+      in
+      "${fraction (lib.elemAt xy 0) 960},${fraction (lib.elemAt xy 1) 576}"
+    ) (lib.splitString " " polygon);
 
   recordingsDataset = "tank/frigate";
   # Frigate prunes recordings by free space, which the quota bounds.
@@ -77,7 +119,10 @@ let
         ];
       };
     };
-    review.genai.enabled = true;
+    review = {
+      alerts.labels = [ "person" ];
+      genai.enabled = true;
+    };
     genai.local = {
       provider = "llamacpp";
       base_url = "http://127.0.0.1:${toString llamaPort}";
@@ -103,7 +148,14 @@ let
     # live view; Frigate maps streams named after the camera
     go2rtc.streams = lib.mapAttrs (name: _: [ (restream name) ]) cameras;
 
-    cameras = lib.mapAttrs (name: _: {
+    cameras = lib.mapAttrs (name: camera: {
+      zones = lib.mapAttrs (_: polygon: { coordinates = coordinates polygon; }) camera.zones;
+      review.alerts =
+        if camera.alerts or true && camera.zones != { } then
+          { required_zones = lib.attrNames camera.zones; }
+        else
+          { labels = [ ]; };
+      motion.mask = lib.mapAttrs (_: polygon: { coordinates = coordinates polygon; }) camera.motionMasks;
       ffmpeg.inputs = [
         {
           path = restream name;
@@ -210,9 +262,9 @@ in
       webrtc.listen = "";
 
       # DVR_URL is rtsp://user:password@address:554, from the secret
-      streams = lib.concatMapAttrs (name: channel: {
-        ${name} = "\${DVR_URL}/Streaming/Channels/${toString channel}01";
-        "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString channel}02";
+      streams = lib.concatMapAttrs (name: camera: {
+        ${name} = "\${DVR_URL}/Streaming/Channels/${toString camera.channel}01";
+        "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString camera.channel}02";
       }) cameras;
     };
   };
