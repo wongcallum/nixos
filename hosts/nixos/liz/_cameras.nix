@@ -45,6 +45,11 @@ let
     };
   };
 
+  # restreamed for Home Assistant, but not recorded
+  otherChannels = lib.genAttrs' (lib.range 4 8) (
+    channel: lib.nameValuePair "camera_${toString channel}" channel
+  );
+
   # Frigate takes fractions, and string-compares each to "1.0" to spot pixels
   fraction =
     pixels: size:
@@ -264,10 +269,10 @@ in
       webrtc.listen = "";
 
       # DVR_URL is rtsp://user:password@address:554, from the secret
-      streams = lib.concatMapAttrs (name: camera: {
-        ${name} = "\${DVR_URL}/Streaming/Channels/${toString camera.channel}01";
-        "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString camera.channel}02";
-      }) cameras;
+      streams = lib.concatMapAttrs (name: channel: {
+        ${name} = "\${DVR_URL}/Streaming/Channels/${toString channel}01";
+        "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString channel}02";
+      }) (lib.mapAttrs (_: camera: camera.channel) cameras // otherChannels);
     };
   };
 
