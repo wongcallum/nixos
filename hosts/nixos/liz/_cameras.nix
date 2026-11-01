@@ -92,7 +92,11 @@ let
     # Caddy terminates TLS in front of the authenticated port
     tls.enabled = false;
 
-    ffmpeg.hwaccel_args = "preset-nvidia";
+    ffmpeg = {
+      hwaccel_args = "preset-nvidia";
+      # iOS only plays HEVC tagged hvc1
+      apple_compatibility = true;
+    };
 
     # https://docs.frigate.video/configuration/object_detectors
     detectors.onnx.type = "onnx";
