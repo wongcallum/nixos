@@ -223,7 +223,7 @@ in
           runtimeInputs = [ config.boot.zfs.package ];
           text = ''
             if ! zfs list -H -o name "${zvol}" >/dev/null 2>&1; then
-              zfs create -p -s -V 256G \
+              zfs create -p -s -V 128G \
                 -o volblocksize=16K \
                 -o compression=zstd \
                 "${zvol}"

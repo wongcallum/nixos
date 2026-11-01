@@ -26,7 +26,7 @@ let
 
   # A separate /nix owns both store paths and their database.
   nixVolume = microvmLib.vmDisk "gpu";
-  nixVolumeSizeGiB = 250;
+  nixVolumeSizeGiB = 100;
   nixVolumeSize = "${toString nixVolumeSizeGiB}G";
   nixVolumePath = "/dev/zvol/${nixVolume}";
   nixVolumeSerial = "nix";
