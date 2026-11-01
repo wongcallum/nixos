@@ -157,11 +157,15 @@ let
 
     cameras = lib.mapAttrs (name: camera: {
       zones = lib.mapAttrs (_: polygon: { coordinates = coordinates polygon; }) camera.zones;
-      review.alerts =
-        if camera.alerts or true && camera.zones != { } then
-          { required_zones = lib.attrNames camera.zones; }
-        else
-          { labels = [ ]; };
+      review = {
+        alerts =
+          if camera.alerts or true then
+            { required_zones = lib.attrNames camera.zones; }
+          else
+            { labels = [ ]; };
+        detections.required_zones = lib.attrNames camera.zones;
+      };
+      snapshots.required_zones = lib.attrNames camera.zones;
       motion.mask = lib.mapAttrs (_: polygon: { coordinates = coordinates polygon; }) camera.motionMasks;
       ffmpeg.inputs = [
         {
