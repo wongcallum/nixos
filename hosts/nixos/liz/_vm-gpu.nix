@@ -8,12 +8,12 @@
   ...
 }:
 let
-  cfg = config.gpuVm;
+  cfg = config.vmGpu;
 
   stateDir = microvmLib.vmDir "gpu";
-  runDir = "/run/gpu-vm";
+  runDir = "/run/vm-gpu";
 
-  tap = "vmtap";
+  inherit (cfg) tap;
   inherit (cfg) hostAddr guestAddr llamaPort;
   guestMac = "02:00:00:00:01:03";
 
@@ -65,7 +65,7 @@ let
       nixpkgs.config.cudaSupport = true;
 
       networking = {
-        hostName = "linuz";
+        hostName = "vm-gpu";
         useNetworkd = true;
       };
 
@@ -170,8 +170,13 @@ let
       systemd = {
         network.networks."10-eth" = {
           matchConfig.MACAddress = guestMac;
-          address = [ "${guestAddr}/24" ];
-          routes = [ { Gateway = hostAddr; } ];
+          address = [ "${guestAddr}/32" ];
+          routes = [
+            {
+              Gateway = hostAddr;
+              GatewayOnLink = true;
+            }
+          ];
           networkConfig.DNS = [ "1.1.1.1" ];
         };
 
@@ -266,7 +271,7 @@ let
   );
 
   createVolumes = pkgs.writeShellApplication {
-    name = "gpu-vm-volumes";
+    name = "vm-gpu-volume";
     runtimeInputs = [
       config.boot.zfs.package
       pkgs.e2fsprogs
@@ -304,7 +309,7 @@ let
   # Run only while QEMU is stopped. A rooted local store copies actual files,
   # registers their closure, and keeps guest GC independent of host GC.
   seedStore = pkgs.writeShellApplication {
-    name = "gpu-vm-seed-store";
+    name = "vm-gpu-seed-store";
     runtimeInputs = [ config.nix.package ];
     text = ''
       root="$1"
@@ -315,7 +320,7 @@ let
         --profile "$root/nix/var/nix/profiles/system" --set "$system"
       # Direct kernel boot must remain rooted even if the guest changes profiles.
       mkdir -p "$root/nix/var/nix/gcroots"
-      ln -sfn "$system" "$root/nix/var/nix/gcroots/gpu-vm-boot"
+      ln -sfn "$system" "$root/nix/var/nix/gcroots/vm-gpu-boot"
     '';
   };
 
@@ -325,7 +330,7 @@ let
   '') shares;
 
   launch = pkgs.writeShellApplication {
-    name = "gpu-vm-launch";
+    name = "vm-gpu-launch";
     runtimeInputs = [ pkgs.qemu_kvm ];
     text = ''
       # Type=exec marks virtiofsd active before its socket is ready.
@@ -337,7 +342,7 @@ let
       done
 
       args=(
-        -name "vm-gpu,process=gpu-vm"
+        -name "vm-gpu,process=vm-gpu"
         -machine "q35,accel=kvm,memory-backend=mem"
         -cpu "host,topoext=on"
         -smp "${toString guestVcpus},sockets=1,cores=3,threads=2"
@@ -389,7 +394,7 @@ let
 
   # Ask the guest to power down cleanly, then keep ExecStop alive until QEMU exits.
   shutdown = pkgs.writeShellApplication {
-    name = "gpu-vm-shutdown";
+    name = "vm-gpu-shutdown";
     runtimeInputs = [ pkgs.socat ];
     text = ''
       [ -S "${qmpSocket}" ] || exit 0
@@ -408,7 +413,7 @@ let
 
   virtiofsdService = share: {
     description = "virtiofsd for the GPU VM ${share.tag} share";
-    partOf = [ "gpu-vm.service" ];
+    partOf = [ "vm-gpu.service" ];
     # pool datasets aren't systemd mounts
     after = [ "zfs-mount.service" ];
     serviceConfig = {
@@ -431,7 +436,7 @@ let
   };
 in
 {
-  options.gpuVm = {
+  options.vmGpu = {
     hostAddr = lib.mkOption {
       type = lib.types.str;
       default = "10.0.1.1";
@@ -440,6 +445,11 @@ in
     guestAddr = lib.mkOption {
       type = lib.types.str;
       default = "10.0.1.3";
+      readOnly = true;
+    };
+    tap = lib.mkOption {
+      type = lib.types.str;
+      default = "vm-gpu";
       readOnly = true;
     };
     llamaPort = lib.mkOption {
@@ -474,11 +484,11 @@ in
       category = "Development";
     };
 
-    environment.etc."gpu-vm/README".text = ''
+    environment.etc."vm-gpu/README".text = ''
       Guest /nix: ${nixVolumePath} (${nixVolumeSize}, independent ext4 store)
       Before each QEMU start, the host mounts this volume privately, copies and
       registers the configured guest closure, updates its system profile, and
-      pins the direct-boot closure at /nix/var/nix/gcroots/gpu-vm-boot.
+      pins the direct-boot closure at /nix/var/nix/gcroots/vm-gpu-boot.
       The disk is unmounted before QEMU starts. Never mount it on the host while
       QEMU is running. Guest GC and optimisation do not depend on the host store.
     '';
@@ -490,10 +500,10 @@ in
 
       services = lib.mkMerge [
         (lib.listToAttrs (
-          map (share: lib.nameValuePair "gpu-vm-virtiofsd-${share.tag}" (virtiofsdService share)) shares
+          map (share: lib.nameValuePair "vm-gpu-virtiofsd-${share.tag}" (virtiofsdService share)) shares
         ))
         {
-          gpu-vm-volumes = {
+          vm-gpu-volume = {
             description = "Provision the GPU VM zvol";
             after = [ "zfs.target" ];
             serviceConfig = {
@@ -503,7 +513,7 @@ in
             };
           };
 
-          gpu-vm = {
+          vm-gpu = {
             description = "GPU Virtual Machine";
 
             # the launch script embeds the guest toplevel, so a new guest closure
@@ -511,14 +521,14 @@ in
             wantedBy = [ "multi-user.target" ];
 
             requires = [
-              "gpu-vm-volumes.service"
+              "vm-gpu-volume.service"
             ]
-            ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
+            ++ map (share: "vm-gpu-virtiofsd-${share.tag}.service") shares;
             after = [
-              "gpu-vm-volumes.service"
+              "vm-gpu-volume.service"
               "systemd-networkd.service"
             ]
-            ++ map (share: "gpu-vm-virtiofsd-${share.tag}.service") shares;
+            ++ map (share: "vm-gpu-virtiofsd-${share.tag}.service") shares;
 
             # ExecStartPre completes and unmounts the disk before QEMU opens it.
             # A failed copy aborts startup rather than booting an incomplete store.
@@ -569,7 +579,13 @@ in
 
         networks."25-${tap}" = {
           matchConfig.Name = tap;
-          address = [ "${hostAddr}/24" ];
+          address = [ "${hostAddr}/32" ];
+          routes = [
+            {
+              Destination = "${guestAddr}/32";
+              Scope = "link";
+            }
+          ];
           networkConfig.ConfigureWithoutCarrier = true;
           linkConfig.RequiredForOnline = false;
         };
@@ -585,12 +601,12 @@ in
       #
       #   guest 10.0.1.3 (on the tap)
       #     |
-      #     +- to host -> nixos-fw -> gpu-vm-in -+- tcp/445 ---------> ACCEPT
+      #     +- to host -> nixos-fw -> vm-gpu-in -+- tcp/445 ---------> ACCEPT
       #     |                                    +- tcp/8081 (attic) -> ACCEPT
-      #     |                                    +- gpuVm.hostPorts --> ACCEPT
+      #     |                                    +- vmGpu.hostPorts --> ACCEPT
       #     |                                    +- any other NEW ---> DROP
       #     |
-      #     +- routed --> FORWARD --> gpu-vm-fwd +- ESTABLISHED,RELATED -> ACCEPT
+      #     +- routed --> FORWARD --> vm-gpu-fwd +- ESTABLISHED,RELATED -> ACCEPT
       #                                          |  (replies to LAN/tailnet clients)
       #                                          +- 10/8, 172.16/12, -> DROP
       #                                          |  192.168/16,
@@ -598,37 +614,37 @@ in
       #                                          +- anything else ---> NAT -> internet
       #
       firewall.extraCommands = ''
-        iptables -N gpu-vm-in 2>/dev/null || iptables -F gpu-vm-in
-        iptables -A gpu-vm-in -p tcp --dport 445 -j nixos-fw-accept
-        iptables -A gpu-vm-in -p tcp --dport ${toString config.modules.attic.guestPort} -j nixos-fw-accept
+        iptables -N vm-gpu-in 2>/dev/null || iptables -F vm-gpu-in
+        iptables -A vm-gpu-in -p tcp --dport 445 -j nixos-fw-accept
+        iptables -A vm-gpu-in -p tcp --dport ${toString config.modules.attic.guestPort} -j nixos-fw-accept
         ${
           lib.concatMapStrings (port: ''
-            iptables -A gpu-vm-in -p tcp --dport ${toString port} -j nixos-fw-accept
+            iptables -A vm-gpu-in -p tcp --dport ${toString port} -j nixos-fw-accept
           '') cfg.hostPorts
-        }      iptables -A gpu-vm-in -m conntrack --ctstate NEW -j DROP
-        iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
-        iptables -I nixos-fw -i ${tap} -j gpu-vm-in
+        }      iptables -A vm-gpu-in -m conntrack --ctstate NEW -j DROP
+        iptables -D nixos-fw -i ${tap} -j vm-gpu-in 2>/dev/null || true
+        iptables -I nixos-fw -i ${tap} -j vm-gpu-in
 
-        iptables -N gpu-vm-fwd 2>/dev/null || iptables -F gpu-vm-fwd
-        iptables -A gpu-vm-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-        ${lib.concatMapStringsSep "\n" (dest: "iptables -A gpu-vm-fwd -d ${dest} -j DROP") [
+        iptables -N vm-gpu-fwd 2>/dev/null || iptables -F vm-gpu-fwd
+        iptables -A vm-gpu-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        ${lib.concatMapStringsSep "\n" (dest: "iptables -A vm-gpu-fwd -d ${dest} -j DROP") [
           "10.0.0.0/8"
           "172.16.0.0/12"
           "192.168.0.0/16"
           "100.64.0.0/10" # tailnet (CGNAT)
           "169.254.0.0/16" # link-local, incl. cloud metadata
         ]}
-        iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
-        iptables -I FORWARD -i ${tap} -j gpu-vm-fwd
+        iptables -D FORWARD -i ${tap} -j vm-gpu-fwd 2>/dev/null || true
+        iptables -I FORWARD -i ${tap} -j vm-gpu-fwd
       '';
 
       firewall.extraStopCommands = ''
-        iptables -D nixos-fw -i ${tap} -j gpu-vm-in 2>/dev/null || true
-        iptables -D FORWARD -i ${tap} -j gpu-vm-fwd 2>/dev/null || true
-        iptables -F gpu-vm-in 2>/dev/null || true
-        iptables -X gpu-vm-in 2>/dev/null || true
-        iptables -F gpu-vm-fwd 2>/dev/null || true
-        iptables -X gpu-vm-fwd 2>/dev/null || true
+        iptables -D nixos-fw -i ${tap} -j vm-gpu-in 2>/dev/null || true
+        iptables -D FORWARD -i ${tap} -j vm-gpu-fwd 2>/dev/null || true
+        iptables -F vm-gpu-in 2>/dev/null || true
+        iptables -X vm-gpu-in 2>/dev/null || true
+        iptables -F vm-gpu-fwd 2>/dev/null || true
+        iptables -X vm-gpu-fwd 2>/dev/null || true
       '';
     };
   };

@@ -5,10 +5,11 @@
   config,
   inputs,
   lib,
+  utils,
   ...
 }:
 let
-  inherit (config.gpuVm) hostAddr guestAddr llamaPort;
+  inherit (config.vmGpu) hostAddr guestAddr llamaPort;
 
   rtspPort = 8554;
   mqttPort = 1883;
@@ -310,7 +311,7 @@ in
   systemd.services = lib.mkMerge [
     (lib.genAttrs [ "go2rtc" "mosquitto" ] (_: {
       # binding the tap's address fails until networkd has configured it
-      after = [ "sys-subsystem-net-devices-vmtap.device" ];
+      after = [ "sys-subsystem-net-devices-${utils.escapeSystemdPath config.vmGpu.tap}.device" ];
       serviceConfig = {
         Restart = "on-failure";
         RestartSec = 5;
@@ -322,8 +323,8 @@ in
       frigate-recordings = {
         description = "Provision the Frigate recordings dataset";
         after = [ "zfs-mount.service" ];
-        before = [ "gpu-vm-virtiofsd-recordings.service" ];
-        requiredBy = [ "gpu-vm-virtiofsd-recordings.service" ];
+        before = [ "vm-gpu-virtiofsd-recordings.service" ];
+        requiredBy = [ "vm-gpu-virtiofsd-recordings.service" ];
         path = [ config.boot.zfs.package ];
         script = ''
           zfs list -H -o name ${recordingsDataset} >/dev/null 2>&1 \
@@ -338,7 +339,7 @@ in
     }
   ];
 
-  gpuVm = {
+  vmGpu = {
     guestModules = [ guestModule ];
     shares = [
       {

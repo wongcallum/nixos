@@ -11,8 +11,9 @@ let
 
   hostname = "vm-ci";
 
-  # A point-to-point link on liz's 10.0.1.0/24 VM network. liz's address is a
-  # /32 here, and the /32 route to the guest beats the GPU VM tap's /24.
+  # microVMs sit on 10.0.0.x and hand-run QEMU VMs on 10.0.1.x, each on a
+  # point-to-point link: liz is 10.0.1.1/32 on every tap, with a /32 route
+  # to the guest.
   tap = hostname;
   hostAddr = "10.0.1.1";
   guestAddr = "10.0.1.4";

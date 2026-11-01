@@ -18,7 +18,7 @@ in
         ./_networking.nix
         ./_console.nix
         ./_vfio.nix
-        ./_gpu-vm.nix
+        ./_vm-gpu.nix
         ./_cameras.nix
         ./_persist-backup.nix
 
@@ -31,8 +31,8 @@ in
         (microvmLib.mkVmStorage {
           name = "gpu";
           requiredBy = [
-            "gpu-vm-volumes.service"
-            "gpu-vm-virtiofsd-persist.service"
+            "vm-gpu-volume.service"
+            "vm-gpu-virtiofsd-persist.service"
           ];
         })
       ]
@@ -100,7 +100,7 @@ in
       # the mirror share lives on tank, which isn't a systemd mount
       systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];
 
-      # keep CI off the cores the GPU VM is pinned to (_gpu-vm.nix)
+      # keep CI off the cores the GPU VM is pinned to (_vm-gpu.nix)
       systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
 
       # LAN clients reach Jellyfin directly, bypassing Caddy.
