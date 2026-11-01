@@ -68,8 +68,12 @@ let
         useNetworkd = true;
       };
 
-      # the gateway's hostname doesn't resolve here; use liz's guest port
-      modules.attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
+      modules = {
+        # reached only over SSH; the guest has no sops for a real password
+        users.callum.lockPassword = true;
+        # the gateway's hostname doesn't resolve here; use liz's guest port
+        attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
+      };
 
       # Direct kernel boot: no bootloader and a tmpfs root.
       boot = {
@@ -133,15 +137,6 @@ let
           pkgs.ffmpeg-full
           pkgs.nvtopPackages.nvidia
           # (pkgs.blender.override { cudaSupport = true; })
-        ];
-
-        persistence.${config.modules.persistence.persistDir}.directories = [
-          {
-            directory = "/home/callum";
-            user = "callum";
-            group = "users";
-            mode = "0700";
-          }
         ];
       };
 
