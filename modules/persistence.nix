@@ -38,12 +38,13 @@
             "/var/lib/nixos"
             "/var/log"
           ];
-          files = [
-            "/etc/machine-id"
-            # host key for systemd-creds; losing it strands every credential
-            # encrypted with it, such as libvirt's secrets-encryption-key
-            credentialSecret
-          ];
+          files =
+            # a declared machine-id (microvm.nix sets one) is already stable
+            lib.optional (!(config.environment.etc ? "machine-id")) "/etc/machine-id" ++ [
+              # host key for systemd-creds; losing it strands every credential
+              # encrypted with it, such as libvirt's secrets-encryption-key
+              credentialSecret
+            ];
         };
 
         # Impermanence symlinks a file that is missing from persistent storage,
@@ -51,7 +52,12 @@
         # would never persist. Seed it first, adopting a live key if one exists.
         system.activationScripts = {
           credential-secret = {
-            deps = [ "createPersistentStorageDirs" ];
+            # systemd-creds binds the key to the machine-id, which a declared
+            # one only provides once /etc is set up
+            deps = [
+              "createPersistentStorageDirs"
+              "etc"
+            ];
             text = ''
               persisted=${persistDir}${credentialSecret}
               live=${credentialSecret}

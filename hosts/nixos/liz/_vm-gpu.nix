@@ -134,6 +134,10 @@ let
       powerManagement.enable = false;
 
       environment = {
+        # declared like microvm.nix's guests, so it exists before activation
+        # needs it; the ID it has always had
+        etc."machine-id".text = "8ee14cda66bb46b08992f1945dcf32ad\n";
+
         systemPackages = [
           pkgs.ffmpeg-full
           pkgs.nvtopPackages.nvidia
