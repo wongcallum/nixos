@@ -167,6 +167,9 @@ in
         fsType = "ext4";
       };
 
+      # the root is rolled back on boot; keep images (and named volumes) on rpool/cache
+      virtualisation.containers.storage.settings.storage.graphroot = config.utils.cacheDir "containers";
+
       modules = {
         persistence.cacheDir = "/cache";
         sensors.chips = [ "nct6775" ];
