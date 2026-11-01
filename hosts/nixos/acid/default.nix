@@ -13,9 +13,7 @@ in
     }:
     {
       imports = [
-        # ./_audio-always-on.nix
         ./_disko.nix
-        ./_packages.nix
 
         inputs.disko.nixosModules.default
       ]
@@ -23,49 +21,57 @@ in
         limine
         impermanence-btrfs
         callum
-        desktop
-        syncthing-desktop
-        autofs
-        nix-monitored
-        freesmlauncher
-        libvirt
-        docker
-        bluetooth
         ssh
+        tailscale
       ]);
 
       system.stateVersion = "26.05";
 
-      services.xserver.videoDrivers = [ "nvidia" ];
-
-      modules = {
-        syncthing-desktop.user = "callum";
-        firefox.transparency.enableToolbox = true;
-      };
-
       boot = {
-        loader.efi.canTouchEfiVariables = true;
+        # OpenCore owns the firmware boot order and chainloads Limine from
+        # acid's own ESP, so Limine installs to the removable path
+        loader.efi.canTouchEfiVariables = false;
+
+        # the NVIDIA card stays installed but unused
+        blacklistedKernelModules = [ "nouveau" ];
 
         initrd.availableKernelModules = [
-          "nvme"
+          "ahci"
           "xhci_pci"
           "usb_storage"
           "usbhid"
           "sd_mod"
         ];
+        kernelModules = [ "kvm-intel" ];
       };
 
       hardware = {
         enableRedistributableFirmware = true;
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+      };
 
-        graphics.enable = true;
+      # Reachable over the LAN until tailscale is logged in: DHCP on any wired
+      # port, and mDNS so `ssh acid.local` works without knowing the lease
+      networking.useNetworkd = true;
+      systemd.network = {
+        enable = true;
+        networks."10-eth" = {
+          matchConfig.Type = "ether";
+          networkConfig = {
+            DHCP = "yes";
+            IPv6AcceptRA = true;
+          };
+          linkConfig.RequiredForOnline = "routable";
+        };
+      };
 
-        nvidia = {
-          package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
-          modesetting.enable = true;
-          open = false;
-          powerManagement.enable = true;
+      services.avahi = {
+        enable = true;
+        nssmdns4 = true;
+        openFirewall = true;
+        settings.publish = {
+          disable-publishing = false;
+          publish-addresses = true;
         };
       };
     };
