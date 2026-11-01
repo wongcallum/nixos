@@ -38,13 +38,6 @@ let
       readOnly = false;
       neededForBoot = true;
     }
-    {
-      tag = "work";
-      source = "/scratch/gpu";
-      mountPoint = "/work";
-      readOnly = false;
-      neededForBoot = false;
-    }
   ]
   ++ cfg.shares;
 
@@ -499,7 +492,6 @@ in
         "d ${stateDir} 0755 root root -"
         "d ${stateDir}/etc/ssh 0755 root root -"
         "d ${runDir} 0700 root root -"
-        "d /scratch/gpu 0755 root root -"
       ];
 
       services = lib.mkMerge [
