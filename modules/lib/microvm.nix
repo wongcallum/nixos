@@ -38,7 +38,9 @@
           script = ''
             zfs list -H -o name ${dataset} >/dev/null 2>&1 || zfs create -p ${dataset}
             [ "$(zfs get -H -o value mounted ${dataset})" = yes ] || zfs mount ${dataset}
-            install -d -m 0700 ${vmDir name}/etc/ssh
+            # impermanence gives the guest's /etc/ssh this mode, and sshd reads
+            # authorized_keys.d as the user, so it must stay traversable
+            install -d -m 0755 ${vmDir name}/etc/ssh
           '';
           serviceConfig = {
             Type = "oneshot";
