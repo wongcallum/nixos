@@ -18,6 +18,14 @@ let
   recipients = pkgs.writeText "liz-persist-backup-recipients" (lib.concatLines sshKeys);
 
   # Relative to the snapshot root; globs are expanded by the shell.
+  #
+  # Deliberately not backed up:
+  # - data/immich: only a viewer for external libraries
+  # - Jellyfin plugins
+  # - data/media/qbittorrent
+  # - data/lobehub
+  # - data/grafana
+  # - data/media/pelagica
   paths = [
     # host identity: sops decrypts with the SSH host key
     "etc/ssh"
@@ -35,12 +43,23 @@ let
     "data/technitium"
     "data/syncthing"
     "data/home-assistant"
+    "data/trilium"
 
     "data/media/jellyfin/config/config"
-    "data/media/jellyfin/config/plugins"
+    "data/media/jellyfin/config/plugins/configurations"
     "data/media/jellyfin/config/root"
     "data/media/jellyfin/config/data/playlists"
     "data/media/jellyfin/config/data/jellyfin.db*"
+
+    "data/media/sonarr/config.xml"
+    "data/media/sonarr/sonarr.db*"
+    "data/media/radarr/config.xml"
+    "data/media/radarr/radarr.db*"
+    "data/media/prowlarr/config.xml"
+    "data/media/prowlarr/prowlarr.db*"
+
+    "data/media/slskd/slskd.yml"
+    "data/media/slskd/data"
   ];
 
   # Per VM dataset, relative to its root; archived under vm/<name>/.
@@ -74,6 +93,9 @@ let
   ];
 
   excludes = [
+    # HACS itself (mostly its bundled frontend); reinstall with get.hacs.xyz,
+    # its state in .storage/hacs.* is kept
+    "data/home-assistant/custom_components/hacs"
     "data/home-assistant/backups"
     "data/home-assistant/deps"
     "data/home-assistant/tts"
@@ -81,11 +103,18 @@ let
     "data/home-assistant/home-assistant_v2.db*"
     "data/qbittorrent/qBittorrent/data/GeoDB"
     "data/qbittorrent/qBittorrent/data/logs"
+    # slskd: search results cache, old migration backups, share scan backup
+    "data/media/slskd/data/backups"
+    "data/media/slskd/data/browse.cache"
+    "data/media/slskd/data/search.db"
+    "data/media/slskd/data/shares.local.bak.db"
     "data/syncthing/index-v2"
     "data/technitium/blocklists"
     "data/technitium/cache.bin"
     "data/technitium/logs"
     "data/technitium/stats"
+    "data/trilium/backup"
+    "data/trilium/log"
   ];
 
   backup = pkgs.writeShellApplication {
