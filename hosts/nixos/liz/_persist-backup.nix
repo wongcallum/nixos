@@ -42,8 +42,6 @@ let
   ];
 
   excludes = [
-    "data/gotosocial/cache"
-    "data/home-assistant/.cache"
     "data/home-assistant/backups"
     "data/home-assistant/deps"
     "data/home-assistant/tts"

@@ -13,6 +13,9 @@
 
         dataDir = name: "${persistDir}/data/${name}";
 
+        cacheDir =
+          name: "${lib.attrByPath [ "modules" "persistence" "cacheDir" ] "/var/cache" config}/${name}";
+
         mkContainer =
           args:
           lib.recursiveUpdate {

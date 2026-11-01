@@ -155,6 +155,7 @@ in
       };
 
       modules = {
+        persistence.cacheDir = "/cache";
         sensors.chips = [ "nct6775" ];
         watchdog.driver = "sp5100_tco";
 

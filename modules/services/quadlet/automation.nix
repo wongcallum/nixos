@@ -21,6 +21,7 @@
       config = {
         systemd.tmpfiles.rules = [
           "d ${config.utils.dataDir "home-assistant"} 0755 root root -"
+          "d ${config.utils.cacheDir "home-assistant"} 0755 root root -"
           "d ${config.users.users.colin.home}/mongo_data 0755 colin users -"
         ];
 
@@ -44,6 +45,7 @@
                   ];
                   volumes = [
                     "${config.utils.dataDir "home-assistant"}:/config"
+                    "${config.utils.cacheDir "home-assistant"}:/config/.cache"
                     "/etc/localtime:/etc/localtime:ro"
                     "/run/dbus:/run/dbus:ro"
                   ]

@@ -15,7 +15,7 @@ in
 
       systemd.tmpfiles.rules = [
         "d ${dataDir} 0700 1000 1000 -"
-        "d ${dataDir}/cache 0700 1000 1000 -"
+        "d ${config.utils.cacheDir "gotosocial"} 0700 1000 1000 -"
       ];
 
       modules.containers.gotosocial = lib.mkDefault true;
@@ -48,7 +48,7 @@ in
                 ip = gotosocialIp;
                 volumes = [
                   "${dataDir}:/gotosocial/storage"
-                  "${dataDir}/cache:/gotosocial/.cache"
+                  "${config.utils.cacheDir "gotosocial"}:/gotosocial/.cache"
                 ];
               };
             }

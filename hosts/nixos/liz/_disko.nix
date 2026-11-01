@@ -97,6 +97,16 @@ in
             mountpoint = "/persist";
           };
 
+          # Rebuildable caches: survives the root rollback, never backed up.
+          "cache" = {
+            type = "zfs_fs";
+            options = {
+              mountpoint = "legacy";
+              quota = "100G";
+            };
+            mountpoint = "/cache";
+          };
+
           # GPU VM zvols are provisioned separately beneath this dataset.
           "vm" = {
             type = "zfs_fs";

@@ -77,6 +77,9 @@ let
 
   # SQLite over virtiofs hits "database is locked"; the store's disk is local ext4
   dbDir = "/nix/var/lib/frigate";
+  # TensorRT engines rebuild slowly, so keep them on the store's disk rather
+  # than in /persist (the root is a tmpfs)
+  modelCacheDir = "/nix/var/cache/frigate";
 
   frigateSettings = {
     # without it Frigate migrates the config as if from 0.13, mangling genai
@@ -214,6 +217,7 @@ let
             tmpfses = [ "/tmp/cache:size=1g" ];
             volumes = [
               "${dataDir}:/config"
+              "${modelCacheDir}:/config/model_cache"
               "${dbDir}:/db"
               "/media/frigate:/media/frigate"
               "/etc/localtime:/etc/localtime:ro"
@@ -234,7 +238,7 @@ let
       };
 
       systemd.tmpfiles.rules = [
-        "d ${dataDir}/model_cache 0755 root root -"
+        "d ${modelCacheDir} 0755 root root -"
         "d ${dbDir} 0755 root root -"
       ];
 

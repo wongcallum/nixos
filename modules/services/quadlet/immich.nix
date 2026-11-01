@@ -22,7 +22,9 @@ in
       config = {
         systemd.tmpfiles.rules = [
           "d ${config.utils.dataDir "immich/db"} 0755 root root -"
-          "d ${config.utils.dataDir "immich/model-cache"} 0755 root root -"
+          "d ${config.utils.cacheDir "immich/model-cache"} 0755 root root -"
+          "d ${config.utils.cacheDir "immich/thumbs"} 0755 root root -"
+          "d ${config.utils.cacheDir "immich/encoded-video"} 0755 root root -"
           "d ${config.utils.dataDir "immich/data"} 0755 root root -"
           "d ${config.utils.dataDir "immich/immich-stack/logs"} 0755 root root -"
         ];
@@ -95,7 +97,7 @@ in
                   networks = [ networks.${networkName}.ref ];
                   ip = "172.25.0.4";
                   volumes = [
-                    "${config.utils.dataDir "immich/model-cache"}:/cache"
+                    "${config.utils.cacheDir "immich/model-cache"}:/cache"
                   ];
                 };
               }
@@ -121,6 +123,9 @@ in
                     ) config.modules.immich.externalLibraries
                     ++ [
                       "${config.utils.dataDir "immich/data"}:/data"
+                      # generated from the libraries, so rebuildable
+                      "${config.utils.cacheDir "immich/thumbs"}:/data/thumbs"
+                      "${config.utils.cacheDir "immich/encoded-video"}:/data/encoded-video"
                       "/etc/localtime:/etc/localtime:ro"
                     ];
                 };

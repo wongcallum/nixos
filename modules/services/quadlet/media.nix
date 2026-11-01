@@ -18,7 +18,7 @@ in
         "d ${config.utils.dataDir "media/radarr"} 0755 root root -"
         "d ${config.utils.dataDir "media/prowlarr"} 0755 root root -"
         "d ${config.utils.dataDir "media/qbittorrent"} 0755 root root -"
-        "d ${config.utils.dataDir "media/jellyfin/cache"} 0755 root root -"
+        "d ${config.utils.cacheDir "jellyfin"} 0755 root root -"
         "d ${config.utils.dataDir "media/jellyfin/config"} 0755 root root -"
         "d ${config.utils.dataDir "media/pelagica"} 0755 root root -"
         "d ${config.utils.dataDir "media/slskd"} 0755 root root -"
@@ -140,7 +140,7 @@ in
                 healthStartPeriod = "30s";
                 volumes = [
                   "/mnt/media/media:/media:rw"
-                  "${config.utils.dataDir "media/jellyfin/cache"}:/cache:rw"
+                  "${config.utils.cacheDir "jellyfin"}:/cache:rw"
                   "${config.utils.dataDir "media/jellyfin/config"}:/config:rw"
                 ];
                 networks = [ networks.${networkName}.ref ];

@@ -14,6 +14,15 @@
           type = lib.types.str;
           default = "/persist";
         };
+        cacheDir = lib.mkOption {
+          type = lib.types.str;
+          default = "/var/cache";
+          description = ''
+            Root for caches that are expensive to rebuild: kept out of persistDir
+            and its backups. The default is wiped at boot on impermanent hosts;
+            point it at a dedicated dataset to keep caches across reboots.
+          '';
+        };
       };
 
       config = {
