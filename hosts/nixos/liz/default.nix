@@ -147,9 +147,9 @@ in
           min-free = 21474836480; # 20 GiB
           max-free = 64424509440; # 60 GiB
         };
-
-        gc.dates = lib.mkForce "daily";
       };
+
+      programs.nh.clean.dates = lib.mkForce "daily";
 
       services.zfs.autoScrub = {
         enable = true;

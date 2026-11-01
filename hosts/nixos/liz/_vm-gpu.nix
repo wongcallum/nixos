@@ -76,6 +76,10 @@ let
         attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
       };
 
+      # liz always direct-boots the current closure and roots it (vm-gpu-boot),
+      # so older system generations can never be booted
+      programs.nh.clean.extraArgs = lib.mkForce "--keep 1";
+
       # Direct kernel boot: no bootloader and a tmpfs root.
       boot = {
         loader.grub.enable = false;
