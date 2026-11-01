@@ -2,6 +2,7 @@
   config,
   inputs,
   lib,
+  microvmLib,
   pkgs,
   self,
   ...
@@ -9,7 +10,7 @@
 let
   cfg = config.gpuVm;
 
-  stateDir = config.utils.dataDir "gpu-vm";
+  stateDir = microvmLib.vmDir "gpu";
   runDir = "/run/gpu-vm";
 
   tap = "vmtap";
@@ -24,7 +25,7 @@ let
   shareSocket = tag: "${runDir}/${tag}.sock";
 
   # A separate /nix owns both store paths and their database.
-  nixVolume = "rpool/vm/gpu-store";
+  nixVolume = microvmLib.vmDisk "gpu";
   nixVolumeSizeGiB = 250;
   nixVolumeSize = "${toString nixVolumeSizeGiB}G";
   nixVolumePath = "/dev/zvol/${nixVolume}";
@@ -273,7 +274,7 @@ let
     text = ''
       created=false
       if ! zfs list -H -o name "${nixVolume}" >/dev/null 2>&1; then
-        zfs create -s -V ${nixVolumeSize} \
+        zfs create -p -s -V ${nixVolumeSize} \
           -o volblocksize=16K \
           -o compression=lz4 \
           "${nixVolume}"
@@ -484,8 +485,6 @@ in
 
     systemd = {
       tmpfiles.rules = [
-        "d ${stateDir} 0755 root root -"
-        "d ${stateDir}/etc/ssh 0755 root root -"
         "d ${runDir} 0700 root root -"
       ];
 

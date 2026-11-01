@@ -12,6 +12,52 @@
       vm-thsconline = 3;
     };
 
+    # Every VM on liz owns the rpool/vm/<name> dataset: its persistent files,
+    # mounted at /vm/<name>, plus any disk as the rpool/vm/<name>/disk zvol.
+    # `zfs destroy -r rpool/vm/<name>` then removes all of a VM's data.
+    vmName = hostname: lib.removePrefix "vm-" hostname;
+    vmParent = "rpool/vm";
+    vmDataset = name: "${vmParent}/${name}";
+    vmDir = name: "/vm/${name}";
+    vmDisk = name: "${vmDataset name}/disk";
+
+    # Host module: create (or mount) a VM's dataset before the units that use it.
+    mkVmStorage =
+      { name, requiredBy }:
+      { config, ... }:
+      let
+        dataset = vmDataset name;
+      in
+      {
+        systemd.services."vm-storage-${name}" = {
+          description = "Provision the ${dataset} dataset";
+          after = [ "zfs-mount.service" ];
+          before = requiredBy;
+          inherit requiredBy;
+          path = [ config.boot.zfs.package ];
+          script = ''
+            zfs list -H -o name ${dataset} >/dev/null 2>&1 || zfs create -p ${dataset}
+            [ "$(zfs get -H -o value mounted ${dataset})" = yes ] || zfs mount ${dataset}
+            install -d -m 0700 ${vmDir name}/etc/ssh
+          '';
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+          };
+        };
+      };
+
+    # Host module for a microVM guest's dataset.
+    mkGuestStorage =
+      hostname:
+      mkVmStorage {
+        name = vmName hostname;
+        requiredBy = [
+          "microvm-virtiofsd@${hostname}.service"
+          "microvm@${hostname}.service"
+        ];
+      };
+
     addressing =
       hostname:
       let
@@ -59,7 +105,7 @@
             }
             {
               tag = "persist";
-              source = "/persist/microvms/${hostname}";
+              source = vmDir (vmName hostname);
               mountPoint = "/persist";
               proto = "virtiofs";
             }
@@ -95,7 +141,6 @@
       hostname:
       let
         addr = addressing hostname;
-        vmDir = "/persist/microvms/${hostname}";
 
         blockedDestinations = [
           "10.0.0.0/8"
@@ -146,11 +191,6 @@
             ${delForwardDrops}
           '';
         };
-
-        systemd.tmpfiles.rules = [
-          "d ${vmDir} 0755 root root -"
-          "d ${vmDir}/etc/ssh 0700 root root -"
-        ];
       };
   };
 }

@@ -26,6 +26,16 @@ in
         inputs.microvm.nixosModules.host
       ]
       ++ map microvmLib.mkHostNetworking (lib.attrNames microvmLib.guests)
+      ++ map microvmLib.mkGuestStorage (lib.attrNames microvmLib.guests)
+      ++ [
+        (microvmLib.mkVmStorage {
+          name = "gpu";
+          requiredBy = [
+            "gpu-vm-volumes.service"
+            "gpu-vm-virtiofsd-persist.service"
+          ];
+        })
+      ]
       ++ (with nixos; [
         uefi
         zram
@@ -82,7 +92,10 @@ in
         restartIfChanged = true;
       }) microvmLib.guests;
 
-      _module.args.sshKeys = keys.callum;
+      _module.args = {
+        sshKeys = keys.callum;
+        inherit microvmLib;
+      };
 
       # the mirror share lives on tank, which isn't a systemd mount
       systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];

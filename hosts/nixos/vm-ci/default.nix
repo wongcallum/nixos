@@ -2,6 +2,7 @@
   config,
   inputs,
   lib,
+  microvmLib,
   ...
 }:
 let
@@ -209,7 +210,7 @@ in
       { config, pkgs, ... }:
       let
         user = hostname;
-        zvol = "rpool/vm/ci";
+        zvol = microvmLib.vmDisk "ci";
         disk = "/dev/zvol/${zvol}";
         runDir = "/run/${hostname}";
         qmpSocket = "${runDir}/qmp.sock";
@@ -221,7 +222,7 @@ in
           runtimeInputs = [ config.boot.zfs.package ];
           text = ''
             if ! zfs list -H -o name "${zvol}" >/dev/null 2>&1; then
-              zfs create -s -V 256G \
+              zfs create -p -s -V 256G \
                 -o volblocksize=16K \
                 -o compression=zstd \
                 "${zvol}"

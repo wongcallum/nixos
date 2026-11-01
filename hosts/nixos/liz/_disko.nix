@@ -107,11 +107,13 @@ in
             mountpoint = "/cache";
           };
 
-          # GPU VM zvols are provisioned separately beneath this dataset.
+          # Each VM's dataset (microvmLib.vmDataset) is provisioned beneath
+          # this by its host units, and mounts at /vm/<name>.
           "vm" = {
             type = "zfs_fs";
             options = {
-              mountpoint = "none";
+              canmount = "off";
+              mountpoint = "/vm";
               quota = "250G";
             };
           };

@@ -2,13 +2,16 @@
   config,
   lib,
   pkgs,
+  microvmLib,
   sshKeys,
   ...
 }:
 let
   dataset = "rpool/persist";
+  inherit (microvmLib) vmParent;
   snapshot = "backup-staging";
-  snapshotDir = "${config.utils.persistDir}/.zfs/snapshot/${snapshot}";
+  # relative to /, which the archive is built from
+  snapshotPath = dir: "${lib.removePrefix "/" dir}/.zfs/snapshot/${snapshot}";
   outDir = "/tank/callum/backups";
   outFile = "${outDir}/liz-persist.tar.zst.age";
 
@@ -41,6 +44,36 @@ let
     "data/media/jellyfin/config/data/jellyfin.db*"
   ];
 
+  # Per VM dataset, relative to its root; archived under vm/<name>/.
+  vmPaths = {
+    gallery = [
+      "etc/ssh"
+      "var/lib/nixos"
+      "var/lib/tailscale"
+      "data/gallery-db"
+    ];
+    thsconline = [
+      "etc/ssh"
+      "var/lib/nixos"
+    ];
+    gpu = [
+      "etc/ssh"
+      "var/lib/nixos"
+    ];
+  };
+
+  members =
+    map (p: "${snapshotPath config.utils.persistDir}/${p}") paths
+    ++ lib.concatLists (
+      lib.mapAttrsToList (name: map (p: "${snapshotPath (microvmLib.vmDir name)}/${p}")) vmPaths
+    );
+
+  # /persist paths keep their old place at the archive root
+  transforms = [
+    "s,^${snapshotPath config.utils.persistDir}/,,"
+    "s,^\\(vm/[^/]*\\)/\\.zfs/snapshot/${snapshot}/,\\1/,"
+  ];
+
   excludes = [
     "data/home-assistant/backups"
     "data/home-assistant/deps"
@@ -70,20 +103,25 @@ let
       # tank imports outside systemd's mount graph; never write to the ephemeral root
       mountpoint -q /tank/callum
 
-      zfs destroy ${dataset}@${snapshot} 2>/dev/null || true
-      zfs snapshot ${dataset}@${snapshot}
+      cleanup() {
+        zfs destroy ${dataset}@${snapshot} 2>/dev/null || true
+        zfs destroy -r ${vmParent}@${snapshot} 2>/dev/null || true
+      }
+      cleanup
+      # one atomic snapshot across /persist and every VM
+      zfs snapshot -r ${dataset}@${snapshot} ${vmParent}@${snapshot}
       tmp=
-      # leave the snapshot's automount first, or it's busy
-      trap 'cd /; rm -f "$tmp"; zfs destroy ${dataset}@${snapshot}' EXIT
+      trap 'rm -f "$tmp"; cleanup' EXIT
 
       install -d -o callum -g users -m 0700 ${outDir}
       tmp=$(mktemp ${outFile}.XXXXXX)
 
-      cd ${snapshotDir}
+      cd /
       # shellcheck disable=SC2086
       tar --create --numeric-owner --acls --xattrs \
+        ${lib.concatMapStringsSep " " (t: "--transform=${lib.escapeShellArg t}") transforms} \
         ${lib.concatMapStringsSep " " (e: "--exclude=${lib.escapeShellArg e}") excludes} \
-        ${lib.concatStringsSep " " paths} \
+        ${lib.concatStringsSep " " members} \
         | zstd -T0 -10 \
         | age -R ${recipients} > "$tmp"
 
@@ -95,7 +133,7 @@ let
 in
 {
   systemd.services.liz-persist-backup = {
-    description = "Encrypted archive of important /persist state into /tank/callum";
+    description = "Encrypted archive of important /persist and VM state into /tank/callum";
     after = [ "zfs-mount.service" ];
     serviceConfig = {
       Type = "oneshot";
