@@ -68,7 +68,6 @@ in
         quadlet-automation
         quadlet-development
         quadlet-immich
-        quadlet-gotosocial
         quadlet-lobehub
 
         attic

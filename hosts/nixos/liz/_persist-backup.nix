@@ -32,7 +32,6 @@ let
     "data/radicale"
     "data/gitea"
     "data/leafwiki"
-    "data/gotosocial"
     "data/technitium"
     "data/syncthing"
     "data/home-assistant"
