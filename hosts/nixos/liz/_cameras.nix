@@ -67,7 +67,8 @@ let
       "${fraction (lib.elemAt xy 0) 960},${fraction (lib.elemAt xy 1) 576}"
     ) (lib.splitString " " polygon);
 
-  recordingsDataset = "tank/frigate";
+  # The DVR keeps its own copy, so the unredundant scratch disk is enough.
+  recordingsDataset = "scratch/frigate";
   # Frigate prunes recordings by free space, which the quota bounds.
   recordingsQuota = "300G";
 
