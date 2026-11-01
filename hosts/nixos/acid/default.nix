@@ -27,6 +27,9 @@ in
 
       system.stateVersion = "26.05";
 
+      # SSH keys and passwordless sudo only, like milk
+      modules.users.callum.lockPassword = true;
+
       boot = {
         # OpenCore owns the firmware boot order and chainloads Limine from
         # acid's own ESP, so Limine installs to the removable path
@@ -63,7 +66,13 @@ in
           };
           linkConfig.RequiredForOnline = "routable";
         };
+        # online once either the wired port or Wi-Fi is routable
+        wait-online.anyInterface = true;
       };
+
+      # Wi-Fi via `iwctl`; networkd's default wireless network runs DHCP, and
+      # iwd keeps known networks in /var/lib/iwd, which persists
+      networking.wireless.iwd.enable = true;
 
       services.avahi = {
         enable = true;
