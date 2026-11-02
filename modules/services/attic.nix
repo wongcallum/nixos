@@ -56,6 +56,15 @@ in
             '';
           };
 
+          staticSubstituter = lib.mkOption {
+            type = lib.types.bool;
+            default = true;
+            description = ''
+              Whether nix.conf lists the cache as a substituter; false leaves
+              that to something that adds it at runtime
+            '';
+          };
+
           substituter = lib.mkOption {
             type = lib.types.str;
             default =
@@ -86,7 +95,7 @@ in
       in
       {
         nix.settings = {
-          extra-substituters = [ cfg.substituter ];
+          extra-substituters = lib.optional cfg.staticSubstituter cfg.substituter;
           extra-trusted-public-keys = lib.optional (cfg.publicKey != "") cfg.publicKey;
         };
       };

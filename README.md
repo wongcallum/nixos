@@ -54,14 +54,23 @@ rm -r "$temp"
 
 `nix build .#nixosConfigurations.{{minimal-iso|kde-iso}}.config.system.build.isoImage`
 
-To make the attic cache accessible, pass a reusable, ephemeral, short-expiry auth key:
+To have the installer join the tailnet and reach the attic cache,
+add a Tailscale OAuth client secret (auth key write scope, `tag:installer`) to the built image:
 
 ```bash
-TS_AUTHKEY=tskey-auth-... nix build --impure .#nixosConfigurations.minimal-iso.config.system.build.isoImage
+set -gx TS_OAUTH_SECRET tskey-client-... # optional
+
+scripts/iso-add-tailscale-key.sh result/iso/nixos-*.iso
+# writes to nixos-<version>-x86_64-linux-tskey.iso in current directory
 ```
 
-The installer then enrols itself on boot with `--state=mem:`.
-However, the key is visible in the Nix store, so this must be treated as sensitive.
+The installer is set to use strict DoT to Cloudflare. If you need to allow plain DNS:
+
+```bash
+mkdir -p /run/systemd/resolved.conf.d
+printf '[Resolve]\nDNSOverTLS=no\n' >/run/systemd/resolved.conf.d/plain.conf
+systemctl restart systemd-resolved
+```
 
 ## Edit secrets
 
@@ -84,4 +93,3 @@ Remember to `nix flake update secrets`
 nvim scripts/patch-nixpkgs.sh # add commits/branches/PRs
 GITHUB_TOKEN=$(gh auth token) ./scripts/patch-nixpkgs.sh
 ```
-
