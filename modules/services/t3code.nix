@@ -23,6 +23,11 @@
       config = {
         environment.systemPackages = [ package ];
 
+        nix.settings = {
+          extra-substituters = [ "https://cache.numtide.com" ];
+          extra-trusted-public-keys = [ "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=" ];
+        };
+
         # Mirrors the unit `t3 service install` writes, as a system unit so it runs without a login.
         systemd.services.t3code = {
           description = "T3 Code server";

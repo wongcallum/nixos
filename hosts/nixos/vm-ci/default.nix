@@ -121,10 +121,12 @@ in
           extra-substituters = [
             "https://nyx-cache.chaotic.cx/?priority=45"
             "https://cache.nixos-cuda.org/"
+            "https://cache.numtide.com"
           ];
           extra-trusted-public-keys = [
             "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
             "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+            "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
           ];
         };
 
