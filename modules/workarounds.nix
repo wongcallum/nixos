@@ -29,16 +29,6 @@ in
       ];
     };
 
-    cloudflared-2026-10-2 = {
-      upstream = "https://github.com/NixOS/nixpkgs/pull/576762 (backport: https://github.com/NixOS/nixpkgs/pull/579392)";
-      done = "every cloudflared host's nixpkgs ships cloudflared >= 2026.10.2, which Cloudflare requires";
-      fixed = lib.all (host: lib.versionAtLeast (pkgsFor host).cloudflared.version "2026.10.2") [
-        "vm-ci"
-        "vm-gallery"
-        "vm-thsconline"
-      ];
-    };
-
     flux-mcman = {
       upstream = "https://github.com/IogaMaster/flux";
       done = "flux's flake.lock pins deniz-blue/mcman at 2665efb or a later main commit";
@@ -57,16 +47,6 @@ in
       fixed =
         !lib.any (lib.hasPrefix "--prefix FREESMLAUNCHER_JAVA_PATHS")
           (inputs.freesmlauncher.packages.x86_64-linux.freesmlauncher.override { jdks = [ ]; }).qtWrapperArgs;
-    };
-
-    ipp-usb-avahi-settings = {
-      upstream = "https://github.com/NixOS/nixpkgs/pull/577437";
-      done = "nixpkgs-unstable's ipp-usb module sets services.avahi.settings.publish instead of the obsolete services.avahi.publish options";
-      cleanup = "remove the PR from scripts/patch-nixpkgs.sh and rerun it";
-      fixed =
-        !lib.hasInfix "userServices = true" (
-          builtins.readFile "${inputs.unstable-upstream}/nixos/modules/services/printing/ipp-usb.nix"
-        );
     };
 
     kdeconnect-no-bluetooth = {
