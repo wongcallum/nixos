@@ -1,11 +1,10 @@
-{ lib, inputs, ... }:
+{ lib, ... }:
 {
   flake.modules.nixos.t3code =
     { config, pkgs, ... }:
     let
       cfg = config.modules.t3code;
-      agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
-      package = agents.t3code.override { providerPackages = [ agents.claude-code ]; };
+      package = pkgs.t3code;
     in
     {
       options.modules.t3code = {

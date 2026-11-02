@@ -32,7 +32,7 @@ in
     aria2
     ffmpeg
     tsukimi
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.t3code-desktop
+    t3code-desktop
   ];
 
   nix.settings = {
