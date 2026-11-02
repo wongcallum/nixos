@@ -10,7 +10,7 @@
 
         dank-material-shell = {
           enable = true;
-          # in niri config: `spawn-at-startup "dms" "run"`
+          # The niri config starts it with `spawn-at-startup "dms" "run"`.
           systemd.enable = false;
         };
       };
@@ -20,7 +20,6 @@
         pkgs.callPackage ../../packages/enable-3fg-drag { }
       }/lib/libenable-3fg-drag.so";
 
-      # not sure if these are used
       fonts.packages = with pkgs; [
         material-symbols
         fira-code

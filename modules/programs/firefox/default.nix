@@ -38,7 +38,7 @@
           default = 80;
           example = 60;
           description = ''
-            Opacity% of the tint applied to the browser chrome and about: pages
+            Opacity, in percent, of the tint on the browser chrome and about: pages
           '';
         };
       };
@@ -47,8 +47,6 @@
         programs.firefox = {
           enable = true;
 
-          # https://github.com/Frewacom/pywalfox-native/blob/master/pywalfox/install.py
-          # https://github.com/Frewacom/pywalfox-native/blob/master/pywalfox/assets/manifest.json
           nativeMessagingHosts.packages = [
             (pkgs.runCommandLocal "pywalfox-native-with-manifest" { } ''
               mkdir -p $out/bin $out/lib/mozilla/native-messaging-hosts
@@ -87,7 +85,7 @@
 
             SearchSuggestEnabled = false;
 
-            # if unset firefox overrides the autoConfig
+            # If unset, Firefox overrides the autoConfig.
             NewTabPage = false;
             Homepage = {
               URL = prismUrl;
@@ -193,7 +191,7 @@
           '';
         };
 
-        # DMS only writes pywal colors if `pywalfox` binary is in PATH
+        # DMS only writes pywal colors when the `pywalfox` binary is in PATH.
         environment.systemPackages = [ pkgs.pywalfox-native ];
 
         systemd.user.tmpfiles.rules = [

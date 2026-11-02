@@ -1,4 +1,3 @@
-# packages i want on every desktop
 { inputs, ... }:
 {
   flake.modules.nixos.desktop = { pkgs, ... }: {
@@ -48,7 +47,6 @@
       pavucontrol
 
       mpv
-      inputs.punktfunk.packages.${pkgs.stdenv.hostPlatform.system}.punktfunk-client
       qalculate-qt
       gthumb
       kdePackages.okular
@@ -66,7 +64,6 @@
       kdePackages.dolphin-plugins
       kdePackages.kdegraphics-thumbnailers
 
-      coder
       equibop
       feishin
       faugus-launcher

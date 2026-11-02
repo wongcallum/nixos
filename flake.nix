@@ -5,7 +5,6 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
 
-    # best practice: do not mix stable and unstable on the same system
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     unstable-upstream.url = "github:nixos/nixpkgs/nixos-unstable";
     unstable.url = "github:wongcallum/nixpkgs/patched";
@@ -25,7 +24,6 @@
     prism-tower.url = "github:wongcallum/prism-tower";
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
-    punktfunk.url = "git+https://git.unom.io/unom/punktfunk?ref=nix-stable";
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
     nix-monitored.url = "github:ners/nix-monitored";
@@ -44,7 +42,7 @@
       url = "github:IogaMaster/flux";
       inputs.nixpkgs.follows = "nixpkgs";
       # workaround: flux-mcman
-      # flux's flake.lock doesn't have my fix yet
+      # flux's flake.lock doesn't have my fix yet.
       inputs.mcman.url = "github:deniz-blue/mcman/2665efb902631f7a98e0679ac7ed4998e6540022";
     };
 
@@ -65,8 +63,6 @@
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
     zapfast.inputs.nixpkgs.follows = "unstable";
     nix-output-monitor.inputs.nixpkgs.follows = "unstable";
-    # its GUI client dlopens the host's GPU drivers, so it must share their glibc
-    punktfunk.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =

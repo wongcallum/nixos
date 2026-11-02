@@ -1,4 +1,10 @@
 { lib, ... }:
+let
+  mountOptions = [
+    "compress=zstd"
+    "noatime"
+  ];
+in
 {
   disko.devices = {
     disk = {
@@ -21,9 +27,32 @@
             root = {
               size = "100%";
               content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  # btrfs-rollback recreates this at boot.
+                  "root" = {
+                    mountpoint = "/";
+                    inherit mountOptions;
+                  };
+                  "home" = {
+                    mountpoint = "/home";
+                    inherit mountOptions;
+                  };
+                  "nix" = {
+                    mountpoint = "/nix";
+                    inherit mountOptions;
+                  };
+                  "persist" = {
+                    mountpoint = "/persist";
+                    inherit mountOptions;
+                  };
+                  # Takes the overflow once zram fills.
+                  "swap" = {
+                    mountpoint = "/.swapvol";
+                    swap.swapfile.size = "16G";
+                  };
+                };
               };
             };
           };

@@ -1,6 +1,5 @@
 { lib, pkgs, ... }:
 let
-  # Stable across PCI topology changes that rename predictable interfaces.
   netInterface = "lan0";
   netMac = "50:eb:f6:97:a1:6a";
 
@@ -44,7 +43,15 @@ in
     ];
   };
 
-  services.resolved.settings.Resolve.DNSStubListener = "no";
+  services.resolved.settings.Resolve = {
+    DNSStubListener = "no";
+    # Applies to the fallback only. tailscale0 sets its own link to plain DNS.
+    DNSOverTLS = true;
+    FallbackDNS = [
+      "1.1.1.1#cloudflare-dns.com"
+      "1.0.0.1#cloudflare-dns.com"
+    ];
+  };
 
   environment.systemPackages = [ pkgs.ethtool ];
   services.networkd-dispatcher = {

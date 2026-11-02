@@ -60,7 +60,7 @@
               remember_last_entry: ${if config.modules.limine.rememberLastEntry then "yes" else "no"}
             '';
 
-            # from https://github.com/diegons490/cachyos-limine-theme
+            # From https://github.com/diegons490/cachyos-limine-theme
             style = {
               interface.branding = config.networking.hostName;
               wallpapers = [ pkgs.nixos-artwork.wallpapers.nineish-catppuccin-mocha-alt.gnomeFilePath ];

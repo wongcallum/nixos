@@ -8,29 +8,109 @@ let
   inherit (config.flake) keys;
   inherit (config.flake.modules) nixos;
 
-  # **Optional**
-  # TS_AUTHKEY=tskey-auth-... nix build --impure .#nixosConfigurations.minimal-iso.config.system.build.isoImage
-  tsAuthKey = builtins.getEnv "TS_AUTHKEY";
-  withTailscale = tsAuthKey != "";
+  # scripts/iso-add-tailscale-key.sh adds this to a built image, so it never enters the store.
+  tsSecretFile = "/iso/tailscale/oauth-secret";
+
+  # nix.conf includes this, and attic-substituter writes it once attic answers.
+  atticConf = "/run/nix/attic.conf";
 
   tailscaleInstaller =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
+    let
+      inherit (config.modules) hostAddrs;
+      attic = config.modules.attic;
+    in
     {
-      assertions = [
-        {
-          assertion = lib.hasPrefix "tskey-" tsAuthKey;
-          message = "TS_AUTHKEY is set but does not look like a tailscale auth key (expected a `tskey-` prefix).";
-        }
-      ];
-
       services.tailscale = {
         enable = true;
-        authKeyFile = pkgs.writeText "installer-tailscale-authkey" tsAuthKey;
-        authKeyParameters.ephemeral = true;
+        authKeyFile = tsSecretFile;
+        authKeyParameters = {
+          ephemeral = true;
+          preauthorized = true;
+        };
         extraDaemonFlags = [ "--state=mem:" ];
-        extraUpFlags = [ "--hostname=nixos-installer" ];
+        extraUpFlags = [
+          "--hostname=nixos-installer"
+          # OAuth secrets require a tag.
+          "--advertise-tags=tag:installer"
+          # resolved already uses strict DNS-over-TLS.
+          "--accept-dns=false"
+        ];
+      };
+
+      systemd.services.tailscaled-autoconnect = {
+        unitConfig = {
+          ConditionPathExists = tsSecretFile;
+          # Keep trying until a network comes up, such as Wi-Fi set up by hand.
+          StartLimitIntervalSec = 0;
+        };
+        serviceConfig = {
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+      };
+
+      modules.attic = {
+        endpoint = "http://${hostAddrs.liz}:${toString attic.guestPort}/";
+        # An unreachable cache costs a timeout per nix command, so attic-substituter
+        # adds it once it answers.
+        staticSubstituter = false;
+      };
+
+      nix.extraOptions = ''
+        !include ${atticConf}
+      '';
+
+      systemd.services.attic-substituter = {
+        description = "Add attic as a substituter once it is reachable over Tailscale";
+        after = [ "tailscaled.service" ];
+        wants = [ "tailscaled.service" ];
+        wantedBy = [ "multi-user.target" ];
+        path = [
+          config.services.tailscale.package
+          pkgs.curl
+          pkgs.jq
+        ];
+        serviceConfig = {
+          # simple rather than oneshot, so waiting doesn't hold up boot.
+          Type = "simple";
+          RemainAfterExit = true;
+        };
+        # Wait for tailscale, so an ISO that never joins sends nothing towards liz.
+        script = ''
+          until [[ "$(tailscale status --json --peers=false | jq -r .BackendState)" == Running ]] \
+            && curl -fsS -m 5 -o /dev/null ${attic.endpoint}${attic.cacheName}/nix-cache-info; do
+            sleep 5
+          done
+          mkdir -p ${dirOf atticConf}
+          echo "extra-substituters = ${attic.substituter}" >${atticConf}
+          # The unit has KillMode=process, so running builds survive the restart.
+          systemctl try-restart nix-daemon.service
+          echo "added ${attic.substituter}"
+        '';
       };
     };
+
+  # If a network blocks port 853, set DNSOverTLS=no in /run/systemd/resolved.conf.d.
+  dnsOverTls = {
+    services.resolved = {
+      enable = true;
+      settings.Resolve = {
+        DNS = [
+          "1.1.1.1#cloudflare-dns.com"
+          "1.0.0.1#cloudflare-dns.com"
+          "2606:4700:4700::1111#cloudflare-dns.com"
+          "2606:4700:4700::1001#cloudflare-dns.com"
+        ];
+        DNSOverTLS = true;
+      };
+    };
+    # With only dns = "none", NetworkManager still sends DHCP resolvers to resolved over D-Bus.
+    networking.networkmanager = {
+      dns = lib.mkForce "none";
+      settings.main.systemd-resolved = false;
+    };
+  };
 
   mkIso =
     nixpkgs: isoPath:
@@ -42,12 +122,13 @@ let
 
         nixos.base
         nixos.global
+        tailscaleInstaller
+        dnsOverTls
 
         (
           { pkgs, ... }:
           {
             boot.loader.grub.memtest86.enable = true;
-            # the live system's root isn't ZFS; this is the default from 26.11
             boot.zfs.forceImportRoot = false;
             isoImage.makeBiosBootable = true;
 
@@ -100,8 +181,7 @@ let
             };
           }
         )
-      ]
-      ++ lib.optional withTailscale tailscaleInstaller;
+      ];
     };
 in
 {

@@ -18,9 +18,9 @@
           type = lib.types.str;
           default = "/var/cache";
           description = ''
-            Root for caches that are expensive to rebuild: kept out of persistDir
-            and its backups. The default is wiped at boot on impermanent hosts;
-            point it at a dedicated dataset to keep caches across reboots.
+            Root for caches that are expensive to rebuild, kept out of persistDir
+            and its backups. Impermanent hosts wipe the default at boot. Point it
+            at a dedicated dataset to keep caches across reboots.
           '';
         };
       };
@@ -28,7 +28,6 @@
       config = {
         fileSystems.${persistDir}.neededForBoot = true;
 
-        # ensure that StateDirectory is not too permissive for DynamicUser services
         systemd.tmpfiles.rules = [ "d /var/lib/private 0700 root root -" ];
 
         environment.persistence.${persistDir} = {
@@ -39,21 +38,18 @@
             "/var/log"
           ];
           files =
-            # a declared machine-id (microvm.nix sets one) is already stable
+            # A declared machine-id, as microvm.nix sets, is already stable.
             lib.optional (!(config.environment.etc ? "machine-id")) "/etc/machine-id" ++ [
-              # host key for systemd-creds; losing it strands every credential
-              # encrypted with it, such as libvirt's secrets-encryption-key
+              # Losing it strands every systemd credential.
               credentialSecret
             ];
         };
 
-        # Impermanence symlinks a file that is missing from persistent storage,
-        # and systemd replaces that symlink when it writes the key, so the key
-        # would never persist. Seed it first, adopting a live key if one exists.
+        # systemd replaces impermanence's symlink to a missing key, so the key would
+        # never persist. Seed it first.
         system.activationScripts = {
           credential-secret = {
-            # systemd-creds binds the key to the machine-id, which a declared
-            # one only provides once /etc is set up
+            # systemd-creds binds the key to the machine-id, which needs /etc set up.
             deps = [
               "createPersistentStorageDirs"
               "etc"
@@ -67,7 +63,16 @@
                   mv "$live" "$persisted"
                 else
                   rm -f "$live"
-                  SYSTEMD_CREDENTIAL_SECRET="$persisted" ${config.systemd.package}/bin/systemd-creds setup
+                  # On a fresh root, persist-files hasn't mounted the machine-id yet.
+                  machineId=/etc/machine-id
+                  [ -s "$machineId" ] || machineId=${persistDir}/etc/machine-id
+                  ${pkgs.util-linux}/bin/unshare --mount ${pkgs.runtimeShell} -c '
+                    if [ ! -s /etc/machine-id ]; then
+                      ${pkgs.util-linux}/bin/mount -t tmpfs none /etc
+                      cp "$1" /etc/machine-id
+                    fi
+                    SYSTEMD_CREDENTIAL_SECRET="$2" "$3" setup
+                  ' _ "$machineId" "$persisted" ${config.systemd.package}/bin/systemd-creds
                 fi
               fi
             '';

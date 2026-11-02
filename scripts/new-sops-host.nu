@@ -68,8 +68,7 @@ def add-key-to-sops [sops_file: string, key_name: string, age_key: string]: noth
     let anchor_line = $"  - &($key_name) ($age_key)"
     let alias_line = $"      - *($key_name)"
 
-    # insert the alias first: it sits below the anchor, so the anchor index
-    # stays valid after the alias has been inserted.
+    # Insert the alias first. It sits below the anchor, so the anchor's index stays valid.
     let updated = (
         $lines
         | insert ($alias_idx + 1) $alias_line
@@ -111,8 +110,6 @@ def main [
         error make {msg: $"could not find flake.nix at ($flake_dir)"}
     }
 
-    # fail fast before doing any work: conflicting flags are always an error,
-    # and a non-interactive run must decide every commit/push/update via flags
     for d in [
         {yes: $commit, no: $no_commit, name: "--commit / --no-commit"}
         {yes: $push, no: $no_push, name: "--push / --no-push"}

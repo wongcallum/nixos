@@ -1,6 +1,5 @@
 { lib, inputs, ... }:
 {
-  # requires flake.modules.nixos.sops
   flake.modules.nixos.gateway =
     { config, pkgs, ... }:
     let
@@ -26,7 +25,7 @@
         else
           "reverse_proxy ${service.addr}${reverseProxyConfig service}";
       gatewayServices = builtins.attrValues config.modules.gateway.services;
-      # serve plain http too, for devices that can't install the internal CA
+      # Serve plain HTTP too, for devices that can't install the internal CA.
       mkVhost = domainName: body: {
         "http://${fqdn domainName}, https://${fqdn domainName}".extraConfig = ''
           tls {
@@ -109,9 +108,7 @@
 
         services.technitium-dns-server.enable = true;
 
-        # upstream runs the server as a DynamicUser with a StateDirectory, which
-        # puts its state in /var/lib/private/technitium-dns-server. Swap to a
-        # static system user so the state can live under persistDir/data.
+        # A static user instead of DynamicUser, so state can live in persistDir.
         users.users.technitium-dns-server = {
           isSystemUser = true;
           group = "technitium-dns-server";
@@ -122,18 +119,18 @@
           DynamicUser = lib.mkForce false;
           User = "technitium-dns-server";
           Group = "technitium-dns-server";
-          # empty value resets the list, so no /var/lib entry is created
+          # An empty value resets the list, so systemd creates no /var/lib entry.
           StateDirectory = lib.mkForce "";
           ExecStart = lib.mkForce (
             "${config.services.technitium-dns-server.package}/bin/technitium-dns-server " + technitiumDataDir
           );
-          # ProtectSystem = "strict" leaves persistDir read-only otherwise
+          # ProtectSystem = "strict" leaves persistDir read-only otherwise.
           ReadWritePaths = [ technitiumDataDir ];
-          # make sure we don't watch the entire root with inotify
+          # Otherwise it inotify-watches the whole root.
           WorkingDirectory = lib.mkForce technitiumDataDir;
         };
 
-        # vhosts are keyed by domain, so a clash would silently merge two sites
+        # vhosts are keyed by domain, so a clash would silently merge two sites.
         assertions = [
           {
             assertion = lib.allUnique ([ "prism.tower" ] ++ map (s: s.domainName) gatewayServices);
@@ -147,7 +144,6 @@
             80
             443
           ];
-          # plain DNS is UDP first, TCP only for truncated/large responses
           allowedUDPPorts = [ 53 ];
         };
 
@@ -185,7 +181,7 @@
                         url = "https://fortstreeths.sentral.com.au/auth/portal";
                       }
                     ];
-                    # TODO: derive this value from the config somehow
+                    # TODO: derive this from the config.
                     searchUrl = "https://${fqdn "search"}/search";
                   }
                 }

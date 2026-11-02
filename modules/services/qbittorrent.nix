@@ -16,7 +16,7 @@ in
             AnonymousModeEnabled = true;
             GlobalMaxRatio = 2;
             GlobalMaxSeedingMinutes = 10080;
-            # KiB/s. 20 MiB/s down, 2 MiB/s up.
+            # KiB/s
             AlternativeGlobalDLSpeedLimit = 20480;
             AlternativeGlobalUPSpeedLimit = 2048;
             IgnoreSlowTorrentsForQueueing = true;
@@ -24,12 +24,7 @@ in
             MaxActiveUploads = 10;
             BandwidthSchedulerEnabled = true;
           };
-          # Scheduler runs 08:00-20:00 every day in the host's local timezone
-          # (Australia/Sydney, see modules/base.nix) - qBittorrent has no
-          # separate TZ setting, it just reads the system clock.
-          # start_time/end_time are QTime values serialized as Qt's
-          # QVariant ini escaping; these two encode the (unchanged) defaults
-          # of 8:00 and 20:00. days=0 is Scheduler::Days::EveryDay.
+          # 08:00 and 20:00 every day, encoded as QVariants.
           Preferences.Scheduler = {
             start_time = "@Variant(\\0\\0\\0\\xf\\x1\\xb7t\\0)";
             end_time = "@Variant(\\0\\0\\0\\xf\\x4J\\xa2\\0)";

@@ -2,7 +2,7 @@
 {
   boot = {
     kernelParams = [
-      # Keep tty0 available if a maintenance GPU is installed.
+      # Keeps tty0 for a maintenance GPU.
       "console=tty0"
       "console=ttyS0,115200"
     ];
@@ -14,7 +14,7 @@
         enable = true;
         ssh = {
           enable = true;
-          # Avoid known_hosts collisions with the booted system's SSH host key.
+          # A separate port keeps known_hosts from clashing with the booted system's key.
           port = 2222;
           authorizedKeys = sshKeys;
           hostKeys = [ "${config.utils.persistDir}/etc/ssh/initrd_host_ed25519_key" ];

@@ -1,6 +1,5 @@
 { lib, ... }:
 {
-  # requires flake.modules.nixos.sops
   flake.modules.nixos.cloudflared =
     { config, ... }:
     let
@@ -19,7 +18,7 @@
           type = lib.types.str;
           default = "cloudflared/credentials.json";
           description = ''
-            sops key holding this host's tunnel credentials
+            sops key that holds this host's tunnel credentials
           '';
         };
 
@@ -36,7 +35,7 @@
         {
           warnings = lib.optional (cfg.ingress != { } && cfg.tunnelId == "") ''
             modules.cloudflared.ingress is set but modules.cloudflared.tunnelId is
-            empty, these hostnames are not served:
+            empty, so these hostnames aren't served:
             ${lib.concatStringsSep ", " (lib.attrNames cfg.ingress)}
           '';
         }

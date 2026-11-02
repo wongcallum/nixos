@@ -30,7 +30,7 @@ let
   };
 in
 {
-  # define to allow merging by flake-parts
+  # Declared so flake-parts can merge definitions.
   options.flake.deploy = lib.mkOption {
     type = lib.types.attrsOf lib.types.anything;
     default = { };
@@ -43,9 +43,7 @@ in
       inherit (deployPkgs.deploy-rs.lib.deployChecks ciDeploy) deploy-schema;
     };
 
-    # What nixbot builds (see nixbot.toml). deploy-schema evaluates every host
-    # at once and blows through nixbot's hard eval memory cap, while each
-    # host's toplevel is already its own check.
+    # deploy-schema evaluates every host at once and exceeds nixbot's eval memory cap.
     ciChecks.${system} = removeAttrs config.flake.checks.${system} [ "deploy-schema" ];
   };
 }

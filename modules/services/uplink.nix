@@ -1,7 +1,6 @@
 let
   ispHost = "ISP gateway";
 
-  # PromQL shared by the Grafana dashboard and the Home Assistant sensors
   queries = cfg: {
     router = ''host="${cfg.router}"'';
     isp = ''host="${ispHost}"'';
@@ -39,7 +38,7 @@ in
         uid = config.modules.monitoring.datasourceUids.prometheus;
       };
 
-      # found at runtime by uplink-isp-gateway, so the ISP stays out of this public repo
+      # uplink-isp-gateway finds it at runtime, so the ISP stays out of this public repo.
       ispConfig = "/run/uplink/isp-gateway.yml";
       lossThresholds = {
         mode = "absolute";
@@ -132,7 +131,7 @@ in
             w = 5;
             h = 4;
             unit = "percentunit";
-            # the best-reached target, so one host dropping ICMP doesn't count
+            # The best-reached target, so one host dropping ICMP doesn't count.
             targets = [ (target "1 - min(${loss internet "$__range"})" "availability") ];
             extra.options.reduceOptions.calcs = [ "lastNotNull" ];
             extra.fieldConfig.defaults = {
@@ -170,7 +169,7 @@ in
             extra.fieldConfig.defaults.thresholds = lossThresholds;
           })
           (panel {
-            # loss here as well as to the internet is the line to the ISP, not the wider internet
+            # Loss here as well as to the internet points at the line to the ISP.
             title = "ISP loss";
             description = "Pings lost to the ISP gateway over the last 5 minutes";
             type = "stat";
@@ -215,7 +214,7 @@ in
             unit = "percentunit";
             targets = [ (target (loss ''host=~".+"'' "$__rate_interval") "{{host}}") ];
             extra.fieldConfig.defaults = {
-              # stays at 0-5% on a quiet day so blips look small, grows to 100% for an outage
+              # Stays at 0-5% on a quiet day so blips look small, and grows to 100% for an outage.
               softMax = 0.05;
               custom = {
                 drawStyle = "bars";
@@ -244,7 +243,6 @@ in
             y = 20;
             w = 24;
             h = 10;
-            # cells count replies per second; the y axis carries the latency unit
             unit = "pps";
             targets = [
               (
@@ -278,7 +276,7 @@ in
 
         targets = lib.mkOption {
           type = lib.types.listOf lib.types.str;
-          # IPs rather than names, so a DNS failure doesn't look like packet loss
+          # IPs rather than names, so a DNS failure doesn't look like packet loss.
           default = [
             "1.1.1.1"
             "8.8.8.8"
@@ -297,9 +295,9 @@ in
             enable = true;
             listenAddress = "127.0.0.1";
             hosts = [ cfg.router ] ++ cfg.targets;
-            # a missing file is ignored, so the prober runs without the gateway until it is found
+            # systemd ignores a missing file, so the prober runs without the gateway until it's found.
             extraFlags = [ "--config.file=${ispConfig}" ];
-            # finer than the default doubling buckets, so a 20ms rise is visible
+            # Finer than the default doubling buckets, so a 20ms rise shows.
             buckets = lib.concatStringsSep "," [
               "0.0002"
               "0.0005"
@@ -355,8 +353,8 @@ in
         };
 
         systemd = {
-          # The hop after the router, traced with ICMP since it ignores tracepath's
-          # UDP. Rerun hourly so the probe follows the ISP renumbering its gateway.
+          # The hop after the router ignores tracepath's UDP, so trace with ICMP.
+          # Rerun hourly, because the ISP renumbers its gateway.
           services.uplink-isp-gateway = {
             description = "Find the ISP gateway for the smokeping prober";
             path = [
@@ -382,7 +380,7 @@ in
                 printf '%s\n' "$new" > ${ispConfig}.tmp
                 mv ${ispConfig}.tmp ${ispConfig}
                 # workaround: smokeping-reload-panic
-                # 0.11.0 panics re-registering its metrics on SIGHUP, so restart instead
+                # 0.11.0 panics re-registering its metrics on SIGHUP, so restart instead.
                 systemctl try-restart prometheus-smokeping-exporter.service
               fi
             '';
@@ -410,8 +408,6 @@ in
       };
     };
 
-  # The headline numbers as Home Assistant sensors, queried straight from
-  # Prometheus over the host network
   flake.modules.nixos.quadlet-automation =
     { config, lib, ... }:
     let
@@ -444,7 +440,7 @@ in
                 unique_id = "uplink_${id}";
                 unit_of_measurement = unit;
                 state_class = "measurement";
-                # an empty result, like the ISP gateway before it is found, is unavailable rather than 0
+                # An empty result is unavailable, not 0.
                 availability = "{{ value_json is not none and value_json.data.result | count > 0 }}";
                 value_template = "{{ (value_json.data.result[0].value[1] | float * ${toString scale}) | round(3) }}";
               }
@@ -469,7 +465,6 @@ in
             {
               id = "availability";
               name = "Uplink availability";
-              # the dashboard's default range
               query = "1 - min(${loss internet "24h"})";
             }
             // percent

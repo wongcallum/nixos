@@ -18,12 +18,11 @@ diff --git a/nixbot/nixbot/config.py b/nixbot/nixbot/config.py
 index d40d13d..737bb3c 100644
 --- a/nixbot/nixbot/config.py
 +++ b/nixbot/nixbot/config.py
-@@ -375,6 +375,9 @@ class Config(BaseModel):
+@@ -375,6 +375,8 @@ class Config(BaseModel):
      # docs/OIDC.md, semantics in auth.can_view_private.
      private_repo_viewers: dict[str, list[str]] = {}
      eval_worker_count: int | None = None
-+    # nix options for nix-eval-jobs, e.g. a narrower substituters list
-+    # for --check-cache-status than the builds use.
++    # extra nix options for nix-eval-jobs only
 +    eval_extra_nix_options: dict[str, str] = {}
      # Concurrent evaluations (global). Default matches today's global eval lock.
      eval_concurrency: int = 1

@@ -6,22 +6,27 @@
 }:
 {
   _module.args.microvmLib = rec {
-    # liz's microVM guests; each index fixes the guest's MAC and 10.0.0.x address
+    # liz's microVM guests. Each index sets the guest's MAC and 10.0.0.x address.
     guests = {
       vm-gallery = 1;
       vm-thsconline = 3;
     };
 
-    # Every VM on liz owns the rpool/vm/<name> dataset: its persistent files,
-    # mounted at /vm/<name>, plus any disk as the rpool/vm/<name>/disk zvol.
-    # `zfs destroy -r rpool/vm/<name>` then removes all of a VM's data.
+    # All of a VM's data, disks included, lives under rpool/vm/<name>.
     vmName = hostname: lib.removePrefix "vm-" hostname;
     vmParent = "rpool/vm";
     vmDataset = name: "${vmParent}/${name}";
     vmDir = name: "/vm/${name}";
     vmDisk = name: "${vmDataset name}/disk";
 
-    # Host module: create (or mount) a VM's dataset before the units that use it.
+    guestDns = {
+      DNS = [
+        "1.1.1.1#cloudflare-dns.com"
+        "1.0.0.1#cloudflare-dns.com"
+      ];
+      DNSOverTLS = true;
+    };
+
     mkVmStorage =
       { name, requiredBy }:
       { config, ... }:
@@ -38,8 +43,7 @@
           script = ''
             zfs list -H -o name ${dataset} >/dev/null 2>&1 || zfs create -p ${dataset}
             [ "$(zfs get -H -o value mounted ${dataset})" = yes ] || zfs mount ${dataset}
-            # impermanence gives the guest's /etc/ssh this mode, and sshd reads
-            # authorized_keys.d as the user, so it must stay traversable
+            # sshd reads authorized_keys.d as the user, so /etc/ssh must stay traversable.
             install -d -m 0755 ${vmDir name}/etc/ssh
           '';
           serviceConfig = {
@@ -49,7 +53,6 @@
         };
       };
 
-    # Host module for a microVM guest's dataset.
     mkGuestStorage =
       hostname:
       mkVmStorage {
@@ -71,7 +74,7 @@
         mac = "02:00:00:00:00:${lib.fixedWidthString 2 "0" (lib.toLower (lib.toHexString n))}";
       };
 
-    # lockRoot: key-only root SSH instead of the default password login
+    # lockRoot makes root SSH key-only instead of the default password login.
     mkGuestModule =
       {
         hostname,
@@ -124,7 +127,7 @@
                 GatewayOnLink = true;
               }
             ];
-            networkConfig.DNS = [ "1.1.1.1" ];
+            networkConfig = guestDns;
           };
         };
 
@@ -148,8 +151,8 @@
           "10.0.0.0/8"
           "172.16.0.0/12"
           "192.168.0.0/16"
-          "100.64.0.0/10" # tailnet (CGNAT)
-          "169.254.0.0/16" # link-local, incl. cloud metadata
+          "100.64.0.0/10"
+          "169.254.0.0/16"
         ];
 
         forwardDrop = op: dest: "iptables -${op} FORWARD -i ${hostname} -d ${dest} -j DROP";
@@ -182,8 +185,6 @@
             internalInterfaces = [ hostname ];
           };
 
-          # Block guest-initiated connections to the host, and forwarded
-          # guest traffic to anything on the LAN or the tailnet.
           firewall.extraCommands = ''
             iptables -I nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP
             ${addForwardDrops}

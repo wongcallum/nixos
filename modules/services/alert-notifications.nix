@@ -4,8 +4,7 @@
     let
       tokenSecret = "grafana/telegram-bot-token";
 
-      # Explore is closed to the anonymous viewer a phone gets, so alerts link
-      # here instead, passing a rule's `logs` annotation as the query
+      # Explore is closed to anonymous viewers, so alerts link here.
       logsDashboard =
         let
           datasource = {
@@ -50,7 +49,7 @@
                 {
                   refId = "A";
                   inherit datasource;
-                  # raw, so Grafana passes the query through without escaping it
+                  # Raw, so Grafana passes the query through without escaping it.
                   expr = "\${query:raw}";
                   queryType = "range";
                   maxLines = 2000;
@@ -73,8 +72,6 @@
         restartUnits = [ "grafana.service" ];
       };
 
-      # The contact point, policy and template first lived in the UI; keeping the
-      # contact point UID and template name let provisioning take them over in place.
       services.grafana.provision.alerting = {
         contactPoints.settings = {
           apiVersion = 1;
@@ -88,7 +85,6 @@
                   type = "telegram";
                   disableResolveMessage = false;
                   settings = {
-                    # read by Grafana at startup, so the token stays out of the store
                     bottoken = "$__file{${config.sops.secrets.${tokenSecret}.path}}";
                     chatid = "5603246758";
                     message = ''{{ template "tg.message" . }}'';

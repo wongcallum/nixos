@@ -3,7 +3,6 @@ let
   pageRoot = "/srv/www";
   pageAddr = "127.0.0.1:8080";
 
-  # Override
   urlFile = "/var/lib/kiosk/url";
 
   browser = pkgs.writeShellScript "kiosk-browser" ''
@@ -35,7 +34,7 @@ in
   services.cage = {
     enable = true;
     user = "kiosk";
-    # -d: no client-side decorations
+    # -d disables client-side decorations.
     extraArguments = [ "-d" ];
     program = browser;
   };

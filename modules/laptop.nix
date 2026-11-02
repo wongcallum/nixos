@@ -13,9 +13,7 @@
     powerManagement.powertop.enable = true;
 
     # workaround: tuned-ppd-no-turbo
-    # tuned-ppd thinks that no_turbo=1 means that the cpu is thermal throttling
-    # we automatically disable turbo in the power saving profile, so the report is misleading
-    # only report PerformanceDegraded="high-operating-temperature" if using the performance profile
+    # Power saving sets no_turbo=1, which tuned-ppd reports as thermal throttling.
     nixpkgs.overlays = [
       (_final: prev: {
         tuned = prev.tuned.overrideAttrs (old: {

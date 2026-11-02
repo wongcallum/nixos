@@ -24,7 +24,6 @@ let
   qmpSocket = "${runDir}/qmp.sock";
   shareSocket = tag: "${runDir}/${tag}.sock";
 
-  # A separate /nix owns both store paths and their database.
   nixVolume = microvmLib.vmDisk "gpu";
   nixVolumeSizeGiB = 100;
   nixVolumeSize = "${toString nixVolumeSizeGiB}G";
@@ -56,7 +55,6 @@ let
         callum
 
         ssh
-        # remote-desktop
 
         llama-cpp
       ];
@@ -70,17 +68,15 @@ let
       };
 
       modules = {
-        # reached only over SSH; the guest has no sops for a real password
+        # The guest has no sops.
         users.callum.lockPassword = true;
-        # the gateway's hostname doesn't resolve here; use liz's guest port
+        # The gateway's hostname doesn't resolve here, so use liz's guest port.
         attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
       };
 
-      # liz always direct-boots the current closure and roots it (vm-gpu-boot),
-      # so older system generations can never be booted
+      # liz direct-boots the current closure, so older generations can't boot.
       programs.nh.clean.extraArgs = lib.mkForce "--keep 1";
 
-      # Direct kernel boot: no bootloader and a tmpfs root.
       boot = {
         loader.grub.enable = false;
         initrd.kernelModules = [
@@ -123,12 +119,11 @@ let
       ];
 
       hardware = {
-        # links libcuda into /run/opengl-driver for llama.cpp
+        # Links libcuda into /run/opengl-driver for llama.cpp.
         graphics.enable = true;
 
         nvidia = {
           package = config.boot.kernelPackages.nvidiaPackages.latest;
-          # sway renders through nvidia-drm.
           modesetting.enable = true;
           open = true;
           nvidiaSettings = false;
@@ -138,22 +133,17 @@ let
       powerManagement.enable = false;
 
       environment = {
-        # declared like microvm.nix's guests, so it exists before activation
-        # needs it; the ID it has always had
+        # Declared so it exists before activation reads it.
         etc."machine-id".text = "8ee14cda66bb46b08992f1945dcf32ad\n";
 
         systemPackages = [
           pkgs.ffmpeg-full
           pkgs.nvtopPackages.nvidia
-          # (pkgs.blender.override { cudaSupport = true; })
         ];
       };
 
       services = {
         xserver.videoDrivers = [ "nvidia" ];
-
-        # Stock Moonlight clients; the guest is only reachable through liz.
-        # punktfunk.host.gamestream = true;
 
         llama-cpp = {
           package = pkgs.llama-cpp.override { cudaSupport = true; };
@@ -167,9 +157,7 @@ let
             n-gpu-layers = 999;
             kv-offload = true;
             flash-attn = "on";
-            # translation clients send one request per paragraph
             parallel = 4;
-            # share the full ctx-size across slots instead of splitting it
             kv-unified = true;
           };
         };
@@ -185,7 +173,7 @@ let
               GatewayOnLink = true;
             }
           ];
-          networkConfig.DNS = [ "1.1.1.1" ];
+          networkConfig = microvmLib.guestDns;
         };
 
         services.llama-cpp = {
@@ -210,7 +198,7 @@ let
         };
 
         models = {
-          # default: https://github.com/bilibili/Index-Translate#default-inference-settings
+          # Defaults from https://github.com/bilibili/Index-Translate#default-inference-settings
           index-translate-2b = {
             model = {
               repo = "IndexTeam/Index-Translate-2B-GGUF";
@@ -224,13 +212,12 @@ let
             n-predict = 4096;
             chat-template-kwargs = ''{"enable_thinking":false}'';
             reasoning = "off";
-            # paragraphs share the instruction prefix
+            # Paragraphs share the instruction prefix.
             cache-ram = 512;
           };
 
           # https://huggingface.co/tencent/HunyuanOCR#c-pc-side-deployment-via-llamacpp
-          # tencent publishes no GGUF of 1.5; this is a community conversion.
-          # The mmproj stays f16 since quantising the vision encoder hurts small text
+          # mmproj stays f16 because quantising the vision encoder hurts small text.
           "hunyuanocr-1.5" = {
             model = {
               repo = "prithivMLmods/HunyuanOCR-1.5-GGUF-Updated";
@@ -247,9 +234,8 @@ let
             load-on-startup = true;
             ctx-size = 10240;
             n-predict = 4096;
-            # the model card's sampling; its repetition_penalty covers the
-            # whole sequence, not llama.cpp's default last 64 tokens. The flag
-            # rejects -1, so the context size stands in for it
+            # The model card's repetition_penalty covers the whole sequence. The flag
+            # rejects -1, so the context size stands in.
             temp = 0;
             repeat-penalty = 1.08;
             repeat-last-n = 10240;
@@ -295,10 +281,8 @@ let
       elif [ "$(zfs get -Hp -o value volsize "${nixVolume}")" -lt ${
         toString (nixVolumeSizeGiB * 1024 * 1024 * 1024)
       } ]; then
-        # Grow only; ExecStartPre expands the filesystem to match.
         zfs set volsize=${nixVolumeSize} "${nixVolume}"
       fi
-      # udev needs a moment to publish /dev/zvol after creation.
       for _ in $(seq 1 50); do
         [ -e "${nixVolumePath}" ] && break
         sleep 0.1
@@ -307,15 +291,13 @@ let
         echo "Missing GPU VM block device: ${nixVolumePath}" >&2
         exit 1
       fi
-      # Only format a volume created by this invocation, never an existing disk.
       if "$created"; then
         mkfs.ext4 "${nixVolumePath}"
       fi
     '';
   };
 
-  # Run only while QEMU is stopped. A rooted local store copies actual files,
-  # registers their closure, and keeps guest GC independent of host GC.
+  # Run this only while QEMU is stopped.
   seedStore = pkgs.writeShellApplication {
     name = "vm-gpu-seed-store";
     runtimeInputs = [ config.nix.package ];
@@ -326,7 +308,6 @@ let
         --no-check-sigs --to "$root" "$system"
       nix-env --store "$root" \
         --profile "$root/nix/var/nix/profiles/system" --set "$system"
-      # Direct kernel boot must remain rooted even if the guest changes profiles.
       mkdir -p "$root/nix/var/nix/gcroots"
       ln -sfn "$system" "$root/nix/var/nix/gcroots/vm-gpu-boot"
     '';
@@ -364,32 +345,24 @@ let
         -initrd "${initrd}"
         -append "${cmdline}"
 
-        # Serial console into the journal: the only fallback on a headless GPU.
         -chardev "stdio,id=stdio,signal=off"
         -serial "chardev:stdio"
 
         -device "virtio-rng-pci"
 
-        # Pinning avoids creation-order-dependent renumbering.
-        # discard=unmap lets the guest's TRIM reclaim sparse zvol space.
+        # Fixed PCI addresses stop devices renumbering by creation order.
         -drive "file=${nixVolumePath},if=none,id=drv-nix,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
         -device "virtio-blk-pci,drive=drv-nix,serial=${nixVolumeSerial},addr=0x3"
 
         -netdev "tap,id=net0,ifname=${tap},script=no,downscript=no,vhost=on"
         -device "virtio-net-pci,netdev=net0,mac=${guestMac},addr=0x4"
 
-        # The root port preserves PCIe capabilities; matching function numbers
-        # expose the GPU and HDMI audio as one multifunction device. Both are
-        # bound by _vfio.nix before this unit starts.
-        # With no emulated VGA the GPU is the boot display, and SeaBIOS would
-        # execute its VBIOS and hang; the Linux driver reads the VBIOS from the
-        # card itself, so the ROM BAR is not exposed at all.
+        # As the boot display, the GPU's VBIOS would hang SeaBIOS, so hide its ROM.
         -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
         -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on,rombar=0"
         -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1,rombar=0"
 
-        # A USB controller the guest has no use for on its own, so that USB
-        # devices can be hot-attached to it later by id.
+        # Lets USB devices be hot-attached later.
         -device "qemu-xhci,id=xhci,addr=0x5"
 
         ${shareDevices}
@@ -400,7 +373,6 @@ let
     '';
   };
 
-  # Ask the guest to power down cleanly, then keep ExecStop alive until QEMU exits.
   shutdown = pkgs.writeShellApplication {
     name = "vm-gpu-shutdown";
     runtimeInputs = [ pkgs.socat ];
@@ -422,7 +394,7 @@ let
   virtiofsdService = share: {
     description = "virtiofsd for the GPU VM ${share.tag} share";
     partOf = [ "vm-gpu.service" ];
-    # pool datasets aren't systemd mounts
+    # Pool datasets aren't systemd mounts.
     after = [ "zfs-mount.service" ];
     serviceConfig = {
       Type = "exec";
@@ -492,15 +464,6 @@ in
       category = "Development";
     };
 
-    environment.etc."vm-gpu/README".text = ''
-      Guest /nix: ${nixVolumePath} (${nixVolumeSize}, independent ext4 store)
-      Before each QEMU start, the host mounts this volume privately, copies and
-      registers the configured guest closure, updates its system profile, and
-      pins the direct-boot closure at /nix/var/nix/gcroots/vm-gpu-boot.
-      The disk is unmounted before QEMU starts. Never mount it on the host while
-      QEMU is running. Guest GC and optimisation do not depend on the host store.
-    '';
-
     systemd = {
       tmpfiles.rules = [
         "d ${runDir} 0700 root root -"
@@ -524,8 +487,7 @@ in
           vm-gpu = {
             description = "GPU Virtual Machine";
 
-            # the launch script embeds the guest toplevel, so a new guest closure
-            # changes the unit and switch-to-configuration restarts the VM.
+            # A new guest closure changes the launch script, so deploys restart the VM.
             wantedBy = [ "multi-user.target" ];
 
             requires = [
@@ -538,8 +500,6 @@ in
             ]
             ++ map (share: "vm-gpu-virtiofsd-${share.tag}.service") shares;
 
-            # ExecStartPre completes and unmounts the disk before QEMU opens it.
-            # A failed copy aborts startup rather than booting an incomplete store.
             path = [
               pkgs.util-linux
               pkgs.e2fsprogs
@@ -549,7 +509,6 @@ in
               mkdir -p "$root/nix"
               mount -t ext4 "${nixVolumePath}" "$root/nix"
               trap 'umount "$root/nix"' EXIT
-              # Online grow after a volsize increase; a no-op otherwise.
               resize2fs "${nixVolumePath}"
               ${lib.getExe seedStore} "$root"
             '';
@@ -606,21 +565,6 @@ in
         internalInterfaces = [ tap ];
       };
 
-      #
-      #   guest 10.0.1.3 (on the tap)
-      #     |
-      #     +- to host -> nixos-fw -> vm-gpu-in -+- tcp/445 ---------> ACCEPT
-      #     |                                    +- tcp/8081 (attic) -> ACCEPT
-      #     |                                    +- vmGpu.hostPorts --> ACCEPT
-      #     |                                    +- any other NEW ---> DROP
-      #     |
-      #     +- routed --> FORWARD --> vm-gpu-fwd +- ESTABLISHED,RELATED -> ACCEPT
-      #                                          |  (replies to LAN/tailnet clients)
-      #                                          +- 10/8, 172.16/12, -> DROP
-      #                                          |  192.168/16,
-      #                                          |  100.64/10, 169.254/16
-      #                                          +- anything else ---> NAT -> internet
-      #
       firewall.extraCommands = ''
         iptables -N vm-gpu-in 2>/dev/null || iptables -F vm-gpu-in
         iptables -A vm-gpu-in -p tcp --dport 445 -j nixos-fw-accept
@@ -639,8 +583,8 @@ in
           "10.0.0.0/8"
           "172.16.0.0/12"
           "192.168.0.0/16"
-          "100.64.0.0/10" # tailnet (CGNAT)
-          "169.254.0.0/16" # link-local, incl. cloud metadata
+          "100.64.0.0/10"
+          "169.254.0.0/16"
         ]}
         iptables -D FORWARD -i ${tap} -j vm-gpu-fwd 2>/dev/null || true
         iptables -I FORWARD -i ${tap} -j vm-gpu-fwd

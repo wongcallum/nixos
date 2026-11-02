@@ -158,12 +158,10 @@ in
                 environments.SERVER_ADDRESS = "https://${jellyfinDomainName}.${config.modules.gateway.tld}";
                 volumes = [
                   "${config.utils.dataDir "media/pelagica"}:/config:rw"
-                  # The backend authenticates against Jellyfin over HTTPS; trust our internal CA.
                   "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
                 ];
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.21.0.9";
-                # Resolve the public Jellyfin name to Caddy on the network's host gateway.
                 addHosts = [ "${jellyfinDomainName}.${config.modules.gateway.tld}:172.21.0.1" ];
               };
             }

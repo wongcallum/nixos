@@ -10,24 +10,16 @@ let
   dataset = "rpool/persist";
   inherit (microvmLib) vmParent;
   snapshot = "backup-staging";
-  # relative to /, which the archive is built from
+  # Relative to /, which the archive is built from.
   snapshotPath = dir: "${lib.removePrefix "/" dir}/.zfs/snapshot/${snapshot}";
   outDir = "/tank/callum/backups";
   outFile = "${outDir}/liz-persist.tar.zst.age";
 
   recipients = pkgs.writeText "liz-persist-backup-recipients" (lib.concatLines sshKeys);
 
-  # Relative to the snapshot root; globs are expanded by the shell.
-  #
-  # Deliberately not backed up:
-  # - data/immich: only a viewer for external libraries
-  # - Jellyfin plugins
-  # - data/media/qbittorrent
-  # - data/lobehub
-  # - data/grafana
-  # - data/media/pelagica
+  # The shell expands globs.
   paths = [
-    # host identity: sops decrypts with the SSH host key
+    # sops decrypts with the SSH host key.
     "etc/ssh"
     "etc/machine-id"
     "passwd"
@@ -62,7 +54,6 @@ let
     "data/media/slskd/data"
   ];
 
-  # Per VM dataset, relative to its root; archived under vm/<name>/.
   vmPaths = {
     gallery = [
       "etc/ssh"
@@ -86,15 +77,14 @@ let
       lib.mapAttrsToList (name: map (p: "${snapshotPath (microvmLib.vmDir name)}/${p}")) vmPaths
     );
 
-  # /persist paths keep their old place at the archive root
+  # /persist paths keep their old place at the archive root.
   transforms = [
     "s,^${snapshotPath config.utils.persistDir}/,,"
     "s,^\\(vm/[^/]*\\)/\\.zfs/snapshot/${snapshot}/,\\1/,"
   ];
 
   excludes = [
-    # HACS itself (mostly its bundled frontend); reinstall with get.hacs.xyz,
-    # its state in .storage/hacs.* is kept
+    # Reinstall HACS with get.hacs.xyz. Its state in .storage is kept.
     "data/home-assistant/custom_components/hacs"
     "data/home-assistant/backups"
     "data/home-assistant/deps"
@@ -103,7 +93,6 @@ let
     "data/home-assistant/home-assistant_v2.db*"
     "data/qbittorrent/qBittorrent/data/GeoDB"
     "data/qbittorrent/qBittorrent/data/logs"
-    # slskd: search results cache, old migration backups, share scan backup
     "data/media/slskd/data/backups"
     "data/media/slskd/data/browse.cache"
     "data/media/slskd/data/search.db"
@@ -128,7 +117,7 @@ let
       zstd
     ];
     text = ''
-      # tank imports outside systemd's mount graph; never write to the ephemeral root
+      # tank imports outside systemd's mount graph. Never write to the ephemeral root.
       mountpoint -q /tank/callum
 
       cleanup() {
@@ -136,7 +125,7 @@ let
         zfs destroy -r ${vmParent}@${snapshot} 2>/dev/null || true
       }
       cleanup
-      # one atomic snapshot across /persist and every VM
+      # One atomic snapshot across /persist and every VM.
       zfs snapshot -r ${dataset}@${snapshot} ${vmParent}@${snapshot}
       tmp=
       trap 'rm -f "$tmp"; cleanup' EXIT

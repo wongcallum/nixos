@@ -28,8 +28,7 @@ in
 
   config =
     let
-      # Real machines only. Installer images are also nixosConfigurations, but
-      # they are not deploy targets, so they must not reach `flake.deploy.nodes`.
+      # Excludes the installer images, which aren't deploy targets.
       machines = mkHosts "hosts/nixos/" config.flake.modules.nixos (
         hostname: module:
         let
@@ -56,7 +55,6 @@ in
         profiles.system = {
           user = "root";
           sshUser = "callum";
-          # prompt for callum's sudo password, unless it is locked (passwordless sudo)
           interactiveSudo = !(hostConfiguration.config.modules.users.callum.lockPassword or false);
           path = deployLib.activate.nixos hostConfiguration;
         };

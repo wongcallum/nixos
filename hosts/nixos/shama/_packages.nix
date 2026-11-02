@@ -1,11 +1,10 @@
 { inputs, pkgs, ... }:
 let
   inherit (inputs.self.packages.${pkgs.stdenv.hostPlatform.system}) openscq30-cli;
-  # waproto's generated protobuf code, as one codegen unit, gets rustc
-  # OOM-killed inside vm-ci's 10G nix-daemon cgroup
+  # As one codegen unit, waproto runs rustc out of memory in vm-ci's 10G daemon cgroup.
   # workaround: zapfast-waproto-oom
   zapfast = inputs.zapfast.packages.${pkgs.stdenv.hostPlatform.system}.zapfast.overrideAttrs (old: {
-    # in Cargo.toml, so the check phase's `cargo test` builds it the same way
+    # In Cargo.toml, so the check phase's `cargo test` builds it the same way.
     postPatch = (old.postPatch or "") + ''
       cat >> Cargo.toml <<EOF
 

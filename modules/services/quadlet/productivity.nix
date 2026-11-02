@@ -13,9 +13,6 @@ in
       searxngDir = config.utils.dataDir "searxng";
       secretFile = "${searxngDir}/secret.env";
 
-      # `use_default_settings` is what keeps this file small: engine definitions
-      # come from whichever image is running, so they can never drift behind it.
-      # Only genuine local policy belongs here.
       settingsFile = (pkgs.formats.yaml { }).generate "searxng-settings.yml" {
         use_default_settings = true;
 
@@ -24,22 +21,16 @@ in
           public_instance = false;
         };
 
-        # Shared cache for engine session tokens (DuckDuckGo's vqd, Startpage's
-        # sc_code). Without it every worker re-fetches them on every search,
-        # which is itself a good way to get rate-limited.
+        # Shares engine session tokens across workers, so they don't each fetch them and get rate-limited.
         valkey.url = "valkey://${valkeyIp}:6379/0";
 
         outgoing = {
-          # Mojeek answers in ~1.5s from this host, so the 3s upstream default
-          # drops it under any load; results then silently go missing.
+          # Mojeek takes about 1.5s from here, so the 3s default drops it under load.
           request_timeout = 5.0;
           max_request_timeout = 12.0;
         };
 
-        # Upstream ships every general web engine either `inactive` or
-        # `disabled` except duckduckgo, startpage and brave -- all three of
-        # which this host's IP is CAPTCHA'd or rate-limited by. Enable the ones
-        # that actually answer from here so a block on one is survivable.
+        # Upstream's only enabled engines all CAPTCHA or rate-limit this IP.
         engines = [
           {
             name = "mojeek";
@@ -53,8 +44,7 @@ in
             name = "google";
             inactive = false;
           }
-          # Its sc_code handshake redirects to a CAPTCHA, which suspends the
-          # engine for an hour; the request is pure added latency.
+          # Its handshake hits a CAPTCHA, which suspends the engine for an hour.
           {
             name = "startpage";
             disabled = true;
@@ -62,10 +52,7 @@ in
         ];
       };
 
-      # The image writes settings.yml from its template only when the file is
-      # missing, and never revisits it -- which is how the previous config
-      # froze at the release that first created it. Reinstall on every start.
-      # The secret stays out of the Nix store by living in the data dir.
+      # The image only writes settings.yml when it's missing, so it would never update.
       prepareSearxng = pkgs.writeShellApplication {
         name = "searxng-prepare";
         runtimeInputs = [ pkgs.coreutils ];
@@ -107,12 +94,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "docker.io/valkey/valkey:9@sha256:3b55fbaa0cd93cf0d9d961f405e4dfcc70efe325e2d84da207a0a8e6d8fde4f9";
-                # Purely a cache: no persistence, and bounded so it cannot grow
-                # into the host's memory.
-                # `--save` must come last and take no argument. Its usual
-                # `--save ""` form cannot survive quadlet, which drops the
-                # empty argument and every flag after it; bare and trailing,
-                # valkey reads it as an empty save list and snapshotting is off.
+                # Bare and last, because quadlet drops `--save ""` and every flag after it.
                 exec = "valkey-server --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru --save";
                 networks = [ networks.${networkName}.ref ];
                 ip = valkeyIp;

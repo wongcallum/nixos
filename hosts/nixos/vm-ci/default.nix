@@ -11,16 +11,12 @@ let
 
   hostname = "vm-ci";
 
-  # microVMs sit on 10.0.0.x and hand-run QEMU VMs on 10.0.1.x, each on a
-  # point-to-point link: liz is 10.0.1.1/32 on every tap, with a /32 route
-  # to the guest.
   tap = hostname;
   hostAddr = "10.0.1.1";
   guestAddr = "10.0.1.4";
   guestMac = "02:00:00:00:01:04";
 
   vcpu = 6;
-  # a ceiling: free page reporting hands unused memory back to liz
   mem = 16384; # MiB
 
   domain = "ci.callumwong.com";
@@ -28,8 +24,6 @@ let
 in
 {
   flake.modules.nixos = {
-    # A regular host with its own disk, bootloader and store, deployed on its
-    # own with deploy-rs. liz only runs QEMU for it; see vm-ci-host.
     "hosts/nixos/${hostname}" =
       {
         config,
@@ -51,7 +45,6 @@ in
 
           ssh
           tailscale
-          # anon overflow past the daemon's cap compresses instead of thrashing
           zram
 
           cloudflared
@@ -64,8 +57,7 @@ in
           flake.keys.hermes is empty, so hermes cannot reach the vm-ci nix daemon.
         '';
 
-        # A trusted user can register arbitrary store paths, which CI would
-        # then treat as built and push to attic.
+        # A trusted user could import arbitrary paths, which CI would push to attic.
         assertions = [
           {
             assertion = !(lib.elem "hermes" config.nix.settings.trusted-users);
@@ -76,18 +68,12 @@ in
         boot = {
           loader = {
             systemd-boot.enable = true;
-            # liz discards the firmware's settings on every start, and bootctl
-            # must never write boot entries into liz's firmware during install.
-            # It still installs the removable-media path, which OVMF boots.
+            # Stops bootctl writing to liz's firmware during install. OVMF boots the removable path.
             efi.canTouchEfiVariables = false;
           };
           kernelParams = [
-            # boot output lands in liz's journal for the vm-ci unit
             "console=ttyS0"
-            # Free page reporting only hands back free blocks of at least this
-            # order. The default 9 (2 MiB) returned ~1 of 7 GiB free after a
-            # build, as unmovable kernel pages keep compaction from rebuilding
-            # 2 MiB blocks. 5 (128 KiB) returned ~4 GiB more.
+            # Fragmentation leaves few free 2 MiB blocks, so the default order returned little memory.
             "page_reporting.page_reporting_order=5"
           ];
         };
@@ -104,47 +90,34 @@ in
                 GatewayOnLink = true;
               }
             ];
-            networkConfig.DNS = [ "1.1.1.1" ];
+            networkConfig = microvmLib.guestDns;
           };
         };
 
-        # Builds run in the daemon's cgroup, so a runaway one is killed on
-        # its own instead of the whole VM running out and taking nixbot with it.
-        # pahole needs ~7 GiB to encode shama's kernel BTF. Under 6G it wasn't
-        # killed but thrashed on its input's page cache until max-silent-time.
-        # Room for this plus nixbot's 5 GiB eval budget. zram's compressed
-        # pages aren't charged to the cgroup, so swap gets its own cap; 2G
-        # covers pahole's overflow without letting a build fill the VM.
+        # pahole needs about 7 GiB for shama's kernel BTF. zram pages don't count
+        # towards MemoryMax, so swap has its own cap.
         systemd.services.nix-daemon.serviceConfig = {
           MemoryMax = "10G";
           MemorySwapMax = "2G";
         };
 
-        # 2.34 wakes every goal waiting for a build slot whenever a build
-        # finishes, and each wakeup keeps more coroutine frames alive. With
-        # crane's hundreds of per-crate derivations, the worker grew past the
-        # daemon's then 6G cap. 2.35.2 wakes one waiter per finished build.
+        # Nix 2.34 wakes every waiting goal when a build finishes, and runs out of
+        # memory on crane's many derivations.
         # workaround: vm-ci-nix-2-35
         nix.package = pkgs.nixVersions.nix_2_35;
 
         nix.settings = {
           max-jobs = 2;
-          # every vCPU per build: the kernel, CI's longest build, mostly
-          # compiles alone. Two overlapping builds share the CPU instead.
+          # Each build gets every vCPU because the kernel usually compiles alone.
           cores = vcpu;
 
-          # base's 500 MB buffers each download in the daemon, and a build
-          # pulling many paths at once got the daemon OOM-killed under its
-          # then 6G cap. Nix's default makes downloads wait for the disk.
+          # base's 500 MB buffer per download ran the daemon out of memory on parallel fetches.
           download-buffer-size = lib.mkForce 67108864; # 64 MiB
 
           min-free = 21474836480; # 20 GiB
           max-free = 64424509440; # 60 GiB
 
-          # shama's kernel and other chaotic packages; substituted rather
-          # than compiled when CI builds shama's closure. Asked after
-          # cache.nixos.org (40) rather than at its advertised 30, since
-          # nixos.org has nearly every path and nyx almost none.
+          # Ask nyx after cache.nixos.org (40) instead of at its advertised 30, because nyx has few paths.
           extra-substituters = [
             "https://nyx-cache.chaotic.cx/?priority=45"
             "https://cache.nixos-cuda.org/"
@@ -155,18 +128,14 @@ in
           ];
         };
 
-        # only the secrets this VM needs, not everything in secrets.yaml
         sops.defaultSopsFile = lib.mkForce "${inputs.secrets}/${hostname}.yaml";
 
-        # SSH keys and passwordless sudo only: the password stays off a
-        # machine that builds other people's pull requests
+        # This host builds untrusted PRs, so it has no password.
         modules.users.callum.lockPassword = true;
 
         users.users = {
           root.hashedPassword = "!";
 
-          # hermes may only speak the nix daemon protocol (ssh-ng://), as an
-          # untrusted user: it can build derivations, but not import paths.
           hermes = {
             isNormalUser = true;
             openssh.authorizedKeys.keys = map (
@@ -175,23 +144,18 @@ in
           };
         };
 
-        # liz proxies the web interface; the health check polls 127.0.0.1
         networking.firewall.allowedTCPPorts = [ nixbotPort ];
         services.nixbot.port = nixbotPort;
 
         modules = {
           attic = {
             endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
-            # Ask attic before the public caches. Most of what CI looks up was
-            # pushed there by an earlier run, and it answers in about a
-            # millisecond, whereas a public cache costs a TLS handshake.
             priority = 10;
           };
 
           cloudflared = {
             tunnelId = "9b4ff5ef-f12d-4650-97e4-fad415bbcf71";
             credentialsSecret = "cloudflared/vm-ci-credentials.json";
-            # nixbot listens on every interface; reach it over loopback
             ingress.${domain} = "http://127.0.0.1:${toString nixbotPort}";
           };
 
@@ -206,7 +170,6 @@ in
         };
       };
 
-    # imported by the host running the VM
     "${hostname}-host" =
       { config, pkgs, ... }:
       let
@@ -228,7 +191,6 @@ in
                 -o compression=zstd \
                 "${zvol}"
             fi
-            # udev needs a moment to publish /dev/zvol after creation
             for _ in $(seq 1 50); do
               [ -b "${disk}" ] && exit 0
               sleep 0.1
@@ -245,8 +207,6 @@ in
             pkgs.coreutils
           ];
           text = ''
-            # Fresh firmware settings every start. Nothing needs to persist in
-            # them: the guest boots the removable-media path.
             install -m 600 ${firmware}/OVMF_VARS.fd ${runDir}/OVMF_VARS.fd
 
             args=(
@@ -264,10 +224,8 @@ in
               -chardev "stdio,id=stdio,signal=off"
               -serial "chardev:stdio"
               -device virtio-rng-pci
-              # a ceiling rather than a reservation: free page reporting hands
-              # memory the guest frees back to the host
+              # Memory is a ceiling. Free page reporting returns what the guest frees.
               -device "virtio-balloon-pci,free-page-reporting=on,deflate-on-oom=on"
-              # discard=unmap lets the guest's TRIM reclaim sparse zvol space
               -drive "file=${disk},if=none,id=disk,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
               -device "virtio-blk-pci,drive=disk,serial=ci"
               -netdev "tap,id=net,ifname=${tap},script=no,downscript=no"
@@ -278,7 +236,6 @@ in
           '';
         };
 
-        # Ask the guest to power down cleanly, then keep ExecStop alive until QEMU exits.
         shutdown = pkgs.writeShellApplication {
           name = "${hostname}-shutdown";
           runtimeInputs = [ pkgs.socat ];
@@ -351,12 +308,10 @@ in
                 "${hostname}-volume.service"
                 "systemd-networkd.service"
               ];
-              # vm-ci is deployed on its own; changes to this unit apply on
-              # `systemctl restart vm-ci`, never by surprise during a liz deploy
+              # vm-ci deploys separately. Apply unit changes with `systemctl restart vm-ci`.
               restartIfChanged = false;
 
               serviceConfig = {
-                # follows the /dev/zvol symlink to the device node
                 ExecStartPre = "+${lib.getExe' pkgs.coreutils "chown"} ${user} ${disk}";
                 ExecStart = lib.getExe launch;
                 ExecStop = lib.getExe shutdown;
@@ -394,19 +349,6 @@ in
             internalInterfaces = [ tap ];
           };
 
-          #
-          #   guest 10.0.1.4 (on the vm-ci tap)
-          #     |
-          #     +- to host -> nixos-fw -> vm-ci-in -+- tcp/8081 (attic) -> ACCEPT
-          #     |                                   +- any other NEW ---> DROP
-          #     |
-          #     +- routed --> FORWARD --> vm-ci-fwd +- ESTABLISHED,RELATED -> ACCEPT
-          #                                         |  (replies to liz and tailnet clients)
-          #                                         +- 10/8, 172.16/12, -> DROP
-          #                                         |  192.168/16,
-          #                                         |  100.64/10, 169.254/16
-          #                                         +- anything else ---> NAT -> internet
-          #
           firewall.extraCommands = ''
             iptables -N vm-ci-in 2>/dev/null || iptables -F vm-ci-in
             iptables -A vm-ci-in -p tcp --dport ${toString atticPort} -j nixos-fw-accept
@@ -420,8 +362,8 @@ in
               "10.0.0.0/8"
               "172.16.0.0/12"
               "192.168.0.0/16"
-              "100.64.0.0/10" # tailnet (CGNAT)
-              "169.254.0.0/16" # link-local, incl. cloud metadata
+              "100.64.0.0/10"
+              "169.254.0.0/16"
             ]}
             iptables -D FORWARD -i ${tap} -j vm-ci-fwd 2>/dev/null || true
             iptables -I FORWARD -i ${tap} -j vm-ci-fwd

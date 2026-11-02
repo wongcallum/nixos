@@ -35,9 +35,6 @@ in
       microvm = {
         vcpu = 1;
         mem = 1024;
-        # virtiofsd on liz enforces readOnly, so the guest cannot write to the
-        # mirror; the sync scripts and state in /tank/thsconline/_sync stay
-        # outside the share
         shares = [
           {
             tag = "mirror";
@@ -45,7 +42,7 @@ in
             mountPoint = mirror;
             proto = "virtiofs";
             readOnly = true;
-            # tank/thsconline has acltype=off, which --posix-acl can't serve
+            # tank/thsconline has acltype=off, which --posix-acl can't serve.
             posixAcl = false;
           }
         ];
@@ -55,7 +52,7 @@ in
         description = "Public file listing of the THSC Online mirror";
         wantedBy = [ "multi-user.target" ];
         unitConfig.RequiresMountsFor = [ mirror ];
-        # requests arrive from cloudflared, so log the visitor's address
+        # Requests arrive through cloudflared, so log the visitor's address.
         environment.DUFS_LOG_FORMAT = ''$http_cf_connecting_ip "$request" $status'';
         serviceConfig = {
           ExecStart = lib.escapeShellArgs [
@@ -77,7 +74,7 @@ in
           RestrictAddressFamilies = [
             "AF_INET"
             "AF_INET6"
-            # dufs lists interface addresses at startup, even with --bind
+            # dufs lists interface addresses at startup, even with --bind.
             "AF_NETLINK"
           ];
         };

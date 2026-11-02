@@ -24,7 +24,7 @@ in
       hostAddrs = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
         default = { };
-        description = "hostname to tailscale IP address";
+        description = "Tailscale IP address per hostname";
       };
 
       metrics.ports = lib.mkOption {
@@ -45,16 +45,16 @@ in
               type = lib.types.listOf lib.types.str;
               default = [ ];
               description = ''
-                Disks to hand the smartctl exporter, as `/dev/disk/by-id` names;
-                the prefix is added for you. Empty means autodiscovery, which
-                also finds transient USB enclosures - one that stops answering
-                SMART blocks every scrape until it is unplugged.
+                Disks for the smartctl exporter, as `/dev/disk/by-id` names without
+                the prefix. Empty means autodiscovery, which also finds transient USB
+                enclosures. One that stops answering SMART blocks every scrape until
+                it's unplugged.
               '';
             };
           }
         );
         default = { };
-        description = "which exporters to enable and scrape per host";
+        description = "Exporters to enable and scrape per host";
       };
 
       monitoring.host = lib.mkOption {
@@ -95,8 +95,6 @@ in
 
         searxng = lib.mkEnableOption "SearXNG";
 
-        cottage-witch = lib.mkEnableOption "Minecraft Server (Cottage Witch)";
-
         gallery = lib.mkEnableOption "Gallery";
 
         immich = lib.mkEnableOption "Immich";
@@ -129,10 +127,6 @@ in
           "nvme-Patriot_M.2_P300_128GB_P300ADBB22111800174"
           "nvme-Samsung_SSD_980_PRO_1TB_S5GXNX0T913718H"
         ];
-        # salt.exporters = [
-        #   "node"
-        #   "cadvisor"
-        # ];
       };
     };
   };

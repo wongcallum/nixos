@@ -19,7 +19,7 @@
         configDir = config.utils.dataDir "syncthing";
         key = config.sops.secrets."syncthing/key.pem".path;
         cert = config.sops.secrets."syncthing/cert.pem".path;
-        # STOP FUCKING WIPING MY CONFIG!
+        # Keep devices added in the UI.
         overrideDevices = false;
         overrideFolders = false;
         settings = {

@@ -97,7 +97,7 @@ in
             mountpoint = "/persist";
           };
 
-          # Rebuildable caches: survives the root rollback, never backed up.
+          # Never backed up.
           "cache" = {
             type = "zfs_fs";
             options = {
@@ -107,8 +107,6 @@ in
             mountpoint = "/cache";
           };
 
-          # Each VM's dataset (microvmLib.vmDataset) is provisioned beneath
-          # this by its host units, and mounts at /vm/<name>.
           "vm" = {
             type = "zfs_fs";
             options = {

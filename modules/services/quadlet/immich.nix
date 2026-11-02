@@ -123,7 +123,7 @@ in
                     ) config.modules.immich.externalLibraries
                     ++ [
                       "${config.utils.dataDir "immich/data"}:/data"
-                      # generated from the libraries, so rebuildable
+                      # Generated from the libraries, so they can be rebuilt.
                       "${config.utils.cacheDir "immich/thumbs"}:/data/thumbs"
                       "${config.utils.cacheDir "immich/encoded-video"}:/data/encoded-video"
                       "/etc/localtime:/etc/localtime:ro"

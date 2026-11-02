@@ -62,15 +62,12 @@ in
   };
 
   config = {
-    # Every marker defines its id, so a marker without an entry fails
-    # evaluation: "option ... was accessed but has no value defined".
+    # A marker without an entry fails evaluation.
     flake.workarounds = lib.mapAttrs (_: _: { }) markers;
 
     perSystem =
       { pkgs, ... }:
       {
-        # Fails once an input update makes a workaround removable, or when an
-        # entry no longer marks any code.
         checks.workarounds =
           let
             problems = lib.concatLists (

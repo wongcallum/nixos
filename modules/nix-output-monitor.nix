@@ -1,10 +1,10 @@
-# my fork reports build progress to the terminal (OSC 7501)
+# My fork reports build progress to the terminal with OSC 7501.
 { inputs, ... }:
 {
   flake.modules.nixos.nix-output-monitor =
     { pkgs, ... }:
     {
-      # imported by both desktop and nix-monitored; the key lets NixOS dedupe it
+      # desktop and nix-monitored both import this, and the key dedupes it.
       key = "nix-output-monitor";
       nixpkgs.overlays = [ inputs.nix-output-monitor.overlays.default ];
       environment.systemPackages = [ pkgs.nix-output-monitor ];

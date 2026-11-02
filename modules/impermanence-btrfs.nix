@@ -1,12 +1,11 @@
-# https://saylesss88.github.io/installation/unenc/unenc_impermanence.html
-
-{ inputs, ... }:
+{ config, inputs, ... }:
+let
+  inherit (config.flake.modules) nixos;
+in
 {
-  flake.modules.nixos.impermanence-btrfs =
+  flake.modules.nixos.btrfs-rollback =
     { config, ... }:
     {
-      imports = [ inputs.impermanence.nixosModules.impermanence ];
-
       boot.initrd.systemd.services.impermanence-root-rollback = {
         description = "Reset the root btrfs subvolume to a fresh state";
         wantedBy = [ "initrd.target" ];
@@ -39,17 +38,24 @@
           umount /btrfs_tmp
         '';
       };
-
-      fileSystems."/persist".neededForBoot = true;
-
-      environment.persistence."/persist" = {
-        hideMounts = true;
-        directories = [
-          "/etc"
-          "/var/spool"
-          "/srv"
-          "/root"
-        ];
-      };
     };
+
+  flake.modules.nixos.impermanence-btrfs = {
+    imports = [
+      inputs.impermanence.nixosModules.impermanence
+      nixos.btrfs-rollback
+    ];
+
+    fileSystems."/persist".neededForBoot = true;
+
+    environment.persistence."/persist" = {
+      hideMounts = true;
+      directories = [
+        "/etc"
+        "/var/spool"
+        "/srv"
+        "/root"
+      ];
+    };
+  };
 }

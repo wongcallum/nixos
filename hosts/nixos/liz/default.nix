@@ -74,19 +74,14 @@ in
         vm-ci-host
       ]);
 
-      # https://microvm-nix.github.io/microvm.nix/declarative.html#fully-declarative
-
       microvm.vms = lib.mapAttrs (hostname: _: {
         config.imports = [
           nixos.base
           nixos.global
           nixos."hosts/nixos/${hostname}"
         ];
-        # nixos.base sets nixpkgs.config, which nixpkgs forbids once pkgs is
-        # instantiated externally; force config-mode's eval-config to build
-        # its own pkgs instead of reusing liz's already-built instance.
+        # nixos.base sets nixpkgs.config, which nixpkgs forbids with an external pkgs.
         pkgs = null;
-        # the same nixpkgs as the guest's standalone nixosConfiguration
         nixpkgs = inputs.${hostNixpkgs.${hostname} or "nixpkgs"};
         restartIfChanged = true;
       }) microvmLib.guests;
@@ -96,13 +91,12 @@ in
         inherit microvmLib;
       };
 
-      # the mirror share lives on tank, which isn't a systemd mount
+      # The mirror share lives on tank, which isn't a systemd mount.
       systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];
 
-      # keep CI off the cores the GPU VM is pinned to (_vm-gpu.nix)
+      # Keep CI off the cores the GPU VM is pinned to.
       systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
 
-      # LAN clients reach Jellyfin directly, bypassing Caddy.
       virtualisation.quadlet.containers.media-jellyfin.containerConfig.publishPorts = [
         "192.168.0.2:8096:8096"
       ];
@@ -132,9 +126,8 @@ in
         ];
         zfs.forceImportRoot = false;
 
-        # Demand misses barely improved between the previous 4.7 GiB ARC and 28 GiB;
-        # 8 GiB leaves headroom while preserving RAM for page cache and the GPU VM.
-        # ZFS first loads in the initrd, so the cap must be a modprobe option.
+        # Misses barely dropped with more than 4.7 GiB of ARC. ZFS loads in the
+        # initrd, so the cap has to be a modprobe option.
         extraModprobeConfig = "options zfs zfs_arc_max=8589934592";
       };
 
@@ -166,7 +159,7 @@ in
         fsType = "ext4";
       };
 
-      # the root is rolled back on boot; keep images (and named volumes) on rpool/cache
+      # The root is rolled back on boot.
       virtualisation.containers.storage.settings.storage.graphroot = config.utils.cacheDir "containers";
 
       modules = {

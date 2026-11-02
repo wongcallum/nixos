@@ -11,9 +11,7 @@ in
       dataDir = config.utils.dataDir "leafwiki";
       secretFile = "${dataDir}/secret.env";
 
-      # LeafWiki refuses to start without a JWT secret and an initial admin
-      # password. Generate both once and keep them out of the Nix store; the
-      # admin password only seeds the first admin account.
+      # LeafWiki won't start without these. The password only seeds the first admin.
       prepareLeafwiki = pkgs.writeShellApplication {
         name = "leafwiki-prepare";
         runtimeInputs = [ pkgs.coreutils ];

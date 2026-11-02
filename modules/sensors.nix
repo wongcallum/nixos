@@ -15,11 +15,9 @@
       };
 
       config = {
-        # Super-I/O chips sit behind IO ports ACPI claims, so the kernel never
-        # probes them on its own and the board's driver has to be named.
+        # The kernel never probes Super-I/O chips behind ports ACPI claims.
         boot.kernelModules = config.modules.sensors.chips;
 
-        # node_exporter's hwmon collector picks the chip up on its own.
         environment.systemPackages = [ pkgs.lm_sensors ];
       };
     };

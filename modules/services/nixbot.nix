@@ -1,11 +1,10 @@
 { inputs, lib, ... }:
 let
-  # upstream hardcodes both and offers no option for them
+  # Hardcoded upstream.
   stateDir = "/var/lib/nixbot";
   postgresDir = "/var/lib/postgresql";
 
-  # Adds services.nixbot.evalNixOptions, which changes both the module and
-  # the package, so the module is imported from the patched source too.
+  # The patch changes the module too, so import it from the patched source.
   # workaround: nixbot-eval-options
   nixbotSrc = inputs.nixpkgs.legacyPackages.x86_64-linux.applyPatches {
     name = "nixbot-source";
@@ -15,7 +14,6 @@ let
 in
 {
   flake.modules.nixos = {
-    # requires flake.modules.nixos.sops
     nixbot =
       {
         config,
@@ -29,9 +27,6 @@ in
         inherit (config.modules.attic) cacheName;
         cacheUrl = config.modules.attic.endpoint;
 
-        # The token is referenced by path, not inlined, so this file is safe in
-        # the store. Written into a throwaway XDG_CONFIG_HOME per push because
-        # the attic client only ever looks at $XDG_CONFIG_HOME/attic/config.toml.
         atticClientConfig = (pkgs.formats.toml { }).generate "attic-client-config.toml" {
           default-server = cacheName;
           servers.${cacheName} = {
@@ -40,7 +35,6 @@ in
           };
         };
 
-        # nixbot feeds store paths on stdin and retries failed batches itself
         pushToCache = pkgs.writeShellApplication {
           name = "nixbot-attic-push";
           runtimeInputs = [
@@ -56,15 +50,8 @@ in
           '';
         };
 
-        # The eval prefetch copies private `ssh://` flake inputs (the
-        # nixos-secrets input) into the store before the sandboxed evaluator
-        # runs. It fetches with a throwaway HOME and nixbot's GitHub
-        # integration only ever supplies an https token, so git's ssh has no
-        # key to authenticate with. OpenSSH resolves `~/.ssh` through the
-        # service user's passwd home rather than $HOME, so a config written
-        # there reaches the prefetch. It cannot live in the system
-        # ssh_config: `Match user` tests the remote user, which is `git` for
-        # git's own ssh invocations.
+        # Deploy key for the private secrets input. The prefetch runs with a throwaway
+        # $HOME, but OpenSSH reads ~/.ssh from the passwd home.
         fetchSshConfig = pkgs.writeText "nixbot-fetch-ssh-config" ''
           Host github.com
             IdentityFile ${config.sops.secrets."nixbot/github-deploy-key".path}
@@ -113,29 +100,24 @@ in
 
         config = {
           warnings = lib.optional (cfg.githubAppId == 0 || cfg.githubOauthId == "") ''
-            modules.nixbot.githubAppId / githubOauthId are unset, so nixbot
+            modules.nixbot.githubAppId or githubOauthId is unset, so nixbot
             cannot authenticate against GitHub. Create the app, then fill both values
             from its settings page.
           '';
 
           sops.secrets = {
-            # read by systemd as root through LoadCredential
             "nixbot/github-app-key".restartUnits = [ "nixbot.service" ];
             "nixbot/github-webhook-secret".restartUnits = [ "nixbot.service" ];
             "nixbot/github-oauth-secret".restartUnits = [ "nixbot.service" ];
 
-            # read directly by the attic client running as the service user
             "attic/push-token".owner = "nixbot";
 
-            # read by the fetch prefetch's git/ssh as the service user
             "nixbot/github-deploy-key" = {
               owner = "nixbot";
               restartUnits = [ "nixbot.service" ];
             };
           };
 
-          # git's ssh needs github.com's host key; the key itself is
-          # written into the service user's home by the unit below.
           programs.ssh.knownHosts."github.com".publicKey =
             "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
 
@@ -148,19 +130,13 @@ in
             useHTTPS = true;
             buildSystems = [ "x86_64-linux" ];
 
-            # one build at a time, nixbot defaults to the core count
             buildConcurrency = 1;
-            # Unlike buildbot, the eval budget (workers * size) is a hard cap.
-            # Resolving cache status for a toplevel's constituents is what
-            # dominates: liz peaks around 5.3 GiB and shama around 3.9 GiB.
+            # A hard cap. liz's eval peaks around 5.3 GiB.
             evalWorkerCount = 1;
             evalMaxMemorySize = 6144;
 
-            # --check-cache-status asks every substituter about every path
-            # until one has it, and a path no cache has costs a TLS handshake
-            # with each. Eval only asks attic and cache.nixos.org; builds
-            # still substitute from every cache. The daemon accepts only
-            # substituters it has configured, so these must match nix.conf.
+            # Cache status checks ask every substituter about each uncached path, so eval
+            # skips the extra ones. The daemon rejects substituters missing from nix.conf.
             evalNixOptions.substituters = lib.concatStringsSep " " (
               [ config.modules.attic.substituter ] ++ config.nix.settings.substituters
             );
@@ -173,16 +149,12 @@ in
               oauthId = cfg.githubOauthId;
               oauthSecretFile = config.sops.secrets."nixbot/github-oauth-secret".path;
               repoAllowlist = [ cfg.repository ];
-              # projects are enabled in the web UI instead
               topic = null;
             };
 
-            # The repository is public: hold fork PRs until a maintainer
-            # approves them, so strangers can't run builds (or fill attic).
-            # Branches pushed to the repository itself always build.
             prApproval = {
               enable = true;
-              # not CONTRIBUTOR: one merged commit shouldn't skip approval
+              # Not CONTRIBUTOR, because one merged commit shouldn't skip approval.
               trustedAssociations = [
                 "OWNER"
                 "MEMBER"
@@ -198,9 +170,7 @@ in
               }
             ];
 
-            # PR builds don't get gcroots by default, so the flake-lock-update
-            # bot's branch would otherwise pay for a full kernel rebuild twice:
-            # once on the PR, again when it lands on master with nothing cached.
+            # Without gcroots, GC deletes its kernel build before it lands on master.
             branches.flake-lock-update = {
               matchGlob = "update_flake_lock_action";
               registerGCRoots = true;
@@ -208,14 +178,11 @@ in
           };
 
           systemd = {
-            # upstream binds the port on every interface when nginx is off
+            # Upstream binds every interface when nginx is off.
             sockets.nixbot.socketConfig.ListenStream = lib.mkForce "${cfg.listenAddress}:${toString config.services.nixbot.port}";
 
-            # evaluation workers plus the service itself; builds run in the nix daemon
             services.nixbot.serviceConfig.MemoryMax = "7G";
 
-            # rewrite the fetch identity on every start, so it survives a
-            # deploy moving the secret or home directory
             services.nixbot.preStart = ''
               install -d -m 700 ${stateDir}/.ssh
               install -m 600 ${fetchSshConfig} ${stateDir}/.ssh/config
@@ -230,7 +197,6 @@ in
         environment.persistence.${config.modules.persistence.persistDir}.directories =
           lib.mkIf (config.services.nixbot.enable or false)
             [
-              # repository mirrors, build logs and the workload identity key
               {
                 directory = stateDir;
                 user = "nixbot";

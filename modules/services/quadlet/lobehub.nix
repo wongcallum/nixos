@@ -13,7 +13,7 @@ in
       s3AccessKey = "rustfsadmin";
       s3SecretKey = "rustfsadmin";
 
-      # mirrors docker-compose/deploy/bucket.config.json upstream
+      # Mirrors upstream's docker-compose/deploy/bucket.config.json.
       bucketPolicy = pkgs.writeText "lobehub-bucket-policy.json" (
         builtins.toJSON {
           Version = "2012-10-17";
@@ -124,9 +124,6 @@ in
             }
           );
 
-          # one-shot: create the `lobe` bucket, allow anonymous downloads so
-          # browser file URLs (via lobehub-storage.${tld}) resolve, and add the
-          # CORS rule browsers need for presigned uploads.
           lobehub-rustfs-init = lib.mkIf config.modules.containers.lobehub {
             containerConfig = {
               image = "docker.io/rustfs/rc:latest";
@@ -172,13 +169,11 @@ in
                   S3_SECRET_ACCESS_KEY = s3SecretKey;
                   LLM_VISION_IMAGE_USE_BASE64 = "1";
 
-                  # allow login from LobeHub Desktop app
+                  # for LobeHub Desktop
                   ENABLE_OIDC = "1";
 
-                  # api keys defined in nixos-secrets
                   SEARCH_PROVIDERS = "tavily,exa";
                   CRAWLER_IMPLS = "exa,naive";
-                  #TAVILY_EXTRACT_DEPTH = "advanced";
                 };
                 networks = [ networks.${networkName}.ref ];
                 ip = "172.28.0.5";

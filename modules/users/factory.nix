@@ -20,7 +20,7 @@
 
         nix.settings.trusted-users = lib.optionals isAdmin [ username ];
 
-        # a locked password can't answer sudo's prompt
+        # A locked password can't answer sudo's prompt.
         security.sudo.extraRules = lib.mkIf (isAdmin && config.modules.users.${username}.lockPassword) [
           {
             users = [ username ];

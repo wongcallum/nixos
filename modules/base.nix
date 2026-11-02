@@ -16,16 +16,16 @@
       security.pki.certificateFiles = [ ./7sref_ca.pem ];
 
       environment.variables = {
-        SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"; # python httpx/aiohttp/ssl
-        REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"; # python requests
-        NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt"; # unpatched node (electron)
+        SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+        REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
+        NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
       };
 
       environment.systemPackages = [
         pkgs.ghostty.terminfo
       ];
 
-      # Unlike nix.gc, `nh clean all` also prunes users' ~/.local/state/nix profiles.
+      # Unlike nix.gc, this also prunes users' profiles.
       programs.nh.clean = {
         enable = true;
         dates = "weekly";
@@ -33,7 +33,6 @@
       };
 
       nix = {
-        # https://jackson.dev/post/nix-reasonable-defaults/
         extraOptions = ''
           connect-timeout = 5
           log-lines = 50
@@ -55,14 +54,7 @@
           min-free = lib.mkDefault 128000000;
           max-free = lib.mkDefault 1000000000;
 
-          extra-substituters = [
-            # punktfunk only. Its nix-cache-info advertises no priority, so Nix
-            # would default it to 0 and ask it first for every path.
-            "https://nix.unom.io?priority=55"
-          ];
-          extra-trusted-public-keys = [
-            "punktfunk-cache-1:yhOJmHxzg6tzXpxSFzlYn6Pc6r0jHprsWqt8MZC654o="
-          ];
+          # No third-party caches here. CI pushes those paths to attic, and hosts fetch them from there.
         };
       };
 

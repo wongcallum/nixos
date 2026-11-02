@@ -3,10 +3,6 @@ let
   inherit (config.flake.modules) nixos;
 in
 {
-  # coder moved here from unstable vm-coder, and its database must only
-  # migrate forward.
-  flake.nixpkgs.salt = "unstable";
-
   flake.modules.nixos."hosts/nixos/salt" =
     { config, lib, ... }:
     {
@@ -19,18 +15,14 @@ in
         uefi
         zram
 
+        btrfs-rollback
+        persistence
+
         callum
 
         ssh
         tailscale
         sops
-
-        coder
-
-        # metrics
-        # logs
-
-        # cottage-witch
       ]);
 
       system.stateVersion = "25.11";
@@ -49,23 +41,12 @@ in
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       };
 
-      # Overflow for workspace builds past zram, which fills first at its
-      # higher priority.
-      swapDevices = [
-        {
-          device = "/var/lib/swapfile";
-          size = 16 * 1024;
-        }
-      ];
-
       networking.useNetworkd = true;
       systemd = {
         network = {
           enable = true;
-          # Off unless coder is in use; liz wakes it with a magic packet.
-          # networking.interfaces.<name>.wakeOnLan matches the kernel's eth0
-          # rather than eno1, so match the NIC itself and keep 99-default's
-          # naming, which a matching .link file replaces.
+          # liz wakes salt with a magic packet. wakeOnLan would match the kernel's
+          # eth0, so this .link matches the NIC and keeps 99-default's naming.
           links."40-eno1" = {
             matchConfig.PermanentMACAddress = "54:bf:64:8f:34:e8";
             linkConfig = {
@@ -85,7 +66,6 @@ in
           };
         };
 
-        # Workspaces must stay reachable while salt is on.
         targets = lib.genAttrs [ "sleep" "suspend" "hibernate" "hybrid-sleep" ] (_: {
           enable = false;
         });
