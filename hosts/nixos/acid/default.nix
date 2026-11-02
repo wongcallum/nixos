@@ -19,10 +19,13 @@ in
       ]
       ++ (with nixos; [
         limine
+        zram
         impermanence-btrfs
         callum
         ssh
         tailscale
+
+        t3code
       ]);
 
       system.stateVersion = "26.05";
@@ -63,6 +66,10 @@ in
         };
         wait-online.anyInterface = true;
       };
+
+      systemd.targets = lib.genAttrs [ "sleep" "suspend" "hibernate" "hybrid-sleep" ] (_: {
+        enable = false;
+      });
 
       networking.wireless.iwd.enable = true;
 
