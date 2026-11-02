@@ -21,6 +21,16 @@
     vmDir = name: "/vm/${name}";
     vmDisk = name: "${vmDataset name}/disk";
 
+    # networkd [Network] settings for a guest's uplink: Cloudflare over strict
+    # DNS-over-TLS, so lookups leaving liz can't be read or rewritten on the way.
+    guestDns = {
+      DNS = [
+        "1.1.1.1#cloudflare-dns.com"
+        "1.0.0.1#cloudflare-dns.com"
+      ];
+      DNSOverTLS = true;
+    };
+
     # Host module: create (or mount) a VM's dataset before the units that use it.
     mkVmStorage =
       { name, requiredBy }:
@@ -124,7 +134,7 @@
                 GatewayOnLink = true;
               }
             ];
-            networkConfig.DNS = [ "1.1.1.1" ];
+            networkConfig = guestDns;
           };
         };
 

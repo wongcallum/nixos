@@ -104,7 +104,7 @@ in
                 GatewayOnLink = true;
               }
             ];
-            networkConfig.DNS = [ "1.1.1.1" ];
+            networkConfig = microvmLib.guestDns;
           };
         };
 

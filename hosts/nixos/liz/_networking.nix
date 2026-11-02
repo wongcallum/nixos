@@ -44,7 +44,17 @@ in
     ];
   };
 
-  services.resolved.settings.Resolve.DNSStubListener = "no";
+  services.resolved.settings.Resolve = {
+    DNSStubListener = "no";
+    # Lookups normally go to tailscale0, which sets its own link to plain DNS
+    # (its local resolver forwards over DoH). If tailscaled drops its DNS,
+    # resolved falls back to these, and only over strict DNS-over-TLS.
+    DNSOverTLS = true;
+    FallbackDNS = [
+      "1.1.1.1#cloudflare-dns.com"
+      "1.0.0.1#cloudflare-dns.com"
+    ];
+  };
 
   environment.systemPackages = [ pkgs.ethtool ];
   services.networkd-dispatcher = {
