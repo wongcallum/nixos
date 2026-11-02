@@ -65,7 +65,6 @@
       kdePackages.dolphin-plugins
       kdePackages.kdegraphics-thumbnailers
 
-      coder
       equibop
       feishin
       faugus-launcher
