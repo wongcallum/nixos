@@ -95,8 +95,6 @@ in
 
         searxng = lib.mkEnableOption "SearXNG";
 
-        cottage-witch = lib.mkEnableOption "Minecraft Server (Cottage Witch)";
-
         gallery = lib.mkEnableOption "Gallery";
 
         immich = lib.mkEnableOption "Immich";

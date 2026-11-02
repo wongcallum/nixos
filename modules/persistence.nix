@@ -67,7 +67,18 @@
                   mv "$live" "$persisted"
                 else
                   rm -f "$live"
-                  SYSTEMD_CREDENTIAL_SECRET="$persisted" ${config.systemd.package}/bin/systemd-creds setup
+                  # On a fresh root a persisted machine-id is only bind-mounted
+                  # by persist-files, which runs after this, so lend setup a
+                  # copy in a private mount namespace.
+                  machineId=/etc/machine-id
+                  [ -s "$machineId" ] || machineId=${persistDir}/etc/machine-id
+                  ${pkgs.util-linux}/bin/unshare --mount ${pkgs.runtimeShell} -c '
+                    if [ ! -s /etc/machine-id ]; then
+                      ${pkgs.util-linux}/bin/mount -t tmpfs none /etc
+                      cp "$1" /etc/machine-id
+                    fi
+                    SYSTEMD_CREDENTIAL_SECRET="$2" "$3" setup
+                  ' _ "$machineId" "$persisted" ${config.systemd.package}/bin/systemd-creds
                 fi
               fi
             '';

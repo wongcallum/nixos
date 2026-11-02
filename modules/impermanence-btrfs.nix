@@ -1,12 +1,15 @@
 # https://saylesss88.github.io/installation/unenc/unenc_impermanence.html
 
-{ inputs, ... }:
+{ config, inputs, ... }:
+let
+  inherit (config.flake.modules) nixos;
+in
 {
-  flake.modules.nixos.impermanence-btrfs =
+  # Recreates the root subvolume at boot, keeping old roots for 30 days. Pair
+  # with `persistence` for fine-grained state, like impermanence-zfs.
+  flake.modules.nixos.btrfs-rollback =
     { config, ... }:
     {
-      imports = [ inputs.impermanence.nixosModules.impermanence ];
-
       boot.initrd.systemd.services.impermanence-root-rollback = {
         description = "Reset the root btrfs subvolume to a fresh state";
         wantedBy = [ "initrd.target" ];
@@ -39,17 +42,25 @@
           umount /btrfs_tmp
         '';
       };
-
-      fileSystems."/persist".neededForBoot = true;
-
-      environment.persistence."/persist" = {
-        hideMounts = true;
-        directories = [
-          "/etc"
-          "/var/spool"
-          "/srv"
-          "/root"
-        ];
-      };
     };
+
+  # Rollback plus coarse persistence of whole directories such as /etc.
+  flake.modules.nixos.impermanence-btrfs = {
+    imports = [
+      inputs.impermanence.nixosModules.impermanence
+      nixos.btrfs-rollback
+    ];
+
+    fileSystems."/persist".neededForBoot = true;
+
+    environment.persistence."/persist" = {
+      hideMounts = true;
+      directories = [
+        "/etc"
+        "/var/spool"
+        "/srv"
+        "/root"
+      ];
+    };
+  };
 }

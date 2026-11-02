@@ -15,6 +15,9 @@ in
         uefi
         zram
 
+        btrfs-rollback
+        persistence
+
         callum
 
         ssh
@@ -23,8 +26,6 @@ in
 
         # metrics
         # logs
-
-        # cottage-witch
       ]);
 
       system.stateVersion = "25.11";
@@ -42,14 +43,6 @@ in
         enableRedistributableFirmware = true;
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       };
-
-      # Overflow past zram, which fills first at its higher priority.
-      swapDevices = [
-        {
-          device = "/var/lib/swapfile";
-          size = 16 * 1024;
-        }
-      ];
 
       networking.useNetworkd = true;
       systemd = {
