@@ -145,13 +145,21 @@ in
           # than compiled when CI builds shama's closure. Asked after
           # cache.nixos.org (40) rather than at its advertised 30, since
           # nixos.org has nearly every path and nyx almost none.
+          #
+          # punktfunk likewise: hosts get it from attic, which nixbot fills
+          # with every toplevel's closure re-signed under the homelab key, so
+          # only CI talks to the slow unom.io cache. Its nix-cache-info
+          # advertises no priority, so Nix would default it to 0 and ask it
+          # first for every path.
           extra-substituters = [
             "https://nyx-cache.chaotic.cx/?priority=45"
             "https://cache.nixos-cuda.org/"
+            "https://nix.unom.io?priority=55"
           ];
           extra-trusted-public-keys = [
             "nyx-cache.chaotic.cx:dJxTrgMC3V3cFfyIiBQDQorG6k1LsqurH/srpMSq7qk="
             "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
+            "punktfunk-cache-1:yhOJmHxzg6tzXpxSFzlYn6Pc6r0jHprsWqt8MZC654o="
           ];
         };
 

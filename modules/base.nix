@@ -55,14 +55,9 @@
           min-free = lib.mkDefault 128000000;
           max-free = lib.mkDefault 1000000000;
 
-          extra-substituters = [
-            # punktfunk only. Its nix-cache-info advertises no priority, so Nix
-            # would default it to 0 and ask it first for every path.
-            "https://nix.unom.io?priority=55"
-          ];
-          extra-trusted-public-keys = [
-            "punktfunk-cache-1:yhOJmHxzg6tzXpxSFzlYn6Pc6r0jHprsWqt8MZC654o="
-          ];
+          # Third-party binary caches are deliberately not set as substituters here.
+          # Hosts get those paths from attic once CI has pushed their closure.
+          # See extra-substituters in hosts/nixos/vm-ci/default.nix
         };
       };
 
