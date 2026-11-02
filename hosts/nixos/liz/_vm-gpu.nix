@@ -56,7 +56,6 @@ let
         callum
 
         ssh
-        # remote-desktop
 
         llama-cpp
       ];
@@ -151,9 +150,6 @@ let
 
       services = {
         xserver.videoDrivers = [ "nvidia" ];
-
-        # Stock Moonlight clients; the guest is only reachable through liz.
-        # punktfunk.host.gamestream = true;
 
         llama-cpp = {
           package = pkgs.llama-cpp.override { cudaSupport = true; };

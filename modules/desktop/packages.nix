@@ -48,7 +48,6 @@
       pavucontrol
 
       mpv
-      inputs.punktfunk.packages.${pkgs.stdenv.hostPlatform.system}.punktfunk-client
       qalculate-qt
       gthumb
       kdePackages.okular

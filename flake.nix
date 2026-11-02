@@ -25,7 +25,6 @@
     prism-tower.url = "github:wongcallum/prism-tower";
     picolimbo.url = "github:Quozul/PicoLimbo";
     microvm.url = "github:astro/microvm.nix";
-    punktfunk.url = "git+https://git.unom.io/unom/punktfunk?ref=nix-stable";
 
     dms.url = "github:AvengeMedia/DankMaterialShell";
     nix-monitored.url = "github:ners/nix-monitored";
@@ -65,8 +64,6 @@
     freesmlauncher.inputs.nixpkgs.follows = "unstable";
     zapfast.inputs.nixpkgs.follows = "unstable";
     nix-output-monitor.inputs.nixpkgs.follows = "unstable";
-    # its GUI client dlopens the host's GPU drivers, so it must share their glibc
-    punktfunk.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =
