@@ -16,16 +16,16 @@
       security.pki.certificateFiles = [ ./7sref_ca.pem ];
 
       environment.variables = {
-        SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt"; # python httpx/aiohttp/ssl
-        REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt"; # python requests
-        NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt"; # unpatched node (electron)
+        SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+        REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
+        NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
       };
 
       environment.systemPackages = [
         pkgs.ghostty.terminfo
       ];
 
-      # Unlike nix.gc, `nh clean all` also prunes users' ~/.local/state/nix profiles.
+      # unlike nix.gc, also prunes users' profiles
       programs.nh.clean = {
         enable = true;
         dates = "weekly";
@@ -33,7 +33,6 @@
       };
 
       nix = {
-        # https://jackson.dev/post/nix-reasonable-defaults/
         extraOptions = ''
           connect-timeout = 5
           log-lines = 50
@@ -55,9 +54,7 @@
           min-free = lib.mkDefault 128000000;
           max-free = lib.mkDefault 1000000000;
 
-          # Third-party binary caches are deliberately not set as substituters here.
-          # Hosts get those paths from attic once CI has pushed their closure.
-          # See extra-substituters in hosts/nixos/vm-ci/default.nix
+          # no third-party caches: hosts get those paths from attic via CI
         };
       };
 

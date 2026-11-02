@@ -52,7 +52,6 @@ in
       };
 
       boot = {
-        # Clang ThinLTO + BORE scheduler, optimized for this CPU.
         kernelPackages = pkgs.linuxPackages_cachyos.cachyOverride {
           cachyVars = pkgs.linuxPackages_cachyos.kernel.cachyConfig.cachyVars // {
             _processor_opt = "GENERIC_V3";
@@ -76,8 +75,7 @@ in
             };
           }
           {
-            # the lore.kernel.org patch below, rebased onto 7.3, where a 0x8e43
-            # quirk landed in its context:
+            # rebased onto 7.3:
             # https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/
             name = "alc245-omnibook7-8e3b";
             patch = ../../../patches/alc245-omnibook7-8e3b.patch;
@@ -105,14 +103,11 @@ in
               path: guid(195e89e2-24cb-41c5-8ceb-26751ca21fa2):/EFI/Microsoft/Boot/bootmgfw.efi
         '';
 
-        # allow limine to take over the world
         loader.efi.canTouchEfiVariables = true;
       };
 
-      # backup kernel
       specialisation.LinuxLatest.configuration = {
         boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
-        # Keep the fallback kernel unpatched.
         boot.kernelPatches = lib.mkForce [ ];
       };
 
@@ -123,7 +118,6 @@ in
 
         graphics = {
           enable = true;
-          # for some games
           enable32Bit = true;
           extraPackages = with pkgs; [
             intel-media-driver

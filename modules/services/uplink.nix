@@ -1,7 +1,6 @@
 let
   ispHost = "ISP gateway";
 
-  # PromQL shared by the Grafana dashboard and the Home Assistant sensors
   queries = cfg: {
     router = ''host="${cfg.router}"'';
     isp = ''host="${ispHost}"'';
@@ -170,7 +169,7 @@ in
             extra.fieldConfig.defaults.thresholds = lossThresholds;
           })
           (panel {
-            # loss here as well as to the internet is the line to the ISP, not the wider internet
+            # loss here too means the line to the ISP
             title = "ISP loss";
             description = "Pings lost to the ISP gateway over the last 5 minutes";
             type = "stat";
@@ -244,7 +243,6 @@ in
             y = 20;
             w = 24;
             h = 10;
-            # cells count replies per second; the y axis carries the latency unit
             unit = "pps";
             targets = [
               (
@@ -355,8 +353,7 @@ in
         };
 
         systemd = {
-          # The hop after the router, traced with ICMP since it ignores tracepath's
-          # UDP. Rerun hourly so the probe follows the ISP renumbering its gateway.
+          # ICMP: the hop ignores tracepath's UDP. Hourly, as the ISP renumbers it.
           services.uplink-isp-gateway = {
             description = "Find the ISP gateway for the smokeping prober";
             path = [
@@ -410,8 +407,6 @@ in
       };
     };
 
-  # The headline numbers as Home Assistant sensors, queried straight from
-  # Prometheus over the host network
   flake.modules.nixos.quadlet-automation =
     { config, lib, ... }:
     let
@@ -444,7 +439,7 @@ in
                 unique_id = "uplink_${id}";
                 unit_of_measurement = unit;
                 state_class = "measurement";
-                # an empty result, like the ISP gateway before it is found, is unavailable rather than 0
+                # an empty result is unavailable, not 0
                 availability = "{{ value_json is not none and value_json.data.result | count > 0 }}";
                 value_template = "{{ (value_json.data.result[0].value[1] | float * ${toString scale}) | round(3) }}";
               }
@@ -469,7 +464,6 @@ in
             {
               id = "availability";
               name = "Uplink availability";
-              # the dashboard's default range
               query = "1 - min(${loss internet "24h"})";
             }
             // percent

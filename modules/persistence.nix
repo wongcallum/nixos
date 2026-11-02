@@ -28,7 +28,6 @@
       config = {
         fileSystems.${persistDir}.neededForBoot = true;
 
-        # ensure that StateDirectory is not too permissive for DynamicUser services
         systemd.tmpfiles.rules = [ "d /var/lib/private 0700 root root -" ];
 
         environment.persistence.${persistDir} = {
@@ -41,19 +40,15 @@
           files =
             # a declared machine-id (microvm.nix sets one) is already stable
             lib.optional (!(config.environment.etc ? "machine-id")) "/etc/machine-id" ++ [
-              # host key for systemd-creds; losing it strands every credential
-              # encrypted with it, such as libvirt's secrets-encryption-key
+              # losing it strands every systemd credential
               credentialSecret
             ];
         };
 
-        # Impermanence symlinks a file that is missing from persistent storage,
-        # and systemd replaces that symlink when it writes the key, so the key
-        # would never persist. Seed it first, adopting a live key if one exists.
+        # systemd would replace impermanence's symlink to a missing key, so seed it
         system.activationScripts = {
           credential-secret = {
-            # systemd-creds binds the key to the machine-id, which a declared
-            # one only provides once /etc is set up
+            # the key is bound to the machine-id, which needs /etc set up
             deps = [
               "createPersistentStorageDirs"
               "etc"
@@ -67,9 +62,7 @@
                   mv "$live" "$persisted"
                 else
                   rm -f "$live"
-                  # On a fresh root a persisted machine-id is only bind-mounted
-                  # by persist-files, which runs after this, so lend setup a
-                  # copy in a private mount namespace.
+                  # on a fresh root the persisted machine-id isn't mounted yet
                   machineId=/etc/machine-id
                   [ -s "$machineId" ] || machineId=${persistDir}/etc/machine-id
                   ${pkgs.util-linux}/bin/unshare --mount ${pkgs.runtimeShell} -c '

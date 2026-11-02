@@ -25,7 +25,6 @@
       options.modules.monitoring.datasourceUids = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
         readOnly = true;
-        # the ones these got when created in the UI, so provisioning took them over in place
         default = {
           prometheus = "aff001un1301sb";
           loki = "afolga78njz7kd";
@@ -85,7 +84,6 @@
             scrapeConfigs = map mkJob activeExporters;
           };
 
-          # https://keyruu.de/blog/monitoring/#loki
           loki = {
             enable = true;
             dataDir = lokiDir;

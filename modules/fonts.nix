@@ -16,7 +16,6 @@
         fontDir.enable = true;
         enableGhostscriptFonts = true;
         packages = with pkgs; [
-          # standard fonts
           noto-fonts
           noto-fonts-cjk-sans
           noto-fonts-cjk-serif
@@ -25,7 +24,6 @@
           inter
           harmonyos-sans
 
-          # monospace fonts
           nerd-fonts.monaspace
           nerd-fonts.jetbrains-mono
           nerd-fonts.recursive-mono
@@ -39,7 +37,6 @@
           ioskeley-mono.standard
           libertinus
 
-          # bitmap fonts
           terminus_font
           bitmap-fonts
         ];

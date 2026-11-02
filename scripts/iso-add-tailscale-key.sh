@@ -1,21 +1,9 @@
 #!/usr/bin/env nix
 #! nix shell nixpkgs#xorriso --command bash
-# Copies a built installer ISO and adds a Tailscale OAuth client secret to it,
-# so the installer enrols itself as an ephemeral tag:installer node on boot.
-# The secret only ever lands in the output image, never in the Nix store.
-#
-#   scripts/iso-add-tailscale-key.sh <in.iso> [out.iso]
-#
-# out.iso defaults to in.iso's name with a -tskey suffix, in the current
-# directory, so it still sorts with the other nixos-*.iso images on a Ventoy
-# stick while showing which one holds the secret.
-#
-# The secret is read from $TS_OAUTH_SECRET, or prompted for. Treat the output
-# image as sensitive: anyone holding it can enrol installers until the OAuth
-# client is revoked.
+# Usage: scripts/iso-add-tailscale-key.sh <in.iso> [out.iso]
+# Secret from $TS_OAUTH_SECRET or a prompt. The output image is sensitive.
 set -euo pipefail
 
-# the path tailscaleInstaller in hosts/iso/default.nix looks for, under /iso
 target=/tailscale/oauth-secret
 
 if (($# < 1 || $# > 2)); then
@@ -49,9 +37,7 @@ tmp=$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/iso-ts.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 printf '%s' "$secret" >"$tmp/oauth-secret"
 
-# replay keeps the BIOS and EFI boot records and the volume ID, which the
-# initrd finds the ISO by. Rock Ridge records the file's owner, so make it
-# root's: uid 1000 is the live system's nixos user.
+# replay keeps the boot records and volume ID the initrd finds the ISO by
 xorriso -no_rc \
   -indev "$in" \
   -outdev "$out" \

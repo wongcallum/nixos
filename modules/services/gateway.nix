@@ -1,6 +1,5 @@
 { lib, inputs, ... }:
 {
-  # requires flake.modules.nixos.sops
   flake.modules.nixos.gateway =
     { config, pkgs, ... }:
     let
@@ -109,9 +108,7 @@
 
         services.technitium-dns-server.enable = true;
 
-        # upstream runs the server as a DynamicUser with a StateDirectory, which
-        # puts its state in /var/lib/private/technitium-dns-server. Swap to a
-        # static system user so the state can live under persistDir/data.
+        # a static user instead of DynamicUser, so state can live in persistDir
         users.users.technitium-dns-server = {
           isSystemUser = true;
           group = "technitium-dns-server";
@@ -129,7 +126,7 @@
           );
           # ProtectSystem = "strict" leaves persistDir read-only otherwise
           ReadWritePaths = [ technitiumDataDir ];
-          # make sure we don't watch the entire root with inotify
+          # otherwise it inotify-watches the whole root
           WorkingDirectory = lib.mkForce technitiumDataDir;
         };
 
@@ -147,7 +144,6 @@
             80
             443
           ];
-          # plain DNS is UDP first, TCP only for truncated/large responses
           allowedUDPPorts = [ 53 ];
         };
 

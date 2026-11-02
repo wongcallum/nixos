@@ -24,7 +24,7 @@ in
 
       system.stateVersion = "26.05";
 
-      # no sops!!!!
+      # no sops
       modules.users.callum.lockPassword = true;
 
       boot.initrd.availableKernelModules = [

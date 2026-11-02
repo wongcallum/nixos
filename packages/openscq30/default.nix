@@ -20,8 +20,7 @@
 }:
 
 let
-  # Keep the source files embedded by the CLI and GUI builds. The workspace
-  # contains resources outside the files selected by crane's Cargo filter.
+  # crane's Cargo filter drops resources the builds embed
   source = lib.cleanSourceWith {
     src = lib.cleanSource src;
     filter =

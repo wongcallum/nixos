@@ -35,9 +35,6 @@ in
       microvm = {
         vcpu = 1;
         mem = 1024;
-        # virtiofsd on liz enforces readOnly, so the guest cannot write to the
-        # mirror; the sync scripts and state in /tank/thsconline/_sync stay
-        # outside the share
         shares = [
           {
             tag = "mirror";
@@ -55,7 +52,7 @@ in
         description = "Public file listing of the THSC Online mirror";
         wantedBy = [ "multi-user.target" ];
         unitConfig.RequiresMountsFor = [ mirror ];
-        # requests arrive from cloudflared, so log the visitor's address
+        # behind cloudflared
         environment.DUFS_LOG_FORMAT = ''$http_cf_connecting_ip "$request" $status'';
         serviceConfig = {
           ExecStart = lib.escapeShellArgs [

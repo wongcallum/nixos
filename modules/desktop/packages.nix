@@ -1,4 +1,3 @@
-# packages i want on every desktop
 { inputs, ... }:
 {
   flake.modules.nixos.desktop = { pkgs, ... }: {

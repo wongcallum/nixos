@@ -1,6 +1,3 @@
-# Local workarounds for upstream problems; see AGENTS.md. Each entry's id
-# marks its code as `# workaround: <id>`. `fixed` is evaluated against the
-# locked inputs and fails CI when true; entries without it are checked by hand.
 {
   config,
   inputs,
@@ -8,7 +5,7 @@
   ...
 }:
 let
-  # A host's nixpkgs as upstream ships it: no overlays, and not our patched fork.
+  # no overlays, and not our patched fork
   pkgsFor =
     host:
     let

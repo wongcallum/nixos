@@ -47,7 +47,7 @@ in
                     mountpoint = "/persist";
                     inherit mountOptions;
                   };
-                  # Overflow past zram, which fills first at its higher priority.
+                  # overflow past zram
                   "swap" = {
                     mountpoint = "/.swapvol";
                     swap.swapfile.size = "16G";

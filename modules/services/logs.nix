@@ -38,7 +38,7 @@
       services.alloy.enable = true;
     };
 
-  # nothing actually important here but persist so reboot/rebuild doesn't push the journal again
+  # so a reboot doesn't push the journal again
   flake.modules.nixos.persistence =
     { config, ... }:
     {

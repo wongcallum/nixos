@@ -30,9 +30,7 @@ let
   };
 in
 {
-  # This module sets up llama.cpp in router mode and manages its models declaratively.
-  # The models are downloaded to the Nix store before the server starts on demand,
-  # so that building the system closure doesn't include the models.
+  # models are fetched at service start, keeping them out of the system closure
   flake.modules.nixos.llama-cpp =
     { config, pkgs, ... }:
     let
@@ -53,7 +51,6 @@ in
             inherit (file) sha256;
           }).outPath;
 
-      # https://huggingface.co/blog/ggml-org/model-management-in-llamacpp
       modelsPreset = pkgs.writeText "llama-cpp-models.ini" (
         lib.generators.toINIWithGlobalSection { } {
           globalSection.version = 1;
@@ -81,8 +78,7 @@ in
           rm -rf "${gcroots}"
           mv "${gcroots}.new" "${gcroots}"
 
-          # nix-prefetch-url downloads into TMPDIR first; /tmp may be a tmpfs
-          # smaller than a model, so stage on the store's filesystem
+          # /tmp may be a tmpfs smaller than a model
           TMPDIR=$(mktemp -d /nix/var/llama-cpp-fetch.XXXXXX)
           export TMPDIR
           trap 'rm -rf "$TMPDIR"' EXIT
@@ -155,7 +151,6 @@ in
           serviceConfig = {
             # "+" for the nix daemon and gcroots, outside the sandbox
             ExecStartPre = [ "+${lib.getExe fetchModels}" ];
-            # first start downloads every model
             TimeoutStartSec = lib.mkDefault "infinity";
           };
         };

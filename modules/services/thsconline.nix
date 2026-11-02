@@ -31,9 +31,6 @@
           python3
         ];
         text = ''
-          # Daily: fetch new entries. Sundays: also retry the ones the site
-          # couldn't serve. The 1st of the month: re-download everything.
-          # Pass a mode to override.
           mode=''${1:-}
           if [ -z "$mode" ]; then
             if [ "$(date +%-d)" = 1 ]; then
@@ -53,7 +50,6 @@
               exit 2
               ;;
           esac
-          # names the snapshot taken after a successful run
           echo "$mode" >"$RUNTIME_DIRECTORY/mode"
 
           cd ${root}/_sync
@@ -73,8 +69,7 @@
             success=1
           fi
 
-          # The file holds one success timestamp per mode, so carry the other
-          # modes' over from the previous run.
+          # carry the other modes' timestamps over
           prom=${metricsDir}/thsconline.prom
           declare -A last=()
           if [ -f "$prom" ]; then
@@ -137,10 +132,8 @@
             User = "thsconline";
             Group = "thsconline";
             ExecStart = lib.getExe sync;
-            # `+` runs it as root; systemd skips it if the sync failed
             ExecStartPost = "+${lib.getExe snapshot}";
             RuntimeDirectory = "thsconline-sync";
-            # a monthly recheck downloads the whole mirror again
             TimeoutStartSec = "12h";
             Nice = 10;
             IOSchedulingClass = "idle";

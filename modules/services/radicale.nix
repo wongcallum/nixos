@@ -32,8 +32,6 @@ in
         };
       };
 
-      # Keep Radicale's collection data on the persistent dataset rather than
-      # in the ephemeral /var/lib hierarchy created by StateDirectory.
       systemd.tmpfiles.rules = [
         "d ${storageDir} 0750 radicale radicale -"
       ];

@@ -12,17 +12,13 @@
       vm-thsconline = 3;
     };
 
-    # Every VM on liz owns the rpool/vm/<name> dataset: its persistent files,
-    # mounted at /vm/<name>, plus any disk as the rpool/vm/<name>/disk zvol.
-    # `zfs destroy -r rpool/vm/<name>` then removes all of a VM's data.
+    # all of a VM's data, disks included, lives under rpool/vm/<name>
     vmName = hostname: lib.removePrefix "vm-" hostname;
     vmParent = "rpool/vm";
     vmDataset = name: "${vmParent}/${name}";
     vmDir = name: "/vm/${name}";
     vmDisk = name: "${vmDataset name}/disk";
 
-    # networkd [Network] settings for a guest's uplink: Cloudflare over strict
-    # DNS-over-TLS, so lookups leaving liz can't be read or rewritten on the way.
     guestDns = {
       DNS = [
         "1.1.1.1#cloudflare-dns.com"
@@ -31,7 +27,6 @@
       DNSOverTLS = true;
     };
 
-    # Host module: create (or mount) a VM's dataset before the units that use it.
     mkVmStorage =
       { name, requiredBy }:
       { config, ... }:
@@ -48,8 +43,7 @@
           script = ''
             zfs list -H -o name ${dataset} >/dev/null 2>&1 || zfs create -p ${dataset}
             [ "$(zfs get -H -o value mounted ${dataset})" = yes ] || zfs mount ${dataset}
-            # impermanence gives the guest's /etc/ssh this mode, and sshd reads
-            # authorized_keys.d as the user, so it must stay traversable
+            # sshd reads authorized_keys.d as the user
             install -d -m 0755 ${vmDir name}/etc/ssh
           '';
           serviceConfig = {
@@ -59,7 +53,6 @@
         };
       };
 
-    # Host module for a microVM guest's dataset.
     mkGuestStorage =
       hostname:
       mkVmStorage {
@@ -158,8 +151,8 @@
           "10.0.0.0/8"
           "172.16.0.0/12"
           "192.168.0.0/16"
-          "100.64.0.0/10" # tailnet (CGNAT)
-          "169.254.0.0/16" # link-local, incl. cloud metadata
+          "100.64.0.0/10"
+          "169.254.0.0/16"
         ];
 
         forwardDrop = op: dest: "iptables -${op} FORWARD -i ${hostname} -d ${dest} -j DROP";
@@ -192,8 +185,6 @@
             internalInterfaces = [ hostname ];
           };
 
-          # Block guest-initiated connections to the host, and forwarded
-          # guest traffic to anything on the LAN or the tailnet.
           firewall.extraCommands = ''
             iptables -I nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP
             ${addForwardDrops}

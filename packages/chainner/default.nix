@@ -97,12 +97,7 @@ let
     zlib
   ];
 
-  # The .deb contents, completely unpatched: no autoPatchelfHook, no
-  # interpreter/RPATH rewriting. An autoPatchelf'd build (relinked directly
-  # against nixpkgs' current glibc) reliably crashed with "Zygote could not
-  # fork" inside Chromium's zygote on this system; running the vendor binary
-  # as-is inside an FHS sandbox (buildFHSEnv, below) instead of relinking it
-  # into the Nix store avoids that crash.
+  # unpatched: autoPatchelf'd builds crash with "Zygote could not fork"
   chainner-unwrapped = stdenvNoCC.mkDerivation {
     pname = "${pname}-unwrapped";
     inherit version src;
@@ -135,19 +130,13 @@ in
 buildFHSEnv {
   inherit pname version;
 
-  # zlib is not a runtime dep of the Electron/Chromium shell itself, but
-  # chaiNNer's self-managed Python backend downloads a portable CPython on
-  # first run whose numpy build dynamically links libz.so.1; without it every
-  # node package fails to import (empty node list / empty viewport).
+  # for the numpy in the CPython chaiNNer downloads on first run
   targetPkgs = _pkgs: runtimeLibs ++ [ glibc ];
 
-  # chrome-sandbox needs the setuid bit to do its job, but Nix strips
-  # setuid/setgid from everything it puts in the store, so --no-sandbox is
-  # still required even inside the FHS sandbox.
+  # the store has no setuid chrome-sandbox
   runScript = "${chainner-unwrapped}/lib/chainner/chainner --no-sandbox";
 
-  # chaiNNer's Electron main process detaches itself from the launching
-  # terminal on purpose; don't let bwrap kill it when the parent exits.
+  # Electron detaches from the terminal on purpose
   dieWithParent = false;
 
   extraInstallCommands = ''

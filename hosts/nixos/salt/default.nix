@@ -23,9 +23,6 @@ in
         ssh
         tailscale
         sops
-
-        # metrics
-        # logs
       ]);
 
       system.stateVersion = "25.11";
@@ -48,10 +45,7 @@ in
       systemd = {
         network = {
           enable = true;
-          # liz wakes salt with a magic packet.
-          # networking.interfaces.<name>.wakeOnLan matches the kernel's eth0
-          # rather than eno1, so match the NIC itself and keep 99-default's
-          # naming, which a matching .link file replaces.
+          # wakeOnLan would match the kernel's eth0; a .link replaces 99-default's naming
           links."40-eno1" = {
             matchConfig.PermanentMACAddress = "54:bf:64:8f:34:e8";
             linkConfig = {
@@ -71,7 +65,6 @@ in
           };
         };
 
-        # Stay reachable while salt is on.
         targets = lib.genAttrs [ "sleep" "suspend" "hibernate" "hybrid-sleep" ] (_: {
           enable = false;
         });

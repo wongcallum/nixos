@@ -1,6 +1,3 @@
-# Security cameras. go2rtc on liz holds the DVR credentials and pulls
-# each stream once; Frigate in the GPU VM records and detects from that
-# restream, and describes events with a VLM on the same GPU.
 {
   config,
   inputs,
@@ -14,8 +11,7 @@ let
   rtspPort = 8554;
   mqttPort = 1883;
 
-  # <channel>01 is the main stream, <channel>02 the 960x576 substream that
-  # polygons are measured in.
+  # polygons are in the 960x576 substream's pixels
   osdMasks = {
     osd_name = "0,0 105,0 105,20 0,20";
     osd_clock = "690,0 960,0 960,22 690,22";
@@ -46,7 +42,6 @@ let
     };
   };
 
-  # restreamed for Home Assistant, but not recorded
   otherChannels = lib.genAttrs' (lib.range 4 8) (
     channel: lib.nameValuePair "camera_${toString channel}" channel
   );
@@ -68,9 +63,9 @@ let
       "${fraction (lib.elemAt xy 0) 960},${fraction (lib.elemAt xy 1) 576}"
     ) (lib.splitString " " polygon);
 
-  # The DVR keeps its own copy, so the unredundant scratch disk is enough.
+  # the DVR keeps its own copy
   recordingsDataset = "scratch/frigate";
-  # Frigate prunes recordings by free space, which the quota bounds.
+  # Frigate prunes recordings by free space
   recordingsQuota = "300G";
 
   vlm = "qwen3-vl-4b";
@@ -79,8 +74,7 @@ let
 
   # SQLite over virtiofs hits "database is locked"; the store's disk is local ext4
   dbDir = "/nix/var/lib/frigate";
-  # TensorRT engines rebuild slowly, so keep them on the store's disk rather
-  # than in /persist (the root is a tmpfs)
+  # TensorRT engines rebuild slowly; the root is a tmpfs
   modelCacheDir = "/nix/var/cache/frigate";
 
   frigateSettings = {
@@ -94,7 +88,6 @@ let
       host = hostAddr;
       port = mqttPort;
     };
-    # Caddy terminates TLS in front of the authenticated port
     tls.enabled = false;
 
     ffmpeg = {
@@ -103,7 +96,6 @@ let
       apple_compatibility = true;
     };
 
-    # https://docs.frigate.video/configuration/object_detectors
     detectors.onnx.type = "onnx";
     model = {
       model_type = "yolo-generic";
@@ -111,8 +103,7 @@ let
       height = 320;
       input_tensor = "nchw";
       input_dtype = "float";
-      # YOLOv9-s exported by hand with the Dockerfile from the docs above;
-      # nothing downloads it, and Frigate won't start without it
+      # YOLOv9-s exported by hand; nothing downloads it
       path = "/config/model_cache/yolo.onnx";
       labelmap_path = "/labelmap/coco-80.txt";
     };
@@ -161,7 +152,6 @@ let
       retain.default = 30;
     };
 
-    # live view; Frigate maps streams named after the camera
     go2rtc.streams = lib.mapAttrs (name: _: [ (restream name) ]) cameras;
 
     cameras = lib.mapAttrs (name: camera: {
@@ -204,8 +194,7 @@ let
       # the root is a tmpfs; keep images on the store's disk
       virtualisation.containers.storage.settings.storage.graphroot = "/nix/var/lib/containers/storage";
 
-      # Frigate's ONNX detector runs on the GPU only in the upstream image;
-      # nixpkgs' frigate with cudaSupport compiles torch and friends locally.
+      # only the upstream image runs the ONNX detector on the GPU
       virtualisation.quadlet = {
         autoUpdate.enable = true;
 
@@ -230,11 +219,9 @@ let
               dataDir
               "/media/frigate"
             ];
-            # nvidia.com/gpu=all resolves through the generated CDI spec
             After = [ "nvidia-container-toolkit-cdi-generator.service" ];
           };
-          # A writable copy, so the UI's zone and mask editors can save; they
-          # last until the next restart unless copied into frigateSettings.
+          # writable, so UI edits save until the next restart
           serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/install -Dm0644 ${configFile} ${dataDir}/config.yml";
         };
       };
@@ -292,7 +279,6 @@ in
 
   services.mosquitto = {
     enable = true;
-    # Home Assistant connects locally, Frigate over the tap
     listeners =
       map
         (address: {

@@ -1,12 +1,8 @@
-# https://saylesss88.github.io/installation/unenc/unenc_impermanence.html
-
 { config, inputs, ... }:
 let
   inherit (config.flake.modules) nixos;
 in
 {
-  # Recreates the root subvolume at boot, keeping old roots for 30 days. Pair
-  # with `persistence` for fine-grained state, like impermanence-zfs.
   flake.modules.nixos.btrfs-rollback =
     { config, ... }:
     {
@@ -44,7 +40,6 @@ in
       };
     };
 
-  # Rollback plus coarse persistence of whole directories such as /etc.
   flake.modules.nixos.impermanence-btrfs = {
     imports = [
       inputs.impermanence.nixosModules.impermanence

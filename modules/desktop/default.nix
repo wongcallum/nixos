@@ -22,7 +22,6 @@
       programs.kdeconnect = {
         enable = true;
         # workaround: kdeconnect-no-bluetooth
-        # mkForce to win over plasma6, which also sets this package.
         package = lib.mkForce (
           pkgs.kdePackages.kdeconnect-kde.overrideAttrs (old: {
             cmakeFlags = (old.cmakeFlags or [ ]) ++ [

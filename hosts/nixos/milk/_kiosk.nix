@@ -3,7 +3,6 @@ let
   pageRoot = "/srv/www";
   pageAddr = "127.0.0.1:8080";
 
-  # Override
   urlFile = "/var/lib/kiosk/url";
 
   browser = pkgs.writeShellScript "kiosk-browser" ''

@@ -20,7 +20,6 @@
         pkgs.callPackage ../../packages/enable-3fg-drag { }
       }/lib/libenable-3fg-drag.so";
 
-      # not sure if these are used
       fonts.packages = with pkgs; [
         material-symbols
         fira-code

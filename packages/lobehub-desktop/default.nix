@@ -31,8 +31,7 @@ appimageTools.wrapType2 {
     description = "LobeHub desktop application, an open-source AI chat client";
     homepage = "https://lobehub.com";
     downloadPage = "https://github.com/lobehub/lobehub/releases";
-    # Apache-2.0 with additional commercial conditions; not OSI-free but
-    # freely redistributable for non-commercial / unmodified use.
+    # Apache-2.0 with commercial conditions
     license = {
       shortName = "LobeHub Community License";
       fullName = "LobeHub Community License (based on Apache-2.0)";

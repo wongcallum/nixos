@@ -8,10 +8,7 @@ let
   inherit (config.flake) keys;
   inherit (config.flake.modules) nixos;
 
-  # Every ISO runs tailscaled, but only enrols itself when the ISO carries an
-  # OAuth client secret, which scripts/iso-add-tailscale-key.sh adds to a built
-  # image. The secret never enters the Nix store, so the image built here (and
-  # by CI) is generic.
+  # added to a built image by scripts/iso-add-tailscale-key.sh, never the store
   tsSecretFile = "/iso/tailscale/oauth-secret";
 
   # nix.conf includes this, and attic-substituter writes it once attic answers
@@ -27,7 +24,6 @@ let
       services.tailscale = {
         enable = true;
         authKeyFile = tsSecretFile;
-        # the secret is an OAuth client's, which mints a key with these
         authKeyParameters = {
           ephemeral = true;
           preauthorized = true;
@@ -35,11 +31,9 @@ let
         extraDaemonFlags = [ "--state=mem:" ];
         extraUpFlags = [
           "--hostname=nixos-installer"
-          # required for OAuth secrets; the tailnet policy confines this tag
-          # to attic's guest port on liz
+          # required for OAuth secrets
           "--advertise-tags=tag:installer"
-          # resolved already sends every lookup over strict DoT; tailnet DNS
-          # would only add the 7sref names, which the policy blocks
+          # resolved already uses strict DoT
           "--accept-dns=false"
         ];
       };
@@ -57,10 +51,8 @@ let
       };
 
       modules.attic = {
-        # attic's plain-HTTP guest port, the one thing tag:installer may reach
         endpoint = "http://${hostAddrs.liz}:${toString attic.guestPort}/";
-        # Listing an unreachable cache costs a connect timeout per nix
-        # command, so it's added only once the tailnet can reach it
+        # an unreachable cache costs a timeout per nix command; added once reachable
         staticSubstituter = false;
       };
 
@@ -83,8 +75,7 @@ let
           Type = "simple";
           RemainAfterExit = true;
         };
-        # Probe attic only while tailscale is up, so an ISO that never joins
-        # sends nothing towards liz's address
+        # an ISO that never joins sends nothing towards liz
         script = ''
           until [[ "$(tailscale status --json --peers=false | jq -r .BackendState)" == Running ]] \
             && curl -fsS -m 5 -o /dev/null ${attic.endpoint}${attic.cacheName}/nix-cache-info; do
@@ -92,20 +83,14 @@ let
           done
           mkdir -p ${dirOf atticConf}
           echo "extra-substituters = ${attic.substituter}" >${atticConf}
-          # nix-daemon reads nix.conf only at startup. Its unit has
-          # KillMode=process, so builds and installs already running carry on.
+          # KillMode=process: running builds survive
           systemctl try-restart nix-daemon.service
           echo "added ${attic.substituter}"
         '';
       };
     };
 
-  # Strict DNS-over-TLS to Cloudflare, ignoring the network's resolvers, so
-  # lookups can't be read or rewritten on the way. On a network that blocks
-  # port 853, lift it at runtime:
-  #   mkdir -p /run/systemd/resolved.conf.d
-  #   printf '[Resolve]\nDNSOverTLS=no\n' >/run/systemd/resolved.conf.d/plain.conf
-  #   systemctl restart systemd-resolved
+  # if port 853 is blocked, set DNSOverTLS=no in /run/systemd/resolved.conf.d
   dnsOverTls = {
     services.resolved = {
       enable = true;
@@ -119,9 +104,7 @@ let
         DNSOverTLS = true;
       };
     };
-    # Keep NetworkManager from handing DHCP-supplied resolvers to resolved,
-    # which would query them too: over TLS, but with no name to check the
-    # certificate against. dns = "none" alone still pushes them over D-Bus.
+    # dns = "none" alone still pushes DHCP resolvers to resolved over D-Bus
     networking.networkmanager = {
       dns = lib.mkForce "none";
       settings.main.systemd-resolved = false;
@@ -145,7 +128,6 @@ let
           { pkgs, ... }:
           {
             boot.loader.grub.memtest86.enable = true;
-            # the live system's root isn't ZFS; this is the default from 26.11
             boot.zfs.forceImportRoot = false;
             isoImage.makeBiosBootable = true;
 

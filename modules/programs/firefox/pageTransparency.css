@@ -11,12 +11,11 @@
 
 @-moz-document url("chrome://browser/content/browser.xhtml") {
 
-    /* This layer shows through whenever the page itself is transparent, and also while a page is loading. */
+    /* also shows while a page is loading */
     #browser {
         background-color: color-mix(in srgb, var(--toolbar-bgcolor, rgb(28, 27, 34)) var(--tint-opacity), transparent) !important;
     }
 
-    /* This is nested inside #browser, does not need a tint */
     .browserContainer {
         background: transparent !important;
     }

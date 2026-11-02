@@ -15,7 +15,7 @@
       '';
     };
 
-    # module does not automatically enable pam_unix.so unless services.openssh.settings.PasswordAuthentication is globally set to true
+    # otherwise only enabled when PasswordAuthentication is globally true
     security.pam.services.sshd.unixAuth = lib.mkForce true;
   };
 

@@ -5,8 +5,6 @@
       promUid = config.modules.monitoring.datasourceUids.prometheus;
       lokiUid = config.modules.monitoring.datasourceUids.loki;
 
-      # Rules that first lived in the UI keep their UIDs, so provisioning took
-      # them over in place rather than duplicating them.
       mkRule =
         {
           uid,
@@ -24,7 +22,6 @@
           },
           # queries that drop healthy series pass "OK", since empty means fine
           noDataState ? "NoData",
-          # LogQL behind the notification's "Logs" link, opened around the alert's start
           logs ? null,
         }:
         {
@@ -71,17 +68,13 @@
           notification_settings.receiver = "telegram";
         };
 
-      # Label values go in raw strings so escaped unit names such as
-      # mnt-usb\x2dcolin.mount match as written. hostLabel is "instance" for
-      # Prometheus rules and "host" for Loki ones.
+      # raw strings, so escaped unit names like mnt-usb\x2dcolin.mount match
       logsOf = hostLabel: selectors: "{host=`{{ $labels.${hostLabel} }}`${selectors}}";
       unitLogs = hostLabel: unit: logsOf hostLabel ", unit=`${unit}`";
       # kernel lines carry no unit label
       kernelLogs = hostLabel: unitLogs hostLabel "";
 
-      # smartctl_exporter drops a disk it cannot reach instead of reporting an
-      # error, so a dead link shows up as a missing series. Compare against the
-      # declared device list to notice the gap.
+      # smartctl_exporter silently drops unreachable disks
       expectedDisks = lib.concatLists (
         lib.mapAttrsToList (
           host: hostCfg:
@@ -232,14 +225,12 @@
               summary = "{{ $labels.device }} on {{ $labels.instance }} stopped answering SMART; check its cable, HBA port and zpool status.";
             })
             (mkRule {
-              # replaced "SMART sectors degrading", which fired forever on any non-zero count
               uid = "afoy0sj8sycjkf";
               title = "SMART error counters rising";
               logs = kernelLogs "instance";
               lookback = 3600;
               noDataState = "OK";
-              # rise over the window's minimum: delta() extrapolates and inflates the
-              # number, and offset finds nothing when the disk has just reappeared
+              # not delta(), which extrapolates, or offset, empty for a reappeared disk
               expr =
                 let
                   attrs = ''smartctl_device_attribute{attribute_value_type="raw",attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Reported_Uncorrect|Offline_Uncorrectable|UDMA_CRC_Error_Count"}'';
@@ -260,14 +251,11 @@
               keepFiringFor = "30m";
               noDataState = "OK";
               datasourceUid = lokiUid;
-              # kernel lines carry no unit label; without that filter, Grafana's own
-              # log of this query matches it and the rule fires on itself
-              # device is empty for iuCRC lines, which name only the ATA port
+              # unit="" excludes Grafana's own log of this query
               expr = ''sum by (host, device) (count_over_time({job="systemd-journal", unit=""} |~ "I/O error, dev|iuCRC error|zio pool=" | regexp `(?:dev |vdev=)(?P<device>[^\s,]+)` [10m]))'';
               summary = ''{{ $labels.host }} logged {{ printf "%.0f" $values.A.Value }} disk I/O errors{{ with $labels.device }} on {{ . }}{{ end }} in 10 minutes.'';
             })
             (mkRule {
-              # replaced "SmartCTL NVMe health", whose expression never produced data
               uid = "bfflrwn833kzke";
               title = "NVMe health";
               logs = kernelLogs "instance";

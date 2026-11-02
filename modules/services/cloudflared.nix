@@ -1,6 +1,5 @@
 { lib, ... }:
 {
-  # requires flake.modules.nixos.sops
   flake.modules.nixos.cloudflared =
     { config, pkgs, ... }:
     let

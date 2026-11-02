@@ -22,7 +22,7 @@
 
             sets=${pkgs.bdf2psf}/share/bdf2psf
 
-            # systemd status bullet character, claude thinks we need it
+            # systemd's status bullet
             echo 'U+25CF' > extra.set
 
             # fontforge suffixes the bdf with the strike's pixel size (font-16.bdf)

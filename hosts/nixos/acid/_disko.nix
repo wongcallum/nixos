@@ -1,8 +1,4 @@
-# Dual-boot with macOS (OpenCore). The disk's GPT, OpenCore's ESP and the APFS
-# container belong to macOS, so disko only describes the two partitions that
-# macOS carved out for acid, each as a whole "disk" without a partition table.
-# They are addressed by filesystem label, which only exists once formatted, so
-# disko never matches a partition that holds something else.
+# macOS owns the GPT, so each partition is a table-less "disk" found by label
 {
   disko.devices.disk = {
     esp = {

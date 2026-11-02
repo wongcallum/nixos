@@ -17,15 +17,7 @@ let
 
   recipients = pkgs.writeText "liz-persist-backup-recipients" (lib.concatLines sshKeys);
 
-  # Relative to the snapshot root; globs are expanded by the shell.
-  #
-  # Deliberately not backed up:
-  # - data/immich: only a viewer for external libraries
-  # - Jellyfin plugins
-  # - data/media/qbittorrent
-  # - data/lobehub
-  # - data/grafana
-  # - data/media/pelagica
+  # globs are expanded by the shell
   paths = [
     # host identity: sops decrypts with the SSH host key
     "etc/ssh"
@@ -62,7 +54,6 @@ let
     "data/media/slskd/data"
   ];
 
-  # Per VM dataset, relative to its root; archived under vm/<name>/.
   vmPaths = {
     gallery = [
       "etc/ssh"
@@ -93,8 +84,7 @@ let
   ];
 
   excludes = [
-    # HACS itself (mostly its bundled frontend); reinstall with get.hacs.xyz,
-    # its state in .storage/hacs.* is kept
+    # reinstall with get.hacs.xyz; its state in .storage is kept
     "data/home-assistant/custom_components/hacs"
     "data/home-assistant/backups"
     "data/home-assistant/deps"
@@ -103,7 +93,6 @@ let
     "data/home-assistant/home-assistant_v2.db*"
     "data/qbittorrent/qBittorrent/data/GeoDB"
     "data/qbittorrent/qBittorrent/data/logs"
-    # slskd: search results cache, old migration backups, share scan backup
     "data/media/slskd/data/backups"
     "data/media/slskd/data/browse.cache"
     "data/media/slskd/data/search.db"

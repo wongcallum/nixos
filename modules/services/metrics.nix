@@ -49,15 +49,12 @@
           listenAddress = "0.0.0.0";
           port = ports.cadvisor;
           extraOptions = [
-            "--docker_only=false" # also report podman/systemd cgroups
+            "--docker_only=false"
 
-            # podman's graphRoot sits on ZFS, so cadvisor's filesystem collector
-            # shells out to the `zfs` binary rather than using a syscall. At the
-            # default 1s housekeeping that is ~3.3 execs/sec, each opening ~180
-            # files under /nix/store, and it burned ~11% of a core on liz.
+            # on ZFS each pass execs `zfs`; at 1s it burned ~11% of a core
             "--housekeeping_interval=30s"
 
-            # this option replaces the default set instead of appending
+            # replaces the default set
             "--disable_metrics=disk,advtcp,cpu_topology,cpuset,hugetlb,memory_numa,process,referenced_memory,resctrl,sched,tcp,udp"
           ];
         };

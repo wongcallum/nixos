@@ -1,6 +1,5 @@
 { lib, pkgs, ... }:
 let
-  # Stable across PCI topology changes that rename predictable interfaces.
   netInterface = "lan0";
   netMac = "50:eb:f6:97:a1:6a";
 
@@ -46,9 +45,7 @@ in
 
   services.resolved.settings.Resolve = {
     DNSStubListener = "no";
-    # Lookups normally go to tailscale0, which sets its own link to plain DNS
-    # (its local resolver forwards over DoH). If tailscaled drops its DNS,
-    # resolved falls back to these, and only over strict DNS-over-TLS.
+    # only for the fallback; tailscale0 sets its own link to plain DNS
     DNSOverTLS = true;
     FallbackDNS = [
       "1.1.1.1#cloudflare-dns.com"

@@ -8,8 +8,7 @@
       ...
     }:
     let
-      # GUI packages dlopen the host's GPU drivers (/run/opengl-driver), so they
-      # must share glibc with the hosts running them, which are on unstable
+      # GUI packages dlopen host GPU drivers, so must share the hosts' unstable glibc
       unstablePkgs = import inputs.unstable {
         inherit system;
         config.allowUnfree = true;

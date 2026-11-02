@@ -47,8 +47,6 @@
         programs.firefox = {
           enable = true;
 
-          # https://github.com/Frewacom/pywalfox-native/blob/master/pywalfox/install.py
-          # https://github.com/Frewacom/pywalfox-native/blob/master/pywalfox/assets/manifest.json
           nativeMessagingHosts.packages = [
             (pkgs.runCommandLocal "pywalfox-native-with-manifest" { } ''
               mkdir -p $out/bin $out/lib/mozilla/native-messaging-hosts
