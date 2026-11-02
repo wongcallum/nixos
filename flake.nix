@@ -8,31 +8,88 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     unstable-upstream.url = "github:nixos/nixpkgs/nixos-unstable";
     unstable.url = "github:wongcallum/nixpkgs/patched";
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
 
     secrets = {
       url = "git+ssh://git@github.com/wongcallum/nixos-secrets.git?shallow=1";
       flake = false;
     };
 
-    deploy-rs.url = "github:serokell/deploy-rs";
-    nixbot.url = "github:Mic92/nixbot";
-    sops-nix.url = "github:Mic92/sops-nix";
-    disko.url = "github:nix-community/disko";
-    impermanence.url = "github:nix-community/impermanence";
-    quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
-    prism-tower.url = "github:wongcallum/prism-tower";
-    picolimbo.url = "github:Quozul/PicoLimbo";
-    microvm.url = "github:astro/microvm.nix";
+    # `follows = ""` drops inputs only used by upstream dev shells, checks and formatters.
 
-    dms.url = "github:AvengeMedia/DankMaterialShell";
-    nix-monitored.url = "github:ners/nix-monitored";
-    nix-output-monitor.url = "github:wongcallum/nix-output-monitor/feat/program-status";
-    nix-discord-rpc.url = "github:wongcallum/nix-discord-rpc";
-    cryptomatord.url = "github:wongcallum/cryptomatord";
-    freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
+    chaotic = {
+      url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
+      inputs.home-manager.follows = "";
+      inputs.flake-schemas.follows = "";
+    };
+    deploy-rs = {
+      url = "github:serokell/deploy-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-compat.follows = "";
+    };
+    nixbot = {
+      url = "github:Mic92/nixbot";
+      inputs.nixpkgs.follows = "unstable-upstream";
+      inputs.treefmt-nix.follows = "";
+    };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    impermanence = {
+      url = "github:nix-community/impermanence";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "";
+    };
+    quadlet-nix.url = "github:SEIAROTg/quadlet-nix";
+    prism-tower = {
+      url = "github:wongcallum/prism-tower";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+    };
+    picolimbo = {
+      url = "github:Quozul/PicoLimbo";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    microvm = {
+      url = "github:astro/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell";
+      inputs.nixpkgs.follows = "unstable";
+      inputs.flake-compat.follows = "";
+    };
+    nix-monitored = {
+      url = "github:ners/nix-monitored";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-output-monitor = {
+      url = "github:wongcallum/nix-output-monitor/feat/program-status";
+      inputs.nixpkgs.follows = "unstable";
+      inputs.git-hooks.follows = "";
+    };
+    nix-discord-rpc = {
+      url = "github:wongcallum/nix-discord-rpc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    cryptomatord = {
+      url = "github:wongcallum/cryptomatord";
+      inputs.nixpkgs.follows = "unstable";
+    };
+    freesmlauncher = {
+      url = "github:wongcallum/FreesmLauncher/multi-modrinth";
+      inputs.nixpkgs.follows = "unstable";
+    };
     crane.url = "github:ipetkov/crane";
-    zapfast.url = "github:crmne/zapfast";
+    zapfast = {
+      url = "github:crmne/zapfast";
+      inputs.nixpkgs.follows = "unstable";
+    };
     llm-agents.url = "github:numtide/llm-agents.nix";
     openscq30 = {
       url = "github:Oppzippy/OpenSCQ30/v2.13.0";
@@ -41,29 +98,16 @@
 
     flux = {
       url = "github:IogaMaster/flux";
-      inputs.nixpkgs.follows = "nixpkgs";
-      # workaround: flux-mcman
-      # flux's flake.lock doesn't have my fix yet.
-      inputs.mcman.url = "github:deniz-blue/mcman/2665efb902631f7a98e0679ac7ed4998e6540022";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        mcman = {
+          # workaround: flux-mcman
+          # flux's flake.lock doesn't have my fix yet.
+          url = "github:deniz-blue/mcman/2665efb902631f7a98e0679ac7ed4998e6540022";
+          inputs.crane.follows = "crane";
+        };
+      };
     };
-
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
-    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
-    impermanence.inputs.nixpkgs.follows = "nixpkgs";
-    prism-tower.inputs.nixpkgs.follows = "nixpkgs";
-    picolimbo.inputs.nixpkgs.follows = "nixpkgs";
-    microvm.inputs.nixpkgs.follows = "nixpkgs";
-    nix-monitored.inputs.nixpkgs.follows = "nixpkgs";
-    nix-discord-rpc.inputs.nixpkgs.follows = "nixpkgs";
-
-    nixbot.inputs.nixpkgs.follows = "unstable-upstream";
-
-    dms.inputs.nixpkgs.follows = "unstable";
-    cryptomatord.inputs.nixpkgs.follows = "unstable";
-    freesmlauncher.inputs.nixpkgs.follows = "unstable";
-    zapfast.inputs.nixpkgs.follows = "unstable";
-    nix-output-monitor.inputs.nixpkgs.follows = "unstable";
   };
 
   outputs =
