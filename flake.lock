@@ -91,22 +91,6 @@
         "type": "github"
       }
     },
-    "dank-qml-common": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793471402,
-        "narHash": "sha256-gJCBIHwoKYkr9ueOZCt78GeUXuVNhgaStcRRi5p7zRE=",
-        "owner": "duxlabs-dev",
-        "repo": "dux-qml-common",
-        "rev": "ef4c8c2aeb87235cb2d253669309ce382b53a3ef",
-        "type": "github"
-      },
-      "original": {
-        "owner": "duxlabs-dev",
-        "repo": "dux-qml-common",
-        "type": "github"
-      }
-    },
     "deploy-rs": {
       "inputs": {
         "flake-compat": [],
@@ -146,28 +130,6 @@
       "original": {
         "owner": "nix-community",
         "repo": "disko",
-        "type": "github"
-      }
-    },
-    "dms": {
-      "inputs": {
-        "dank-qml-common": "dank-qml-common",
-        "flake-compat": [],
-        "nixpkgs": [
-          "unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1793525423,
-        "narHash": "sha256-Be9qOxfkii5QEBYdpbtWtQpriUI8miH8M4MJQY/VHVk=",
-        "owner": "AvengeMedia",
-        "repo": "DankMaterialShell",
-        "rev": "38e13559c56e0614b9d751967b37cd6943d5b330",
-        "type": "github"
-      },
-      "original": {
-        "owner": "AvengeMedia",
-        "repo": "DankMaterialShell",
         "type": "github"
       }
     },
@@ -243,27 +205,6 @@
       "original": {
         "id": "flake-utils",
         "type": "indirect"
-      }
-    },
-    "flux": {
-      "inputs": {
-        "mcman": "mcman",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1767316901,
-        "narHash": "sha256-tllrks9CW9WWWa0w9Brc25uieYixR8pAMUJODith/yU=",
-        "owner": "IogaMaster",
-        "repo": "flux",
-        "rev": "b12173e0b75c10c8f590a9d3a3ad23681f14d038",
-        "type": "github"
-      },
-      "original": {
-        "owner": "IogaMaster",
-        "repo": "flux",
-        "type": "github"
       }
     },
     "freesmlauncher": {
@@ -345,7 +286,7 @@
       "inputs": {
         "bun2nix": "bun2nix",
         "flake-parts": "flake-parts_2",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "systems": "systems_3",
         "treefmt-nix": "treefmt-nix"
       },
@@ -360,28 +301,6 @@
       "original": {
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "type": "github"
-      }
-    },
-    "mcman": {
-      "inputs": {
-        "crane": [
-          "crane"
-        ],
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "lastModified": 1778414270,
-        "narHash": "sha256-1k3DLrRynJALy+rnHzEabpTXqMyiiL9r8WdsFeUbfwU=",
-        "owner": "deniz-blue",
-        "repo": "mcman",
-        "rev": "2665efb902631f7a98e0679ac7ed4998e6540022",
-        "type": "github"
-      },
-      "original": {
-        "owner": "deniz-blue",
-        "repo": "mcman",
-        "rev": "2665efb902631f7a98e0679ac7ed4998e6540022",
         "type": "github"
       }
     },
@@ -535,21 +454,6 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1757347588,
-        "narHash": "sha256-tLdkkC6XnsY9EOZW9TlpesTclELy8W7lL2ClL+nma8o=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "b599843bad24621dcaa5ab60dac98f9b0eb1cabe",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-unstable",
-        "type": "indirect"
-      }
-    },
-    "nixpkgs_3": {
-      "locked": {
         "lastModified": 1793345420,
         "narHash": "sha256-e/yiZ31gXRROBDcnOtT3YwDQ73NVG9Cepccbt86LIn8=",
         "owner": "NixOS",
@@ -564,7 +468,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1793410479,
         "narHash": "sha256-HzgjxrLY4AEc0044ZuM5CHbLSWLZgDlay1idmzvvpJs=",
@@ -594,26 +498,6 @@
         "owner": "Oppzippy",
         "ref": "v2.13.0",
         "repo": "OpenSCQ30",
-        "type": "github"
-      }
-    },
-    "picolimbo": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1791652177,
-        "narHash": "sha256-FhzZIbsvYywGcy8S7kfRyI3xEpz2upPTi5gT+BZtD6w=",
-        "owner": "Quozul",
-        "repo": "PicoLimbo",
-        "rev": "3216697efec1b08fa47c331944415d73a049c7e2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Quozul",
-        "repo": "PicoLimbo",
         "type": "github"
       }
     },
@@ -662,9 +546,7 @@
         "cryptomatord": "cryptomatord",
         "deploy-rs": "deploy-rs",
         "disko": "disko",
-        "dms": "dms",
         "flake-parts": "flake-parts",
-        "flux": "flux",
         "freesmlauncher": "freesmlauncher",
         "impermanence": "impermanence",
         "import-tree": "import-tree",
@@ -674,9 +556,8 @@
         "nix-monitored": "nix-monitored",
         "nix-output-monitor": "nix-output-monitor",
         "nixbot": "nixbot",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_3",
         "openscq30": "openscq30",
-        "picolimbo": "picolimbo",
         "prism-tower": "prism-tower",
         "quadlet-nix": "quadlet-nix",
         "secrets": "secrets",

@@ -50,20 +50,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
     };
-    picolimbo = {
-      url = "github:Quozul/PicoLimbo";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     microvm = {
       url = "github:astro/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    dms = {
-      url = "github:AvengeMedia/DankMaterialShell";
-      inputs.nixpkgs.follows = "unstable";
-      inputs.flake-compat.follows = "";
-    };
     nix-monitored = {
       url = "github:ners/nix-monitored";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -94,19 +85,6 @@
     openscq30 = {
       url = "github:Oppzippy/OpenSCQ30/v2.13.0";
       flake = false;
-    };
-
-    flux = {
-      url = "github:IogaMaster/flux";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        mcman = {
-          # workaround: flux-mcman
-          # flux's flake.lock doesn't have my fix yet.
-          url = "github:deniz-blue/mcman/2665efb902631f7a98e0679ac7ed4998e6540022";
-          inputs.crane.follows = "crane";
-        };
-      };
     };
   };
 

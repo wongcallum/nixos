@@ -29,17 +29,6 @@ in
       ];
     };
 
-    flux-mcman = {
-      upstream = "https://github.com/IogaMaster/flux";
-      done = "flux's flake.lock pins deniz-blue/mcman at 2665efb or a later main commit";
-      fixed =
-        let
-          mcman = (lib.importJSON "${inputs.flux}/flake.lock").nodes.mcman.locked;
-        in
-        # 2665efb's commit date. Later commits on main contain it.
-        mcman.owner == "deniz-blue" && mcman.lastModified >= 1778414270;
-    };
-
     freesmlauncher-java-paths = {
       upstream = "https://github.com/FreesmTeam/FreesmLauncher/pull/233";
       done = "the PR is merged, and the wongcallum/FreesmLauncher multi-modrinth fork is rebased onto it so an empty `jdks` no longer sets FREESMLAUNCHER_JAVA_PATHS";

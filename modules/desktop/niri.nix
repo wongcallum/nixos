@@ -1,19 +1,19 @@
-{ inputs, ... }:
 {
   flake.modules.nixos.niri =
     { pkgs, ... }:
     {
-      imports = [ inputs.dms.nixosModules.dank-material-shell ];
-
       programs = {
         niri.enable = true;
 
-        dank-material-shell = {
+        dux-shell = {
           enable = true;
           # The niri config starts it with `spawn-at-startup "dms" "run"`.
           systemd.enable = false;
         };
       };
+
+      # The DMS flake's module enabled these; nixpkgs' leaves them to us.
+      services.geoclue2.enable = true;
 
       # workaround: niri-3fg-drag
       systemd.user.services.niri.environment.LD_PRELOAD = "${
@@ -28,6 +28,7 @@
       environment.systemPackages = with pkgs; [
         xwayland-satellite
         adwaita-icon-theme
+        khal
 
         # for dms-quick-capture
         imagemagick

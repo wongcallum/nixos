@@ -19,7 +19,6 @@ in
       ssh.enable = lib.mkEnableOption "OpenSSH";
       tailscale.enable = lib.mkEnableOption "Tailscale";
       fonts.enable = lib.mkEnableOption "fonts";
-      velocity.enable = lib.mkEnableOption "Velocity proxy";
 
       hostAddrs = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
