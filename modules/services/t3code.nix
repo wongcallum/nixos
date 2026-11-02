@@ -20,7 +20,10 @@
       };
 
       config = {
-        environment.systemPackages = [ package ];
+        environment.systemPackages = [
+          package
+          pkgs.git
+        ];
 
         nix.settings = {
           extra-substituters = [ "https://cache.numtide.com" ];
