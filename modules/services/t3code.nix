@@ -30,6 +30,28 @@
           extra-trusted-public-keys = [ "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=" ];
         };
 
+        # The desktop app's SSH setup otherwise downloads a generic release binary, which can't run on NixOS.
+        systemd.tmpfiles.settings.t3code =
+          let
+            t3Dir = "${config.users.users.${cfg.user}.home}/.t3";
+            dir = "${t3Dir}/runtime/versions/${package.version}";
+            userDir.d = {
+              inherit (cfg) user;
+              mode = "0755";
+            };
+          in
+          {
+            ${t3Dir} = userDir;
+            "${t3Dir}/runtime" = userDir;
+            "${t3Dir}/runtime/versions" = userDir;
+            "${dir}" = userDir;
+            "${dir}/t3"."L+".argument = lib.getExe package;
+            "${dir}/.install-complete"."f+" = {
+              inherit (cfg) user;
+              argument = package.version;
+            };
+          };
+
         # Mirrors the unit `t3 service install` writes, as a system unit so it runs without a login.
         systemd.services.t3code = {
           description = "T3 Code server";
