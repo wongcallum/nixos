@@ -33,6 +33,7 @@
     freesmlauncher.url = "github:wongcallum/FreesmLauncher/multi-modrinth";
     crane.url = "github:ipetkov/crane";
     zapfast.url = "github:crmne/zapfast";
+    llm-agents.url = "github:numtide/llm-agents.nix";
     openscq30 = {
       url = "github:Oppzippy/OpenSCQ30/v2.13.0";
       flake = false;

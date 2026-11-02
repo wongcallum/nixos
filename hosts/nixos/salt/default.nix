@@ -23,6 +23,8 @@ in
         ssh
         tailscale
         sops
+
+        t3code
       ]);
 
       system.stateVersion = "25.11";
