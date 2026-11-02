@@ -106,11 +106,6 @@ in
         loader.efi.canTouchEfiVariables = true;
       };
 
-      specialisation.LinuxLatest.configuration = {
-        boot.kernelPackages = lib.mkForce pkgs.linuxPackages_latest;
-        boot.kernelPatches = lib.mkForce [ ];
-      };
-
       hardware = {
         enableRedistributableFirmware = true;
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
