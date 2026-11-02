@@ -4,7 +4,8 @@
     { config, pkgs, ... }:
     let
       cfg = config.modules.t3code;
-      package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.t3code;
+      agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+      package = agents.t3code.override { providerPackages = [ agents.claude-code ]; };
     in
     {
       options.modules.t3code = {
