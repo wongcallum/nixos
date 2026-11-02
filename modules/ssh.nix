@@ -15,7 +15,7 @@
       '';
     };
 
-    # otherwise only enabled when PasswordAuthentication is globally true
+    # The module only enables pam_unix when PasswordAuthentication is globally true.
     security.pam.services.sshd.unixAuth = lib.mkForce true;
   };
 

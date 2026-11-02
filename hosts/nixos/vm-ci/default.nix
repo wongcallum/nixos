@@ -57,7 +57,7 @@ in
           flake.keys.hermes is empty, so hermes cannot reach the vm-ci nix daemon.
         '';
 
-        # a trusted user could import arbitrary paths, which CI would push to attic
+        # A trusted user could import arbitrary paths, which CI would push to attic.
         assertions = [
           {
             assertion = !(lib.elem "hermes" config.nix.settings.trusted-users);
@@ -68,12 +68,12 @@ in
         boot = {
           loader = {
             systemd-boot.enable = true;
-            # keeps bootctl out of liz's firmware during install; OVMF boots the removable path
+            # Stops bootctl writing to liz's firmware during install. OVMF boots the removable path.
             efi.canTouchEfiVariables = false;
           };
           kernelParams = [
             "console=ttyS0"
-            # the default 2 MiB blocks returned little; fragmentation blocks compaction
+            # Fragmentation leaves few free 2 MiB blocks, so the default order returned little memory.
             "page_reporting.page_reporting_order=5"
           ];
         };
@@ -94,28 +94,30 @@ in
           };
         };
 
-        # pahole needs ~7 GiB for shama's kernel BTF; zram isn't charged to the cgroup's memory
+        # pahole needs about 7 GiB for shama's kernel BTF. zram pages don't count
+        # towards MemoryMax, so swap has its own cap.
         systemd.services.nix-daemon.serviceConfig = {
           MemoryMax = "10G";
           MemorySwapMax = "2G";
         };
 
-        # 2.34 wakes every waiting goal per finished build and OOMs on crane's derivations
+        # Nix 2.34 wakes every waiting goal when a build finishes, and runs out of
+        # memory on crane's many derivations.
         # workaround: vm-ci-nix-2-35
         nix.package = pkgs.nixVersions.nix_2_35;
 
         nix.settings = {
           max-jobs = 2;
-          # every vCPU per build: the kernel mostly compiles alone
+          # Each build gets every vCPU because the kernel usually compiles alone.
           cores = vcpu;
 
-          # base's 500 MB per download OOMed the daemon on parallel fetches
+          # base's 500 MB buffer per download ran the daemon out of memory on parallel fetches.
           download-buffer-size = lib.mkForce 67108864; # 64 MiB
 
           min-free = 21474836480; # 20 GiB
           max-free = 64424509440; # 60 GiB
 
-          # nyx after cache.nixos.org (40), not its advertised 30: it has few paths
+          # Ask nyx after cache.nixos.org (40) instead of at its advertised 30, because nyx has few paths.
           extra-substituters = [
             "https://nyx-cache.chaotic.cx/?priority=45"
             "https://cache.nixos-cuda.org/"
@@ -128,7 +130,7 @@ in
 
         sops.defaultSopsFile = lib.mkForce "${inputs.secrets}/${hostname}.yaml";
 
-        # builds untrusted PRs, so keep the password off it
+        # This host builds untrusted PRs, so it has no password.
         modules.users.callum.lockPassword = true;
 
         users.users = {
@@ -222,7 +224,7 @@ in
               -chardev "stdio,id=stdio,signal=off"
               -serial "chardev:stdio"
               -device virtio-rng-pci
-              # memory is a ceiling: free page reporting returns what the guest frees
+              # Memory is a ceiling. Free page reporting returns what the guest frees.
               -device "virtio-balloon-pci,free-page-reporting=on,deflate-on-oom=on"
               -drive "file=${disk},if=none,id=disk,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
               -device "virtio-blk-pci,drive=disk,serial=ci"
@@ -306,7 +308,7 @@ in
                 "${hostname}-volume.service"
                 "systemd-networkd.service"
               ];
-              # deployed separately; apply unit changes with `systemctl restart vm-ci`
+              # vm-ci deploys separately. Apply unit changes with `systemctl restart vm-ci`.
               restartIfChanged = false;
 
               serviceConfig = {

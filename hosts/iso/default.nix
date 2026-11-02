@@ -8,10 +8,10 @@ let
   inherit (config.flake) keys;
   inherit (config.flake.modules) nixos;
 
-  # added to a built image by scripts/iso-add-tailscale-key.sh, never the store
+  # scripts/iso-add-tailscale-key.sh adds this to a built image, so it never enters the store.
   tsSecretFile = "/iso/tailscale/oauth-secret";
 
-  # nix.conf includes this, and attic-substituter writes it once attic answers
+  # nix.conf includes this, and attic-substituter writes it once attic answers.
   atticConf = "/run/nix/attic.conf";
 
   tailscaleInstaller =
@@ -31,9 +31,9 @@ let
         extraDaemonFlags = [ "--state=mem:" ];
         extraUpFlags = [
           "--hostname=nixos-installer"
-          # required for OAuth secrets
+          # OAuth secrets require a tag.
           "--advertise-tags=tag:installer"
-          # resolved already uses strict DoT
+          # resolved already uses strict DNS-over-TLS.
           "--accept-dns=false"
         ];
       };
@@ -41,7 +41,7 @@ let
       systemd.services.tailscaled-autoconnect = {
         unitConfig = {
           ConditionPathExists = tsSecretFile;
-          # keep trying until a network comes up, e.g. wifi set up by hand
+          # Keep trying until a network comes up, such as Wi-Fi set up by hand.
           StartLimitIntervalSec = 0;
         };
         serviceConfig = {
@@ -52,7 +52,8 @@ let
 
       modules.attic = {
         endpoint = "http://${hostAddrs.liz}:${toString attic.guestPort}/";
-        # an unreachable cache costs a timeout per nix command; added once reachable
+        # An unreachable cache costs a timeout per nix command, so attic-substituter
+        # adds it once it answers.
         staticSubstituter = false;
       };
 
@@ -71,11 +72,11 @@ let
           pkgs.jq
         ];
         serviceConfig = {
-          # simple rather than oneshot, so waiting doesn't hold up boot
+          # simple rather than oneshot, so waiting doesn't hold up boot.
           Type = "simple";
           RemainAfterExit = true;
         };
-        # an ISO that never joins sends nothing towards liz
+        # Wait for tailscale, so an ISO that never joins sends nothing towards liz.
         script = ''
           until [[ "$(tailscale status --json --peers=false | jq -r .BackendState)" == Running ]] \
             && curl -fsS -m 5 -o /dev/null ${attic.endpoint}${attic.cacheName}/nix-cache-info; do
@@ -83,14 +84,14 @@ let
           done
           mkdir -p ${dirOf atticConf}
           echo "extra-substituters = ${attic.substituter}" >${atticConf}
-          # KillMode=process: running builds survive
+          # The unit has KillMode=process, so running builds survive the restart.
           systemctl try-restart nix-daemon.service
           echo "added ${attic.substituter}"
         '';
       };
     };
 
-  # if port 853 is blocked, set DNSOverTLS=no in /run/systemd/resolved.conf.d
+  # If a network blocks port 853, set DNSOverTLS=no in /run/systemd/resolved.conf.d.
   dnsOverTls = {
     services.resolved = {
       enable = true;
@@ -104,7 +105,7 @@ let
         DNSOverTLS = true;
       };
     };
-    # dns = "none" alone still pushes DHCP resolvers to resolved over D-Bus
+    # With only dns = "none", NetworkManager still sends DHCP resolvers to resolved over D-Bus.
     networking.networkmanager = {
       dns = lib.mkForce "none";
       settings.main.systemd-resolved = false;

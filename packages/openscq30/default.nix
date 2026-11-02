@@ -20,7 +20,7 @@
 }:
 
 let
-  # crane's Cargo filter drops resources the builds embed
+  # crane's Cargo filter drops resources the builds embed.
   source = lib.cleanSourceWith {
     src = lib.cleanSource src;
     filter =
@@ -61,7 +61,7 @@ let
       p: drv:
       if p.name == "askama_derive" then
         drv.overrideAttrs (old: {
-          # the commits of askama PR 744
+          # The commits of askama PR 744.
           patches = (old.patches or [ ]) ++ [
             (fetchpatch {
               url = "https://github.com/askama-rs/askama/commit/80bfe085108e642e47715a764292c66ad0c2babb.patch";

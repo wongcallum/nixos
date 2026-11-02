@@ -1,4 +1,5 @@
-# macOS owns the GPT, so each partition is a table-less "disk" found by label
+# macOS owns the GPT, so disko treats each partition as a disk without a
+# partition table and finds it by label.
 {
   disko.devices.disk = {
     esp = {

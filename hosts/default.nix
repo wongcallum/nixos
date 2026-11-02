@@ -28,7 +28,7 @@ in
 
   config =
     let
-      # not the installer images, which aren't deploy targets
+      # Excludes the installer images, which aren't deploy targets.
       machines = mkHosts "hosts/nixos/" config.flake.modules.nixos (
         hostname: module:
         let

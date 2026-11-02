@@ -3,7 +3,7 @@ let
   system = "x86_64-linux";
 in
 {
-  # define to allow merging by flake-parts
+  # Declared so flake-parts can merge definitions.
   options.flake.ciHosts = lib.mkOption {
     type = lib.types.listOf lib.types.str;
     default = [ ];
@@ -11,7 +11,7 @@ in
   };
 
   config = {
-    # intentionally omitted: minimal-iso, kde-iso
+    # minimal-iso and kde-iso are left out on purpose.
     flake.ciHosts = [
       "acid"
       "liz"

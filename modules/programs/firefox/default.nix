@@ -38,7 +38,7 @@
           default = 80;
           example = 60;
           description = ''
-            Opacity% of the tint applied to the browser chrome and about: pages
+            Opacity, in percent, of the tint on the browser chrome and about: pages
           '';
         };
       };
@@ -85,7 +85,7 @@
 
             SearchSuggestEnabled = false;
 
-            # if unset firefox overrides the autoConfig
+            # If unset, Firefox overrides the autoConfig.
             NewTabPage = false;
             Homepage = {
               URL = prismUrl;
@@ -191,7 +191,7 @@
           '';
         };
 
-        # DMS only writes pywal colors if `pywalfox` binary is in PATH
+        # DMS only writes pywal colors when the `pywalfox` binary is in PATH.
         environment.systemPackages = [ pkgs.pywalfox-native ];
 
         systemd.user.tmpfiles.rules = [

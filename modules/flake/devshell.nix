@@ -5,7 +5,7 @@ let
     pkgs.mkShellNoCC {
       packages = [
         pkgs.deadnix
-        # deploy-rs's flake check would rebuild every host
+        # deploy-rs's own flake check would rebuild every host.
         (pkgs.writeShellScriptBin "deploy" ''
           exec ${pkgs.deploy-rs}/bin/deploy --skip-checks "$@"
         '')
@@ -24,11 +24,11 @@ in
     {
       devShells.default = mkShell pkgs;
 
-      # push devshell packages to attic
+      # Builds the devshell in CI, which pushes it to attic.
       checks.devshell = config.devShells.default;
     };
 
-  # not in `systems`: unstable has dropped x86_64-darwin
+  # Not in `systems`, because unstable has dropped x86_64-darwin.
   flake.devShells.x86_64-darwin.default = mkShell (
     import inputs.nixpkgs {
       system = "x86_64-darwin";

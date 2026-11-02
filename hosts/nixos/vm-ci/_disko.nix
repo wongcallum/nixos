@@ -1,8 +1,8 @@
 { lib, ... }:
 {
-  # not "main": liz, which installs it, has its own disk-main-ESP label
+  # Not "main", because liz installs this disk and has its own disk-main-ESP label.
   disko.devices.disk.ci = {
-    # liz's QEMU unit gives the disk this serial; disko-install overrides it
+    # liz's QEMU unit gives the disk this serial. disko-install overrides it.
     device = lib.mkDefault "/dev/disk/by-id/virtio-ci";
     type = "disk";
     content = {

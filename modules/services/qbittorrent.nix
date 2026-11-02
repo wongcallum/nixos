@@ -24,7 +24,7 @@ in
             MaxActiveUploads = 10;
             BandwidthSchedulerEnabled = true;
           };
-          # QVariant-encoded 08:00 and 20:00, every day
+          # 08:00 and 20:00 every day, encoded as QVariants.
           Preferences.Scheduler = {
             start_time = "@Variant(\\0\\0\\0\\xf\\x1\\xb7t\\0)";
             end_time = "@Variant(\\0\\0\\0\\xf\\x4J\\xa2\\0)";

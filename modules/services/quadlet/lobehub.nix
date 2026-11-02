@@ -13,7 +13,7 @@ in
       s3AccessKey = "rustfsadmin";
       s3SecretKey = "rustfsadmin";
 
-      # mirrors docker-compose/deploy/bucket.config.json upstream
+      # Mirrors upstream's docker-compose/deploy/bucket.config.json.
       bucketPolicy = pkgs.writeText "lobehub-bucket-policy.json" (
         builtins.toJSON {
           Version = "2012-10-17";

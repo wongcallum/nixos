@@ -24,7 +24,7 @@ in
       hostAddrs = lib.mkOption {
         type = lib.types.attrsOf lib.types.str;
         default = { };
-        description = "hostname to tailscale IP address";
+        description = "Tailscale IP address per hostname";
       };
 
       metrics.ports = lib.mkOption {
@@ -45,16 +45,16 @@ in
               type = lib.types.listOf lib.types.str;
               default = [ ];
               description = ''
-                Disks to hand the smartctl exporter, as `/dev/disk/by-id` names;
-                the prefix is added for you. Empty means autodiscovery, which
-                also finds transient USB enclosures - one that stops answering
-                SMART blocks every scrape until it is unplugged.
+                Disks for the smartctl exporter, as `/dev/disk/by-id` names without
+                the prefix. Empty means autodiscovery, which also finds transient USB
+                enclosures. One that stops answering SMART blocks every scrape until
+                it's unplugged.
               '';
             };
           }
         );
         default = { };
-        description = "which exporters to enable and scrape per host";
+        description = "Exporters to enable and scrape per host";
       };
 
       monitoring.host = lib.mkOption {

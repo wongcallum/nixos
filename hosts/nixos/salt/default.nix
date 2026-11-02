@@ -45,7 +45,8 @@ in
       systemd = {
         network = {
           enable = true;
-          # wakeOnLan would match the kernel's eth0; a .link replaces 99-default's naming
+          # liz wakes salt with a magic packet. wakeOnLan would match the kernel's
+          # eth0, so this .link matches the NIC and keeps 99-default's naming.
           links."40-eno1" = {
             matchConfig.PermanentMACAddress = "54:bf:64:8f:34:e8";
             linkConfig = {

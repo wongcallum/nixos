@@ -1,10 +1,10 @@
 { inputs, lib, ... }:
 let
-  # hardcoded upstream
+  # Hardcoded upstream.
   stateDir = "/var/lib/nixbot";
   postgresDir = "/var/lib/postgresql";
 
-  # the module is imported from the patched source too
+  # The patch changes the module too, so import it from the patched source.
   # workaround: nixbot-eval-options
   nixbotSrc = inputs.nixpkgs.legacyPackages.x86_64-linux.applyPatches {
     name = "nixbot-source";
@@ -100,7 +100,7 @@ in
 
         config = {
           warnings = lib.optional (cfg.githubAppId == 0 || cfg.githubOauthId == "") ''
-            modules.nixbot.githubAppId / githubOauthId are unset, so nixbot
+            modules.nixbot.githubAppId or githubOauthId is unset, so nixbot
             cannot authenticate against GitHub. Create the app, then fill both values
             from its settings page.
           '';
@@ -131,7 +131,7 @@ in
             buildSystems = [ "x86_64-linux" ];
 
             buildConcurrency = 1;
-            # a hard cap; liz's eval peaks around 5.3 GiB
+            # A hard cap. liz's eval peaks around 5.3 GiB.
             evalWorkerCount = 1;
             evalMaxMemorySize = 6144;
 
@@ -154,7 +154,7 @@ in
 
             prApproval = {
               enable = true;
-              # not CONTRIBUTOR: one merged commit shouldn't skip approval
+              # Not CONTRIBUTOR, because one merged commit shouldn't skip approval.
               trustedAssociations = [
                 "OWNER"
                 "MEMBER"
@@ -170,7 +170,7 @@ in
               }
             ];
 
-            # otherwise its kernel rebuild is GCed before landing on master
+            # Without gcroots, GC deletes its kernel build before it lands on master.
             branches.flake-lock-update = {
               matchGlob = "update_flake_lock_action";
               registerGCRoots = true;
@@ -178,7 +178,7 @@ in
           };
 
           systemd = {
-            # upstream binds every interface when nginx is off
+            # Upstream binds every interface when nginx is off.
             sockets.nixbot.socketConfig.ListenStream = lib.mkForce "${cfg.listenAddress}:${toString config.services.nixbot.port}";
 
             services.nixbot.serviceConfig.MemoryMax = "7G";

@@ -18,7 +18,7 @@
           type = lib.types.str;
           default = "cloudflared/credentials.json";
           description = ''
-            sops key holding this host's tunnel credentials
+            sops key that holds this host's tunnel credentials
           '';
         };
 
@@ -35,7 +35,7 @@
         {
           warnings = lib.optional (cfg.ingress != { } && cfg.tunnelId == "") ''
             modules.cloudflared.ingress is set but modules.cloudflared.tunnelId is
-            empty, these hostnames are not served:
+            empty, so these hostnames aren't served:
             ${lib.concatStringsSep ", " (lib.attrNames cfg.ingress)}
           '';
         }
@@ -49,7 +49,7 @@
             enable = true;
 
             # workaround: cloudflared-2026-10-2
-            # Cloudflare requires >= 2026.10.2; this is release-26.05's 2026.10.3
+            # Cloudflare requires 2026.10.2 or later. This is release-26.05's 2026.10.3.
             package = lib.mkIf (lib.versionOlder pkgs.cloudflared.version "2026.10.2") (
               (pkgs.cloudflared.override { buildGoModule = pkgs.buildGo127Module; }).overrideAttrs (old: {
                 version = "2026.10.3";

@@ -11,7 +11,7 @@ let
   rtspPort = 8554;
   mqttPort = 1883;
 
-  # polygons are in the 960x576 substream's pixels
+  # Polygons use the 960x576 substream's pixels.
   osdMasks = {
     osd_name = "0,0 105,0 105,20 0,20";
     osd_clock = "690,0 960,0 960,22 690,22";
@@ -46,7 +46,7 @@ let
     channel: lib.nameValuePair "camera_${toString channel}" channel
   );
 
-  # Frigate takes fractions, and string-compares each to "1.0" to spot pixels
+  # Frigate takes fractions, and string-compares each to "1.0" to spot pixels.
   fraction =
     pixels: size:
     let
@@ -63,22 +63,22 @@ let
       "${fraction (lib.elemAt xy 0) 960},${fraction (lib.elemAt xy 1) 576}"
     ) (lib.splitString " " polygon);
 
-  # the DVR keeps its own copy
+  # The DVR keeps its own copy.
   recordingsDataset = "scratch/frigate";
-  # Frigate prunes recordings by free space
+  # Frigate prunes recordings by free space, which the quota limits.
   recordingsQuota = "300G";
 
   vlm = "qwen3-vl-4b";
 
   restream = name: "rtsp://${hostAddr}:${toString rtspPort}/${name}";
 
-  # SQLite over virtiofs hits "database is locked"; the store's disk is local ext4
+  # SQLite over virtiofs hits "database is locked". The store's disk is local ext4.
   dbDir = "/nix/var/lib/frigate";
-  # TensorRT engines rebuild slowly; the root is a tmpfs
+  # TensorRT engines rebuild slowly, and the root is a tmpfs.
   modelCacheDir = "/nix/var/cache/frigate";
 
   frigateSettings = {
-    # without it Frigate migrates the config as if from 0.13, mangling genai
+    # Without it, Frigate migrates the config as if from 0.13 and mangles genai.
     version = "0.18-0";
 
     database.path = "/db/frigate.db";
@@ -92,7 +92,7 @@ let
 
     ffmpeg = {
       hwaccel_args = "preset-nvidia";
-      # iOS only plays HEVC tagged hvc1
+      # iOS only plays HEVC tagged hvc1.
       apple_compatibility = true;
     };
 
@@ -103,7 +103,7 @@ let
       height = 320;
       input_tensor = "nchw";
       input_dtype = "float";
-      # YOLOv9-s exported by hand; nothing downloads it
+      # YOLOv9-s, exported by hand. Nothing downloads it.
       path = "/config/model_cache/yolo.onnx";
       labelmap_path = "/labelmap/coco-80.txt";
     };
@@ -134,7 +134,7 @@ let
       provider = "llamacpp";
       base_url = "http://127.0.0.1:${toString llamaPort}";
       model = vlm;
-      # a chat model's embeddings make semantic search silently useless
+      # A chat model's embeddings make semantic search silently useless.
       roles = [
         "descriptions"
         "chat"
@@ -191,10 +191,10 @@ let
       imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
 
       hardware.nvidia-container-toolkit.enable = true;
-      # the root is a tmpfs; keep images on the store's disk
+      # The root is a tmpfs, so keep images on the store's disk.
       virtualisation.containers.storage.settings.storage.graphroot = "/nix/var/lib/containers/storage";
 
-      # only the upstream image runs the ONNX detector on the GPU
+      # Only the upstream image runs the ONNX detector on the GPU.
       virtualisation.quadlet = {
         autoUpdate.enable = true;
 
@@ -221,7 +221,7 @@ let
             ];
             After = [ "nvidia-container-toolkit-cdi-generator.service" ];
           };
-          # writable, so UI edits save until the next restart
+          # A writable copy, so UI edits save until the next restart.
           serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/install -Dm0644 ${configFile} ${dataDir}/config.yml";
         };
       };
@@ -231,7 +231,7 @@ let
         "d ${dbDir} 0755 root root -"
       ];
 
-      # 5000 is unauthenticated, for Home Assistant on liz; 8971 for Caddy
+      # Home Assistant on liz uses the unauthenticated 5000. Caddy uses 8971.
       networking.firewall.allowedTCPPorts = [
         5000
         8971
@@ -251,7 +251,7 @@ let
           sha256 = "256f3a43bd4205ffef48d6b92715e1e70b5b0e9aef06522584967513a9985331";
         };
         load-on-startup = true;
-        # shares the 12 GB card with OCR, translation and the detector
+        # Shares the 12 GB card with OCR, translation and the detector.
         cache-type-k = "q8_0";
         cache-type-v = "q8_0";
       };
@@ -263,13 +263,13 @@ in
   services.go2rtc = {
     enable = true;
     settings = {
-      # the web UI shows source URLs, credentials included
+      # The web UI shows source URLs, credentials included.
       api.listen = "127.0.0.1:1984";
-      # tailscale0 is trusted, so keep the unauthenticated restream on the tap
+      # tailscale0 is trusted, so keep the unauthenticated restream on the tap.
       rtsp.listen = "${hostAddr}:${toString rtspPort}";
       webrtc.listen = "";
 
-      # DVR_URL is rtsp://user:password@address:554, from the secret
+      # The secret sets DVR_URL to rtsp://user:password@address:554.
       streams = lib.concatMapAttrs (name: channel: {
         ${name} = "\${DVR_URL}/Streaming/Channels/${toString channel}01";
         "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString channel}02";
@@ -296,7 +296,7 @@ in
 
   systemd.services = lib.mkMerge [
     (lib.genAttrs [ "go2rtc" "mosquitto" ] (_: {
-      # binding the tap's address fails until networkd has configured it
+      # Binding the tap's address fails until networkd configures it.
       after = [ "sys-subsystem-net-devices-${utils.escapeSystemdPath config.vmGpu.tap}.device" ];
       serviceConfig = {
         Restart = "on-failure";

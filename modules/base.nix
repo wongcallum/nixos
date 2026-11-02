@@ -25,7 +25,7 @@
         pkgs.ghostty.terminfo
       ];
 
-      # unlike nix.gc, also prunes users' profiles
+      # Unlike nix.gc, this also prunes users' profiles.
       programs.nh.clean = {
         enable = true;
         dates = "weekly";
@@ -54,7 +54,7 @@
           min-free = lib.mkDefault 128000000;
           max-free = lib.mkDefault 1000000000;
 
-          # no third-party caches: hosts get those paths from attic via CI
+          # No third-party caches here. CI pushes those paths to attic, and hosts fetch them from there.
         };
       };
 

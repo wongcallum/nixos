@@ -62,7 +62,7 @@ in
   };
 
   config = {
-    # a marker without an entry fails evaluation
+    # A marker without an entry fails evaluation.
     flake.workarounds = lib.mapAttrs (_: _: { }) markers;
 
     perSystem =

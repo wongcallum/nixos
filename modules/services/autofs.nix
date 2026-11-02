@@ -26,7 +26,7 @@
         systemd.services.autofs = {
           path = [ pkgs.cifs-utils ];
           serviceConfig = {
-            # before autofs's unmount, which needs the network
+            # Unmount lazily before autofs tries, because its unmount needs the network.
             ExecStop = "-${pkgs.util-linux}/bin/umount --lazy ${lib.concatStringsSep " " (lib.attrValues shares)}";
             TimeoutStopSec = "5s";
           };

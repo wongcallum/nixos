@@ -34,7 +34,7 @@ fi
 
 workarounds=$(nix eval --json .#workarounds)
 
-# forget notes on removed workarounds
+# Forget notes on removed workarounds.
 jq --argjson w "$workarounds" 'with_entries(select(.key | in($w)))' "$notes" >"$notes.tmp"
 mv "$notes.tmp" "$notes"
 

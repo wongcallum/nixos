@@ -6,7 +6,7 @@
         enable = true;
         libraries = [
           (pkgs.runCommand "steamrun-lib" { } "mkdir $out; ln -s ${pkgs.steam-run.fhsenv}/usr/lib64 $out/lib")
-          # for T3 Code's downloaded chrome-headless-shell
+          # T3 Code's downloaded chrome-headless-shell needs these.
           pkgs.nss
           pkgs.nspr
           pkgs.atk

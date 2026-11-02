@@ -11,7 +11,7 @@ in
       dataDir = config.utils.dataDir "leafwiki";
       secretFile = "${dataDir}/secret.env";
 
-      # LeafWiki won't start without these; the password only seeds the first admin
+      # LeafWiki won't start without these. The password only seeds the first admin.
       prepareLeafwiki = pkgs.writeShellApplication {
         name = "leafwiki-prepare";
         runtimeInputs = [ pkgs.coreutils ];

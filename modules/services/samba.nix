@@ -38,7 +38,7 @@
             enable = true;
             openFirewall = true;
 
-            # add users with `smbpasswd -a <name>`
+            # Add users with `smbpasswd -a <name>`.
 
             settings =
               let

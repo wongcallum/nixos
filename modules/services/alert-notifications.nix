@@ -4,7 +4,7 @@
     let
       tokenSecret = "grafana/telegram-bot-token";
 
-      # Explore is closed to anonymous viewers, so alerts link here
+      # Explore is closed to anonymous viewers, so alerts link here.
       logsDashboard =
         let
           datasource = {
@@ -49,7 +49,7 @@
                 {
                   refId = "A";
                   inherit datasource;
-                  # raw, so Grafana passes the query through without escaping it
+                  # Raw, so Grafana passes the query through without escaping it.
                   expr = "\${query:raw}";
                   queryType = "range";
                   maxLines = 2000;

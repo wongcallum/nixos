@@ -30,7 +30,7 @@ in
                 type = "btrfs";
                 extraArgs = [ "-f" ];
                 subvolumes = {
-                  # recreated at boot by btrfs-rollback
+                  # btrfs-rollback recreates this at boot.
                   "root" = {
                     mountpoint = "/";
                     inherit mountOptions;
@@ -47,7 +47,7 @@ in
                     mountpoint = "/persist";
                     inherit mountOptions;
                   };
-                  # overflow past zram
+                  # Takes the overflow once zram fills.
                   "swap" = {
                     mountpoint = "/.swapvol";
                     swap.swapfile.size = "16G";

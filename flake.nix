@@ -42,7 +42,7 @@
       url = "github:IogaMaster/flux";
       inputs.nixpkgs.follows = "nixpkgs";
       # workaround: flux-mcman
-      # flux's flake.lock doesn't have my fix yet
+      # flux's flake.lock doesn't have my fix yet.
       inputs.mcman.url = "github:deniz-blue/mcman/2665efb902631f7a98e0679ac7ed4998e6540022";
     };
 

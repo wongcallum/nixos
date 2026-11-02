@@ -20,7 +20,7 @@
             type = "gt";
             params = [ 0 ];
           },
-          # queries that drop healthy series pass "OK", since empty means fine
+          # Queries that drop healthy series pass "OK", since empty means fine.
           noDataState ? "NoData",
           logs ? null,
         }:
@@ -68,13 +68,13 @@
           notification_settings.receiver = "telegram";
         };
 
-      # raw strings, so escaped unit names like mnt-usb\x2dcolin.mount match
+      # Raw strings, so escaped unit names like mnt-usb\x2dcolin.mount match.
       logsOf = hostLabel: selectors: "{host=`{{ $labels.${hostLabel} }}`${selectors}}";
       unitLogs = hostLabel: unit: logsOf hostLabel ", unit=`${unit}`";
-      # kernel lines carry no unit label
+      # Kernel lines carry no unit label.
       kernelLogs = hostLabel: unitLogs hostLabel "";
 
-      # smartctl_exporter silently drops unreachable disks
+      # smartctl_exporter silently drops unreachable disks, so compare against the declared list.
       expectedDisks = lib.concatLists (
         lib.mapAttrsToList (
           host: hostCfg:
@@ -230,7 +230,8 @@
               logs = kernelLogs "instance";
               lookback = 3600;
               noDataState = "OK";
-              # not delta(), which extrapolates, or offset, empty for a reappeared disk
+              # The rise over the window's minimum. delta() extrapolates, and offset
+              # finds nothing for a disk that just reappeared.
               expr =
                 let
                   attrs = ''smartctl_device_attribute{attribute_value_type="raw",attribute_name=~"Reallocated_Sector_Ct|Current_Pending_Sector|Reported_Uncorrect|Offline_Uncorrectable|UDMA_CRC_Error_Count"}'';
@@ -251,7 +252,7 @@
               keepFiringFor = "30m";
               noDataState = "OK";
               datasourceUid = lokiUid;
-              # unit="" excludes Grafana's own log of this query
+              # unit="" excludes Grafana's own log of this query.
               expr = ''sum by (host, device) (count_over_time({job="systemd-journal", unit=""} |~ "I/O error, dev|iuCRC error|zio pool=" | regexp `(?:dev |vdev=)(?P<device>[^\s,]+)` [10m]))'';
               summary = ''{{ $labels.host }} logged {{ printf "%.0f" $values.A.Value }} disk I/O errors{{ with $labels.device }} on {{ . }}{{ end }} in 10 minutes.'';
             })
@@ -276,7 +277,7 @@
               uid = "thsconline-stale";
               title = "THSC Online sync stale";
               logs = unitLogs "instance" "thsconline-sync.service";
-              # no data means the metrics file is missing, which is worth hearing about too
+              # No data means the metrics file is missing, which is worth hearing about too.
               expr = "time() - max by (instance) (thsconline_sync_last_success_timestamp_seconds)";
               threshold = {
                 type = "gt";

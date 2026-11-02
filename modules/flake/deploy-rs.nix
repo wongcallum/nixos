@@ -30,7 +30,7 @@ let
   };
 in
 {
-  # define to allow merging by flake-parts
+  # Declared so flake-parts can merge definitions.
   options.flake.deploy = lib.mkOption {
     type = lib.types.attrsOf lib.types.anything;
     default = { };
@@ -43,7 +43,7 @@ in
       inherit (deployPkgs.deploy-rs.lib.deployChecks ciDeploy) deploy-schema;
     };
 
-    # deploy-schema evaluates every host at once, past nixbot's eval memory cap
+    # deploy-schema evaluates every host at once and exceeds nixbot's eval memory cap.
     ciChecks.${system} = removeAttrs config.flake.checks.${system} [ "deploy-schema" ];
   };
 }

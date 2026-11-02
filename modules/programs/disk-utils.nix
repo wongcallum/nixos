@@ -1,6 +1,6 @@
 {
   # workaround: pkexec-display-forwarding
-  # explicitly forward DISPLAY and XAUTHORITY for both apps which escalate via `pkexec`
+  # Forward DISPLAY and XAUTHORITY to both apps, which escalate with `pkexec`.
   flake.modules.nixos.disk-utils =
     { pkgs, lib, ... }:
     let

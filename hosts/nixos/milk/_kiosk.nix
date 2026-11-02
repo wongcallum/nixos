@@ -34,7 +34,7 @@ in
   services.cage = {
     enable = true;
     user = "kiosk";
-    # -d: no client-side decorations
+    # -d disables client-side decorations.
     extraArguments = [ "-d" ];
     program = browser;
   };

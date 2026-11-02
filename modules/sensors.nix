@@ -15,7 +15,7 @@
       };
 
       config = {
-        # the kernel never probes Super-I/O chips behind ACPI-claimed ports
+        # The kernel never probes Super-I/O chips behind ports ACPI claims.
         boot.kernelModules = config.modules.sensors.chips;
 
         environment.systemPackages = [ pkgs.lm_sensors ];

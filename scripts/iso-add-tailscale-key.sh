@@ -37,7 +37,7 @@ tmp=$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/iso-ts.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 printf '%s' "$secret" >"$tmp/oauth-secret"
 
-# replay keeps the boot records and volume ID the initrd finds the ISO by
+# replay keeps the boot records, and the volume ID the initrd finds the ISO by.
 xorriso -no_rc \
   -indev "$in" \
   -outdev "$out" \

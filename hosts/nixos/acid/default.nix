@@ -30,7 +30,7 @@ in
       modules.users.callum.lockPassword = true;
 
       boot = {
-        # OpenCore owns the boot order and chainloads Limine's removable path
+        # OpenCore owns the boot order and chainloads Limine's removable path.
         loader.efi.canTouchEfiVariables = false;
 
         blacklistedKernelModules = [ "nouveau" ];

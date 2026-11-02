@@ -41,7 +41,7 @@ in
       environment.sessionVariables = {
         LIBVA_DRIVER_NAME = "iHD";
 
-        # needed for openvino npu device
+        # OpenVINO needs this for the NPU.
         ZE_ENABLE_ALT_DRIVERS = "/run/opengl-driver/lib/libze_intel_npu.so.1";
       };
 
@@ -75,7 +75,7 @@ in
             };
           }
           {
-            # rebased onto 7.3:
+            # Rebased onto 7.3:
             # https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/
             name = "alc245-omnibook7-8e3b";
             patch = ../../../patches/alc245-omnibook7-8e3b.patch;

@@ -68,7 +68,7 @@ def add-key-to-sops [sops_file: string, key_name: string, age_key: string]: noth
     let anchor_line = $"  - &($key_name) ($age_key)"
     let alias_line = $"      - *($key_name)"
 
-    # alias first: inserting below the anchor keeps its index valid
+    # Insert the alias first. It sits below the anchor, so the anchor's index stays valid.
     let updated = (
         $lines
         | insert ($alias_idx + 1) $alias_line

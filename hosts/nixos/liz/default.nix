@@ -80,7 +80,7 @@ in
           nixos.global
           nixos."hosts/nixos/${hostname}"
         ];
-        # nixos.base sets nixpkgs.config, which an external pkgs forbids
+        # nixos.base sets nixpkgs.config, which nixpkgs forbids with an external pkgs.
         pkgs = null;
         nixpkgs = inputs.${hostNixpkgs.${hostname} or "nixpkgs"};
         restartIfChanged = true;
@@ -91,10 +91,10 @@ in
         inherit microvmLib;
       };
 
-      # the mirror share lives on tank, which isn't a systemd mount
+      # The mirror share lives on tank, which isn't a systemd mount.
       systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];
 
-      # keep CI off the cores the GPU VM is pinned to
+      # Keep CI off the cores the GPU VM is pinned to.
       systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
 
       virtualisation.quadlet.containers.media-jellyfin.containerConfig.publishPorts = [
@@ -126,7 +126,8 @@ in
         ];
         zfs.forceImportRoot = false;
 
-        # misses barely improved past 4.7 GiB; ZFS loads in the initrd, hence modprobe
+        # Misses barely dropped with more than 4.7 GiB of ARC. ZFS loads in the
+        # initrd, so the cap has to be a modprobe option.
         extraModprobeConfig = "options zfs zfs_arc_max=8589934592";
       };
 
@@ -158,7 +159,7 @@ in
         fsType = "ext4";
       };
 
-      # the root is rolled back on boot
+      # The root is rolled back on boot.
       virtualisation.containers.storage.settings.storage.graphroot = config.utils.cacheDir "containers";
 
       modules = {

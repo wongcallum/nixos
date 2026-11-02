@@ -31,7 +31,7 @@
         );
       };
 
-      # the greetd service's own `kwallet` option is ignored
+      # greetd's own `kwallet` option is ignored.
       security.pam.services.login.kwallet.enable = true;
 
       environment.systemPackages = [
@@ -56,7 +56,7 @@
 
       hardware.sane = {
         enable = true;
-        # epson2's `net autodiscovery` gets no reply, so point it at the WF-3520 directly
+        # epson2's `net autodiscovery` gets no reply, so point it at the WF-3520 directly.
         extraBackends = [
           (pkgs.writeTextDir "etc/sane.d/epson2.conf" ''
             usb
@@ -78,7 +78,7 @@
         displayManager.dux-greeter = {
           enable = true;
           compositor.name = "niri";
-          # keep the greeter's theme/wallpaper in sync with my DMS config
+          # Keep the greeter's theme and wallpaper in sync with my DMS config.
           configHome = config.users.users.callum.home;
         };
 

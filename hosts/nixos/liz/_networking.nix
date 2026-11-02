@@ -45,7 +45,7 @@ in
 
   services.resolved.settings.Resolve = {
     DNSStubListener = "no";
-    # only for the fallback; tailscale0 sets its own link to plain DNS
+    # Applies to the fallback only. tailscale0 sets its own link to plain DNS.
     DNSOverTLS = true;
     FallbackDNS = [
       "1.1.1.1#cloudflare-dns.com"

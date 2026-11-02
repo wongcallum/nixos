@@ -51,10 +51,10 @@
           extraOptions = [
             "--docker_only=false"
 
-            # on ZFS each pass execs `zfs`; at 1s it burned ~11% of a core
+            # On ZFS each pass execs `zfs`. At the default 1s it used about 11% of a core.
             "--housekeeping_interval=30s"
 
-            # replaces the default set
+            # This replaces the default set.
             "--disable_metrics=disk,advtcp,cpu_topology,cpuset,hugetlb,memory_numa,process,referenced_memory,resctrl,sched,tcp,udp"
           ];
         };

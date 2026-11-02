@@ -1,6 +1,6 @@
 { lib, ... }:
 let
-  # what guests dial for the attic guest port
+  # What guests dial for the attic guest port.
   guestHost = cfg: "${cfg.guestAddress}:${toString cfg.guestPort}";
 in
 {
@@ -31,8 +31,8 @@ in
             type = lib.types.port;
             default = 8081;
             description = ''
-              Plain-HTTP port the attic host serves the cache on for VM
-              guests, which can reach neither the gateway nor its DNS
+              Plain-HTTP port the attic host serves the cache on for VM guests,
+              which can reach neither the gateway nor its DNS
             '';
           };
 
@@ -41,8 +41,8 @@ in
             default = null;
             example = "10.0.1.1";
             description = ''
-              The attic host's address on the VM network that guests reach
-              guestPort at; null leaves the guest port off
+              The attic host's address on the VM network, where guests reach
+              guestPort. Null turns the guest port off.
             '';
           };
 
@@ -51,8 +51,8 @@ in
             default = null;
             example = 10;
             description = ''
-              Substituter priority overriding the cache's own (lower is asked
-              first); null keeps the one attic advertises
+              Substituter priority that overrides the cache's own. Nix asks lower
+              values first. Null keeps the priority attic advertises.
             '';
           };
 
@@ -60,8 +60,8 @@ in
             type = lib.types.bool;
             default = true;
             description = ''
-              Whether nix.conf lists the cache as a substituter; false leaves
-              that to something that adds it at runtime
+              Whether nix.conf lists the cache as a substituter. Set it to false
+              when something else adds it at runtime.
             '';
           };
 
@@ -110,7 +110,7 @@ in
         root = "/${dataset}";
         storage = "${root}/storage";
 
-        # the fsync-heavy database stays off scratch's spinning disk
+        # Keep the fsync-heavy database off scratch's spinning disk.
         dataDir = config.utils.dataDir "attic";
         database = "${dataDir}/server.db";
 
@@ -130,7 +130,7 @@ in
             tmpfiles.rules = [ "d ${dataDir} 0750 atticd atticd -" ];
 
             services.atticd = {
-              # scratch/attic is created by hand
+              # scratch/attic is created by hand.
               after = [
                 "zfs-import-${pool}.service"
                 "zfs-mount.service"
@@ -138,7 +138,7 @@ in
 
               serviceConfig = {
                 DynamicUser = lib.mkForce false;
-                # sqlite writes its journal beside the database
+                # SQLite writes its journal beside the database.
                 ReadWritePaths = [
                   root
                   dataDir
@@ -169,7 +169,7 @@ in
                 "${cfg.domainName}.${config.modules.gateway.tld}"
               ]
               ++ lib.optional (cfg.guestAddress != null) (guestHost cfg);
-              # unset: attic derives it from X-Forwarded-*, as guests can't resolve the gateway
+              # Unset, so attic derives it from X-Forwarded-*. Guests can't resolve the gateway.
 
               database.url = "sqlite://${database}?mode=rwc";
 
@@ -178,7 +178,7 @@ in
                 path = storage;
               };
 
-              # default is 64 KiB average, too small for spinning disk
+              # The default 64 KiB average is too small for a spinning disk.
               chunking = {
                 nar-size-threshold = 65536; # 64 KiB
                 min-size = 65536; # 64 KiB
@@ -210,7 +210,7 @@ in
           lib.mkIf (config.services.atticd.enable && config.modules.attic.guestAddress != null)
             {
               extraConfig = ''
-                # attic returns endpoints built from X-Forwarded-Host
+                # attic builds the endpoints it returns from X-Forwarded-Host.
                 reverse_proxy ${config.services.atticd.settings.listen} {
                   header_up Host ${guestHost config.modules.attic}
                   header_up X-Forwarded-Host ${guestHost config.modules.attic}

@@ -97,7 +97,7 @@ let
     zlib
   ];
 
-  # unpatched: autoPatchelf'd builds crash with "Zygote could not fork"
+  # Unpatched, because autoPatchelf'd builds crash with "Zygote could not fork".
   chainner-unwrapped = stdenvNoCC.mkDerivation {
     pname = "${pname}-unwrapped";
     inherit version src;
@@ -130,13 +130,13 @@ in
 buildFHSEnv {
   inherit pname version;
 
-  # for the numpy in the CPython chaiNNer downloads on first run
+  # The numpy in the CPython chaiNNer downloads on first run links libz.
   targetPkgs = _pkgs: runtimeLibs ++ [ glibc ];
 
-  # the store has no setuid chrome-sandbox
+  # The store can't hold a setuid chrome-sandbox.
   runScript = "${chainner-unwrapped}/lib/chainner/chainner --no-sandbox";
 
-  # Electron detaches from the terminal on purpose
+  # Electron detaches from the terminal on purpose.
   dieWithParent = false;
 
   extraInstallCommands = ''

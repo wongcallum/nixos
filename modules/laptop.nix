@@ -13,7 +13,7 @@
     powerManagement.powertop.enable = true;
 
     # workaround: tuned-ppd-no-turbo
-    # power-saver sets no_turbo=1, which tuned-ppd reports as thermal throttling
+    # Power saving sets no_turbo=1, which tuned-ppd reports as thermal throttling.
     nixpkgs.overlays = [
       (_final: prev: {
         tuned = prev.tuned.overrideAttrs (old: {

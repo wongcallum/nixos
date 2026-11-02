@@ -69,7 +69,7 @@
             success=1
           fi
 
-          # carry the other modes' timestamps over
+          # Carry the other modes' timestamps over.
           prom=${metricsDir}/thsconline.prom
           declare -A last=()
           if [ -f "$prom" ]; then

@@ -68,13 +68,13 @@ let
       };
 
       modules = {
-        # no sops in the guest
+        # The guest has no sops.
         users.callum.lockPassword = true;
-        # the gateway's hostname doesn't resolve here; use liz's guest port
+        # The gateway's hostname doesn't resolve here, so use liz's guest port.
         attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
       };
 
-      # liz direct-boots the current closure, so older generations are unbootable
+      # liz direct-boots the current closure, so older generations can't boot.
       programs.nh.clean.extraArgs = lib.mkForce "--keep 1";
 
       boot = {
@@ -119,7 +119,7 @@ let
       ];
 
       hardware = {
-        # links libcuda into /run/opengl-driver for llama.cpp
+        # Links libcuda into /run/opengl-driver for llama.cpp.
         graphics.enable = true;
 
         nvidia = {
@@ -133,7 +133,7 @@ let
       powerManagement.enable = false;
 
       environment = {
-        # must exist before activation
+        # Declared so it exists before activation reads it.
         etc."machine-id".text = "8ee14cda66bb46b08992f1945dcf32ad\n";
 
         systemPackages = [
@@ -198,7 +198,7 @@ let
         };
 
         models = {
-          # default: https://github.com/bilibili/Index-Translate#default-inference-settings
+          # Defaults from https://github.com/bilibili/Index-Translate#default-inference-settings
           index-translate-2b = {
             model = {
               repo = "IndexTeam/Index-Translate-2B-GGUF";
@@ -212,12 +212,12 @@ let
             n-predict = 4096;
             chat-template-kwargs = ''{"enable_thinking":false}'';
             reasoning = "off";
-            # paragraphs share the instruction prefix
+            # Paragraphs share the instruction prefix.
             cache-ram = 512;
           };
 
           # https://huggingface.co/tencent/HunyuanOCR#c-pc-side-deployment-via-llamacpp
-          # mmproj stays f16: quantising the vision encoder hurts small text
+          # mmproj stays f16 because quantising the vision encoder hurts small text.
           "hunyuanocr-1.5" = {
             model = {
               repo = "prithivMLmods/HunyuanOCR-1.5-GGUF-Updated";
@@ -234,7 +234,8 @@ let
             load-on-startup = true;
             ctx-size = 10240;
             n-predict = 4096;
-            # the model card's repetition_penalty spans the whole sequence; -1 is rejected
+            # The model card's repetition_penalty covers the whole sequence. The flag
+            # rejects -1, so the context size stands in.
             temp = 0;
             repeat-penalty = 1.08;
             repeat-last-n = 10240;
@@ -296,7 +297,7 @@ let
     '';
   };
 
-  # run only while QEMU is stopped
+  # Run this only while QEMU is stopped.
   seedStore = pkgs.writeShellApplication {
     name = "vm-gpu-seed-store";
     runtimeInputs = [ config.nix.package ];
@@ -349,19 +350,19 @@ let
 
         -device "virtio-rng-pci"
 
-        # fixed PCI addresses avoid creation-order renumbering
+        # Fixed PCI addresses stop devices renumbering by creation order.
         -drive "file=${nixVolumePath},if=none,id=drv-nix,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
         -device "virtio-blk-pci,drive=drv-nix,serial=${nixVolumeSerial},addr=0x3"
 
         -netdev "tap,id=net0,ifname=${tap},script=no,downscript=no,vhost=on"
         -device "virtio-net-pci,netdev=net0,mac=${guestMac},addr=0x4"
 
-        # rombar=0: as the boot display, SeaBIOS would run its VBIOS and hang
+        # As the boot display, the GPU's VBIOS would hang SeaBIOS, so hide its ROM.
         -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
         -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on,rombar=0"
         -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1,rombar=0"
 
-        # for hot-attaching USB devices later
+        # Lets USB devices be hot-attached later.
         -device "qemu-xhci,id=xhci,addr=0x5"
 
         ${shareDevices}
@@ -393,7 +394,7 @@ let
   virtiofsdService = share: {
     description = "virtiofsd for the GPU VM ${share.tag} share";
     partOf = [ "vm-gpu.service" ];
-    # pool datasets aren't systemd mounts
+    # Pool datasets aren't systemd mounts.
     after = [ "zfs-mount.service" ];
     serviceConfig = {
       Type = "exec";
@@ -486,7 +487,7 @@ in
           vm-gpu = {
             description = "GPU Virtual Machine";
 
-            # a new guest closure changes the launch script, so deploys restart the VM
+            # A new guest closure changes the launch script, so deploys restart the VM.
             wantedBy = [ "multi-user.target" ];
 
             requires = [

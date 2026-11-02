@@ -11,7 +11,7 @@
 ## Style
 
 - Respond tersely.
-- After committing, start your response with "Commit: `<hash>`" (append "(amended)" if you did). Don't mention push or deploy status.
+- After committing, start your response with "Commit: `<hash>`", adding "(amended)" after an amend. Don't mention push or deploy status.
 - Commit messages: about 50 characters, imperative mood, formatted `host: change`. Drop the prefix if the change covers no host or multiple hosts. If more is needed, add succinct dot points.
 - By default, write no comments. Only comment behaviour that would surprise a competent reader of the code. Keep it to a line or two.
 
@@ -27,7 +27,7 @@
 
 ## Architecture
 
-Dendritic flake (flake-parts + `import-tree`). Files under `modules/` and `hosts/` are auto-imported and declare `flake.modules.<class>.<name>`, where class is `nixos` or `generic` (reusable across classes).
+A Dendritic flake built with flake-parts and `import-tree`. Files under `modules/` and `hosts/` are auto-imported and declare `flake.modules.<class>.<name>`, where class is `nixos` or `generic` (reusable across classes).
 
 Before structuring a new feature or refactoring feature composition, read `.agents/skills/dendritic-aspects/SKILL.md`. Compose modules with `lib.mkMerge`, not `//`.
 
@@ -61,4 +61,4 @@ Every local workaround for an upstream problem (patches, overlays, `overrideAttr
 
 Prefer cherry-picking an upstream fix: add its PR or commit to `scripts/patch-nixpkgs.sh` and run it locally. Use a local overlay only when that isn't possible.
 
-Pass `ghcherry` a PR reference or individual commit hashes, never a merge commit (its `NixOS#NNNNN` message causes GitHub to create cross-references).
+Pass `ghcherry` a PR reference or individual commit hashes, never a merge commit. A merge commit's `NixOS#NNNNN` message makes GitHub create cross-references.

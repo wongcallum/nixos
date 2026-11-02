@@ -97,7 +97,7 @@ in
             mountpoint = "/persist";
           };
 
-          # never backed up
+          # Never backed up.
           "cache" = {
             type = "zfs_fs";
             options = {

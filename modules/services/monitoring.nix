@@ -44,7 +44,7 @@
                 domain = "grafana.${config.modules.gateway.tld}";
                 root_url = "https://%(domain)s/";
               };
-              # internal
+              # Only used internally.
               security.secret_key = "SW2YcwTIb9zpOOhoPsMm";
               auth.disable_login_form = false;
               "auth.anonymous" = {

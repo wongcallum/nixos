@@ -30,7 +30,7 @@ let
   };
 in
 {
-  # models are fetched at service start, keeping them out of the system closure
+  # The service fetches models at start, which keeps them out of the system closure.
   flake.modules.nixos.llama-cpp =
     { config, pkgs, ... }:
     let
@@ -69,7 +69,7 @@ in
           config.nix.package
         ];
         text = ''
-          # root before downloading so a concurrent GC can't take a fresh file
+          # Root before downloading, so a concurrent GC can't take a fresh file.
           rm -rf "${gcroots}.new"
           mkdir -p "${gcroots}.new"
           ${lib.concatMapStrings (file: ''
@@ -78,7 +78,7 @@ in
           rm -rf "${gcroots}"
           mv "${gcroots}.new" "${gcroots}"
 
-          # /tmp may be a tmpfs smaller than a model
+          # /tmp may be a tmpfs smaller than a model.
           TMPDIR=$(mktemp -d /nix/var/llama-cpp-fetch.XXXXXX)
           export TMPDIR
           trap 'rm -rf "$TMPDIR"' EXIT
@@ -149,7 +149,7 @@ in
           wants = [ "network-online.target" ];
           after = [ "network-online.target" ];
           serviceConfig = {
-            # "+" for the nix daemon and gcroots, outside the sandbox
+            # "+" runs it outside the sandbox, for the nix daemon and gcroots.
             ExecStartPre = [ "+${lib.getExe fetchModels}" ];
             TimeoutStartSec = lib.mkDefault "infinity";
           };

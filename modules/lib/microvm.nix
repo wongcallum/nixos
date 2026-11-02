@@ -6,13 +6,13 @@
 }:
 {
   _module.args.microvmLib = rec {
-    # liz's microVM guests; each index fixes the guest's MAC and 10.0.0.x address
+    # liz's microVM guests. Each index sets the guest's MAC and 10.0.0.x address.
     guests = {
       vm-gallery = 1;
       vm-thsconline = 3;
     };
 
-    # all of a VM's data, disks included, lives under rpool/vm/<name>
+    # All of a VM's data, disks included, lives under rpool/vm/<name>.
     vmName = hostname: lib.removePrefix "vm-" hostname;
     vmParent = "rpool/vm";
     vmDataset = name: "${vmParent}/${name}";
@@ -43,7 +43,7 @@
           script = ''
             zfs list -H -o name ${dataset} >/dev/null 2>&1 || zfs create -p ${dataset}
             [ "$(zfs get -H -o value mounted ${dataset})" = yes ] || zfs mount ${dataset}
-            # sshd reads authorized_keys.d as the user
+            # sshd reads authorized_keys.d as the user, so /etc/ssh must stay traversable.
             install -d -m 0755 ${vmDir name}/etc/ssh
           '';
           serviceConfig = {
@@ -74,7 +74,7 @@
         mac = "02:00:00:00:00:${lib.fixedWidthString 2 "0" (lib.toLower (lib.toHexString n))}";
       };
 
-    # lockRoot: key-only root SSH instead of the default password login
+    # lockRoot makes root SSH key-only instead of the default password login.
     mkGuestModule =
       {
         hostname,

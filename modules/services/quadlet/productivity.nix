@@ -21,16 +21,16 @@ in
           public_instance = false;
         };
 
-        # shares engine session tokens across workers, avoiding rate limits
+        # Shares engine session tokens across workers, so they don't each fetch them and get rate-limited.
         valkey.url = "valkey://${valkeyIp}:6379/0";
 
         outgoing = {
-          # Mojeek takes ~1.5s from here and silently drops out under load
+          # Mojeek takes about 1.5s from here, so the 3s default drops it under load.
           request_timeout = 5.0;
           max_request_timeout = 12.0;
         };
 
-        # upstream's only enabled engines all CAPTCHA or rate-limit this IP
+        # Upstream's only enabled engines all CAPTCHA or rate-limit this IP.
         engines = [
           {
             name = "mojeek";
@@ -44,7 +44,7 @@ in
             name = "google";
             inactive = false;
           }
-          # its handshake CAPTCHAs, suspending it for an hour
+          # Its handshake hits a CAPTCHA, which suspends the engine for an hour.
           {
             name = "startpage";
             disabled = true;
@@ -52,7 +52,7 @@ in
         ];
       };
 
-      # the image only writes settings.yml when missing, so it would never update
+      # The image only writes settings.yml when it's missing, so it would never update.
       prepareSearxng = pkgs.writeShellApplication {
         name = "searxng-prepare";
         runtimeInputs = [ pkgs.coreutils ];
@@ -94,7 +94,7 @@ in
             config.utils.mkContainer {
               containerConfig = {
                 image = "docker.io/valkey/valkey:9@sha256:3b55fbaa0cd93cf0d9d961f405e4dfcc70efe325e2d84da207a0a8e6d8fde4f9";
-                # bare and last: quadlet drops `--save ""` and every flag after it
+                # Bare and last, because quadlet drops `--save ""` and every flag after it.
                 exec = "valkey-server --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru --save";
                 networks = [ networks.${networkName}.ref ];
                 ip = valkeyIp;

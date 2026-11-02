@@ -10,16 +10,16 @@ let
   dataset = "rpool/persist";
   inherit (microvmLib) vmParent;
   snapshot = "backup-staging";
-  # relative to /, which the archive is built from
+  # Relative to /, which the archive is built from.
   snapshotPath = dir: "${lib.removePrefix "/" dir}/.zfs/snapshot/${snapshot}";
   outDir = "/tank/callum/backups";
   outFile = "${outDir}/liz-persist.tar.zst.age";
 
   recipients = pkgs.writeText "liz-persist-backup-recipients" (lib.concatLines sshKeys);
 
-  # globs are expanded by the shell
+  # The shell expands globs.
   paths = [
-    # host identity: sops decrypts with the SSH host key
+    # sops decrypts with the SSH host key.
     "etc/ssh"
     "etc/machine-id"
     "passwd"
@@ -77,14 +77,14 @@ let
       lib.mapAttrsToList (name: map (p: "${snapshotPath (microvmLib.vmDir name)}/${p}")) vmPaths
     );
 
-  # /persist paths keep their old place at the archive root
+  # /persist paths keep their old place at the archive root.
   transforms = [
     "s,^${snapshotPath config.utils.persistDir}/,,"
     "s,^\\(vm/[^/]*\\)/\\.zfs/snapshot/${snapshot}/,\\1/,"
   ];
 
   excludes = [
-    # reinstall with get.hacs.xyz; its state in .storage is kept
+    # Reinstall HACS with get.hacs.xyz. Its state in .storage is kept.
     "data/home-assistant/custom_components/hacs"
     "data/home-assistant/backups"
     "data/home-assistant/deps"
@@ -117,7 +117,7 @@ let
       zstd
     ];
     text = ''
-      # tank imports outside systemd's mount graph; never write to the ephemeral root
+      # tank imports outside systemd's mount graph. Never write to the ephemeral root.
       mountpoint -q /tank/callum
 
       cleanup() {
@@ -125,7 +125,7 @@ let
         zfs destroy -r ${vmParent}@${snapshot} 2>/dev/null || true
       }
       cleanup
-      # one atomic snapshot across /persist and every VM
+      # One atomic snapshot across /persist and every VM.
       zfs snapshot -r ${dataset}@${snapshot} ${vmParent}@${snapshot}
       tmp=
       trap 'rm -f "$tmp"; cleanup' EXIT

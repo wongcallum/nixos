@@ -18,9 +18,9 @@
           type = lib.types.str;
           default = "/var/cache";
           description = ''
-            Root for caches that are expensive to rebuild: kept out of persistDir
-            and its backups. The default is wiped at boot on impermanent hosts;
-            point it at a dedicated dataset to keep caches across reboots.
+            Root for caches that are expensive to rebuild, kept out of persistDir
+            and its backups. Impermanent hosts wipe the default at boot. Point it
+            at a dedicated dataset to keep caches across reboots.
           '';
         };
       };
@@ -38,17 +38,18 @@
             "/var/log"
           ];
           files =
-            # a declared machine-id (microvm.nix sets one) is already stable
+            # A declared machine-id, as microvm.nix sets, is already stable.
             lib.optional (!(config.environment.etc ? "machine-id")) "/etc/machine-id" ++ [
-              # losing it strands every systemd credential
+              # Losing it strands every systemd credential.
               credentialSecret
             ];
         };
 
-        # systemd would replace impermanence's symlink to a missing key, so seed it
+        # systemd replaces impermanence's symlink to a missing key, so the key would
+        # never persist. Seed it first.
         system.activationScripts = {
           credential-secret = {
-            # the key is bound to the machine-id, which needs /etc set up
+            # systemd-creds binds the key to the machine-id, which needs /etc set up.
             deps = [
               "createPersistentStorageDirs"
               "etc"
@@ -62,7 +63,7 @@
                   mv "$live" "$persisted"
                 else
                   rm -f "$live"
-                  # on a fresh root the persisted machine-id isn't mounted yet
+                  # On a fresh root, persist-files hasn't mounted the machine-id yet.
                   machineId=/etc/machine-id
                   [ -s "$machineId" ] || machineId=${persistDir}/etc/machine-id
                   ${pkgs.util-linux}/bin/unshare --mount ${pkgs.runtimeShell} -c '
