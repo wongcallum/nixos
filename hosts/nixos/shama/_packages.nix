@@ -28,5 +28,9 @@ in
     tigervnc
     openscq30-cli
     zapfast
+    android-tools
+    aria2
+    ffmpeg
+    tsukimi
   ];
 }
