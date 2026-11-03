@@ -24,6 +24,7 @@ in
         tailscale
         sops
 
+        dev
         t3code
       ]);
 

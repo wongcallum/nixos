@@ -22,12 +22,8 @@
       config = {
         environment.systemPackages = [
           package
-        ]
-        ++ (with pkgs; [
-          git
-          gh
-          tea
-        ]);
+          pkgs.git
+        ];
 
         nix.settings = {
           extra-substituters = [ "https://cache.numtide.com" ];
@@ -65,6 +61,8 @@
           startLimitIntervalSec = 300;
           startLimitBurst = 5;
           # Agents need the user's tools, not the unit's minimal PATH.
+          # Matches the interactive shell, so setup scripts get wrapped in its syntax.
+          environment.SHELL = lib.getExe pkgs.fish;
           environment.PATH = lib.mkForce (
             lib.concatStringsSep ":" [
               "/run/wrappers/bin"

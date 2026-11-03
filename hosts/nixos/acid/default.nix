@@ -25,6 +25,7 @@ in
         ssh
         tailscale
 
+        dev
         t3code
       ]);
 

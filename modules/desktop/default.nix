@@ -12,8 +12,7 @@
         audio
         niri
         fonts
-        nix-ld
-        direnv
+        dev
         console-font
         zram
         tailscale
@@ -40,12 +39,6 @@
         pkgs.libsForQt5.qt5ct
         pkgs.simple-scan
       ];
-
-      environment.variables = {
-        EDITOR = "nvim";
-        GOPATH = "/home/callum/.local/share/go";
-        GOBIN = "/home/callum/.local/bin";
-      };
 
       networking.networkmanager.enable = true;
       users.users.callum.extraGroups = [
