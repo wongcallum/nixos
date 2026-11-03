@@ -30,8 +30,6 @@ in
 
       system.stateVersion = "26.05";
 
-      modules.users.callum.lockPassword = true;
-
       boot = {
         # OpenCore owns the boot order and chainloads Limine's removable path.
         loader.efi.canTouchEfiVariables = false;
