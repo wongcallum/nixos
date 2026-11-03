@@ -56,6 +56,8 @@ let
 
         ssh
 
+        metrics
+
         llama-cpp
       ];
 

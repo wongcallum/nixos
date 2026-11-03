@@ -7,13 +7,19 @@
         lib.concatMap (h: h.exporters) (lib.attrValues config.modules.metrics.hosts)
       );
       addrOf =
-        host: if host == config.networking.hostName then "127.0.0.1" else config.modules.hostAddrs.${host};
+        host: hostCfg:
+        if host == config.networking.hostName then
+          "127.0.0.1"
+        else if hostCfg.address != null then
+          hostCfg.address
+        else
+          config.modules.hostAddrs.${host};
       mkJob = exporter: {
         job_name = exporter;
         static_configs =
           lib.mapAttrsToList
-            (host: _: {
-              targets = [ "${addrOf host}:${toString config.modules.metrics.ports.${exporter}}" ];
+            (host: hostCfg: {
+              targets = [ "${addrOf host hostCfg}:${toString config.modules.metrics.ports.${exporter}}" ];
               labels.instance = host;
             })
             (
@@ -91,7 +97,7 @@
               auth_enabled = false;
               server = {
                 http_listen_address = "0.0.0.0";
-                http_listen_port = 3100;
+                http_listen_port = config.modules.monitoring.lokiPort;
                 grpc_listen_port = 9096;
                 log_level = "warn";
               };

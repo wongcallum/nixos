@@ -49,6 +49,9 @@ in
 
           cloudflared
           nixbot
+
+          logs
+          metrics
         ]);
 
         system.stateVersion = "26.05";
@@ -150,6 +153,9 @@ in
         services.nixbot.port = nixbotPort;
 
         modules = {
+          # It has its own disk, so it pushes its journal instead of liz reading it.
+          logs.lokiAddr = hostAddr;
+
           attic = {
             endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";
             priority = 10;
@@ -354,6 +360,7 @@ in
           firewall.extraCommands = ''
             iptables -N vm-ci-in 2>/dev/null || iptables -F vm-ci-in
             iptables -A vm-ci-in -p tcp --dport ${toString atticPort} -j nixos-fw-accept
+            iptables -A vm-ci-in -p tcp --dport ${toString config.modules.monitoring.lokiPort} -j nixos-fw-accept
             iptables -A vm-ci-in -m conntrack --ctstate NEW -j DROP
             iptables -D nixos-fw -i ${tap} -j vm-ci-in 2>/dev/null || true
             iptables -I nixos-fw -i ${tap} -j vm-ci-in

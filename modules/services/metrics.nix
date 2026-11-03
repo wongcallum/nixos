@@ -22,7 +22,10 @@
         services.prometheus.exporters = {
           node = lib.mkIf (has "node") {
             enable = true;
-            extraFlags = map (d: "--collector.textfile.directory=${d}") config.modules.metrics.textfileDirs;
+            extraFlags = [
+              "--collector.systemd.enable-restarts-metrics"
+            ]
+            ++ map (d: "--collector.textfile.directory=${d}") config.modules.metrics.textfileDirs;
             enabledCollectors = [
               "logind"
               "processes"
@@ -30,6 +33,7 @@
               "tcpstat"
             ];
             port = ports.node;
+            openFirewall = hostCfg.address or null != null;
           };
 
           smartctl = lib.mkIf (has "smartctl") {

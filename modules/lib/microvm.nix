@@ -34,6 +34,9 @@
         dataset = vmDataset name;
       in
       {
+        # The guest persists its journal here, so the host's Alloy ships it.
+        modules.logs.journalDirs = [ "${vmDir name}/var/log/journal" ];
+
         systemd.services."vm-storage-${name}" = {
           description = "Provision the ${dataset} dataset";
           after = [ "zfs-mount.service" ];
@@ -84,7 +87,10 @@
         addr = addressing hostname;
       in
       {
-        imports = [ inputs.microvm.nixosModules.microvm ];
+        imports = [
+          inputs.microvm.nixosModules.microvm
+          config.flake.modules.nixos.metrics
+        ];
 
         networking.useNetworkd = true;
 

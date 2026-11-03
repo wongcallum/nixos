@@ -157,6 +157,31 @@
               summary = ''Container {{ $labels.name }} on {{ $labels.instance }} restarted {{ printf "%.0f" $values.A.Value }} times in the last 5 minutes.'';
             })
             (mkRule {
+              uid = "target-down";
+              title = "Target down";
+              logs = logsOf "instance" "";
+              expr = "up";
+              threshold = {
+                type = "eq";
+                params = [ 0 ];
+              };
+              summary = "{{ $labels.job }} on {{ $labels.instance }} has not answered scrapes for 5 minutes.";
+            })
+            (mkRule {
+              uid = "service-restart-loop";
+              title = "Service restart loop";
+              logs = unitLogs "instance" "{{ $labels.name }}";
+              for = "0s";
+              # increase() is empty until a new series has two samples.
+              noDataState = "OK";
+              expr = "increase(node_systemd_service_restart_total[15m])";
+              threshold = {
+                type = "gt";
+                params = [ 5 ];
+              };
+              summary = ''systemd restarted {{ $labels.name }} on {{ $labels.instance }} {{ printf "%.0f" $values.A.Value }} times in the last 15 minutes.'';
+            })
+            (mkRule {
               uid = "afoy2895p9o8wc";
               title = "Error log spike";
               logs = "${unitLogs "host" "{{ $labels.unit }}"} |~ `(?i)\\b(error|fatal|panic|segfault)\\b`";

@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, microvmLib, ... }:
 let
   exporterPorts = {
     node = 9002;
@@ -36,19 +36,27 @@ in
       metrics.hosts = lib.mkOption {
         type = lib.types.attrsOf (
           lib.types.submodule {
-            options.exporters = lib.mkOption {
-              type = lib.types.listOf (lib.types.enum (lib.attrNames exporterPorts));
-            };
+            options = {
+              exporters = lib.mkOption {
+                type = lib.types.listOf (lib.types.enum (lib.attrNames exporterPorts));
+              };
 
-            options.smartctlDevices = lib.mkOption {
-              type = lib.types.listOf lib.types.str;
-              default = [ ];
-              description = ''
-                Disks for the smartctl exporter, as `/dev/disk/by-id` names without
-                the prefix. Empty means autodiscovery, which also finds transient USB
-                enclosures. One that stops answering SMART blocks every scrape until
-                it's unplugged.
-              '';
+              address = lib.mkOption {
+                type = lib.types.nullOr lib.types.str;
+                default = null;
+                description = "Address liz scrapes, for VMs reached over their own link instead of Tailscale.";
+              };
+
+              smartctlDevices = lib.mkOption {
+                type = lib.types.listOf lib.types.str;
+                default = [ ];
+                description = ''
+                  Disks for the smartctl exporter, as `/dev/disk/by-id` names without
+                  the prefix. Empty means autodiscovery, which also finds transient USB
+                  enclosures. One that stops answering SMART blocks every scrape until
+                  it's unplugged.
+                '';
+              };
             };
           }
         );
@@ -60,6 +68,12 @@ in
         type = lib.types.str;
         default = "liz";
         description = "control tower";
+      };
+
+      monitoring.lokiPort = lib.mkOption {
+        type = lib.types.port;
+        default = 3100;
+        readOnly = true;
       };
 
       users = lib.mkOption {
@@ -128,7 +142,20 @@ in
           "nvme-Patriot_M.2_P300_128GB_P300ADBB22111800174"
           "nvme-Samsung_SSD_980_PRO_1TB_S5GXNX0T913718H"
         ];
-      };
+
+        vm-gpu = {
+          exporters = [ "node" ];
+          address = "10.0.1.3";
+        };
+        vm-ci = {
+          exporters = [ "node" ];
+          address = "10.0.1.4";
+        };
+      }
+      // lib.mapAttrs (hostname: _: {
+        exporters = [ "node" ];
+        address = (microvmLib.addressing hostname).guestAddr;
+      }) microvmLib.guests;
     };
   };
 }

@@ -5,10 +5,21 @@
     let
       server = config.modules.monitoring.host;
       hostname = config.networking.hostName;
-      lokiAddr = if hostname == server then "127.0.0.1" else config.modules.hostAddrs.${server};
     in
     {
-      environment.etc."alloy/config.alloy".text = ''
+      options.modules.logs.lokiAddr = lib.mkOption {
+        type = lib.types.str;
+        default = if hostname == server then "127.0.0.1" else config.modules.hostAddrs.${server};
+        description = "Address of the Loki server, which a VM reaches over its own link.";
+      };
+
+      options.modules.logs.journalDirs = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Other machines' journal directories on this host's disk, such as VMs' persisted /var/log/journal.";
+      };
+
+      config.environment.etc."alloy/config.alloy".text = ''
         discovery.relabel "journal" {
           targets = []
           rule {
@@ -28,14 +39,23 @@
           labels        = { job = "systemd-journal", host = "${hostname}" }
         }
 
+        ${lib.concatImapStrings (i: dir: ''
+          loki.source.journal "dir_${toString i}" {
+            path          = "${dir}"
+            max_age       = "12h"
+            relabel_rules = discovery.relabel.journal.rules
+            forward_to    = [loki.write.default.receiver]
+            labels        = { job = "systemd-journal" }
+          }
+        '') config.modules.logs.journalDirs}
         loki.write "default" {
           endpoint {
-            url = "http://${lokiAddr}:3100/loki/api/v1/push"
+            url = "http://${config.modules.logs.lokiAddr}:${toString config.modules.monitoring.lokiPort}/loki/api/v1/push"
           }
         }
       '';
 
-      services.alloy.enable = true;
+      config.services.alloy.enable = true;
     };
 
   # Persisted so a reboot doesn't push the journal again.
