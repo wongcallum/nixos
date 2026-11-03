@@ -2,6 +2,7 @@
   config,
   inputs,
   lib,
+  pkgs,
   utils,
   ...
 }:
@@ -70,6 +71,57 @@ let
 
   vlm = "qwen3-vl-4b";
 
+  # Frigate's documented export. Upstream publishes only PyTorch weights.
+  yoloModel =
+    let
+      python = pkgs.python3.withPackages (
+        ps: with ps; [
+          ipython
+          matplotlib
+          onnx
+          onnxruntime
+          onnxscript
+          onnxslim
+          opencv4
+          pandas
+          pillow
+          psutil
+          pyyaml
+          requests
+          scipy
+          seaborn
+          torch
+          torchvision
+          tqdm
+        ]
+      );
+      src = pkgs.fetchFromGitHub {
+        owner = "WongKinYiu";
+        repo = "yolov9";
+        rev = "5b1ea9a8b3f0ffe4fe0e203ec6232d788bb3fcff";
+        hash = "sha256-DJ2iM+xb00NKaomUcoe7BI/O7mHNu5ARmy/SJYsCEEg=";
+      };
+      weights = pkgs.fetchurl {
+        url = "https://github.com/WongKinYiu/yolov9/releases/download/v0.1/yolov9-s-converted.pt";
+        hash = "sha256-Cb+cpK3vN5RPRAZFW1uBtFHB5nMHkW5HAtpozaTT5G0=";
+      };
+    in
+    pkgs.runCommand "yolov9-s-320.onnx" { nativeBuildInputs = [ python ]; } ''
+      cp -r ${src} yolov9
+      chmod -R u+w yolov9
+      cd yolov9
+      substituteInPlace models/experimental.py \
+        --replace-fail "map_location='cpu')" "map_location='cpu', weights_only=False)"
+      # nixpkgs lacks onnx-simplifier, so --simplify gets onnxslim.
+      mkdir shim
+      printf '%s\n' 'import onnxslim' '__version__ = onnxslim.__version__' \
+        'def simplify(m): return onnxslim.slim(m), True' > shim/onnxsim.py
+      export PYTHONPATH=$PWD/shim HOME=$TMPDIR MPLCONFIGDIR=$TMPDIR YOLOv5_AUTOINSTALL=false
+      cp ${weights} yolov9-s.pt
+      python export.py --weights yolov9-s.pt --imgsz 320 --opset 18 --simplify --include onnx
+      cp yolov9-s.onnx $out
+    '';
+
   restream = name: "rtsp://${hostAddr}:${toString rtspPort}/${name}";
 
   # SQLite over virtiofs hits "database is locked". The store's disk is local ext4.
@@ -103,8 +155,7 @@ let
       height = 320;
       input_tensor = "nchw";
       input_dtype = "float";
-      # YOLOv9-s, exported by hand. Nothing downloads it.
-      path = "/config/model_cache/yolo.onnx";
+      path = "/models/yolo.onnx";
       labelmap_path = "/labelmap/coco-80.txt";
     };
 
@@ -209,6 +260,7 @@ let
             volumes = [
               "${dataDir}:/config"
               "${modelCacheDir}:/config/model_cache"
+              "${yoloModel}:/models/yolo.onnx:ro"
               "${dbDir}:/db"
               "/media/frigate:/media/frigate"
               "/etc/localtime:/etc/localtime:ro"
