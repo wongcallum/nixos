@@ -22,8 +22,12 @@
       config = {
         environment.systemPackages = [
           package
-          pkgs.git
-        ];
+        ]
+        ++ (with pkgs; [
+          git
+          gh
+          tea
+        ]);
 
         nix.settings = {
           extra-substituters = [ "https://cache.numtide.com" ];
