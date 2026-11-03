@@ -29,6 +29,12 @@ in
       ];
     };
 
+    cliproxyapi-backport = {
+      upstream = "not filed; services.cliproxyapi and its package are only in nixpkgs-unstable";
+      done = "liz's nixpkgs ships services.cliproxyapi";
+      fixed = (pkgsFor "liz") ? cliproxyapi;
+    };
+
     freesmlauncher-java-paths = {
       upstream = "https://github.com/FreesmTeam/FreesmLauncher/pull/233";
       done = "the PR is merged, and the wongcallum/FreesmLauncher multi-modrinth fork is rebased onto it so an empty `jdks` no longer sets FREESMLAUNCHER_JAVA_PATHS";

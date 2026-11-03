@@ -72,6 +72,7 @@ in
 
         attic
         vm-ci-host
+        cliproxyapi
       ]);
 
       microvm.vms = lib.mapAttrs (hostname: _: {
