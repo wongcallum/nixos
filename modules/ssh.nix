@@ -7,16 +7,7 @@
       enable = true;
       settings.PasswordAuthentication = false;
       settings.PermitRootLogin = "no";
-
-      # FIXME: probably insecure
-      extraConfig = ''
-        Match Address 192.168.122.0/24
-            PasswordAuthentication yes
-      '';
     };
-
-    # The module only enables pam_unix when PasswordAuthentication is globally true.
-    security.pam.services.sshd.unixAuth = lib.mkForce true;
   };
 
   flake.modules.nixos.persistence =
