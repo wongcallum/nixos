@@ -14,14 +14,12 @@
         chezmoi
         mise
         devenv
-        zellij
         jq
         ripgrep
         unzip
         nh
 
         git
-        delta
         lazygit
         gh
         tea
@@ -32,7 +30,6 @@
         nixd
         nil
         nixfmt
-        lua-language-server
       ];
 
       environment.variables = {

@@ -13,14 +13,9 @@
     ];
 
     environment.systemPackages = with pkgs; [
-      nushell
       wl-clipboard
 
       vscode
-
-      typst
-      tinymist
-      websocat # for typst-preview.nvim
 
       pavucontrol
 
