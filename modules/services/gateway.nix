@@ -4,7 +4,6 @@
     { config, pkgs, ... }:
     let
       caddyDataDir = config.utils.dataDir "caddy";
-      technitiumDataDir = config.utils.dataDir "technitium";
       fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
       reverseProxyConfig =
         service:
@@ -86,17 +85,8 @@
       config = {
         nixpkgs.overlays = [ inputs.prism-tower.overlays.default ];
 
-        modules.gateway.services.technitium-dns = lib.mkIf config.services.technitium-dns-server.enable {
-          name = "Technitium DNS";
-          domainName = "technitium";
-          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/technitium.png";
-          addr = "127.0.0.1:5380";
-          category = "Administration";
-        };
-
         systemd.tmpfiles.rules = [
           "d ${caddyDataDir} 0750 caddy caddy -"
-          "d ${technitiumDataDir} 0750 technitium-dns-server technitium-dns-server -"
         ];
 
         sops.secrets."caddy/ca.pem" = {
@@ -106,28 +96,22 @@
 
         sops.secrets."caddy/ca.key".owner = "caddy";
 
-        services.technitium-dns-server.enable = true;
-
-        # A static user instead of DynamicUser, so state can live in persistDir.
-        users.users.technitium-dns-server = {
-          isSystemUser = true;
-          group = "technitium-dns-server";
-        };
-        users.groups.technitium-dns-server = { };
-
-        systemd.services.technitium-dns-server.serviceConfig = {
-          DynamicUser = lib.mkForce false;
-          User = "technitium-dns-server";
-          Group = "technitium-dns-server";
-          # An empty value resets the list, so systemd creates no /var/lib entry.
-          StateDirectory = lib.mkForce "";
-          ExecStart = lib.mkForce (
-            "${config.services.technitium-dns-server.package}/bin/technitium-dns-server " + technitiumDataDir
-          );
-          # ProtectSystem = "strict" leaves persistDir read-only otherwise.
-          ReadWritePaths = [ technitiumDataDir ];
-          # Otherwise it inotify-watches the whole root.
-          WorkingDirectory = lib.mkForce technitiumDataDir;
+        services.blocky = {
+          enable = true;
+          settings = {
+            upstreams.groups.default = [
+              "https://1.1.1.1/dns-query"
+              "https://1.0.0.1/dns-query"
+            ];
+            customDNS.mapping.${config.modules.gateway.tld} = config.modules.hostAddrs.liz;
+            blocking = {
+              denylists.ads = [ "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" ];
+              clientGroupsBlock.default = [ "ads" ];
+              blockType = "nxDomain";
+            };
+            caching.prefetching = true;
+            queryLog.type = "none";
+          };
         };
 
         # vhosts are keyed by domain, so a clash would silently merge two sites.

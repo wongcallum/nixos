@@ -32,7 +32,6 @@ let
     "data/radicale"
     "data/gitea"
     "data/leafwiki"
-    "data/technitium"
     "data/syncthing"
     "data/home-assistant"
     "data/trilium"
@@ -98,10 +97,6 @@ let
     "data/media/slskd/data/search.db"
     "data/media/slskd/data/shares.local.bak.db"
     "data/syncthing/index-v2"
-    "data/technitium/blocklists"
-    "data/technitium/cache.bin"
-    "data/technitium/logs"
-    "data/technitium/stats"
     "data/trilium/backup"
     "data/trilium/log"
   ];
