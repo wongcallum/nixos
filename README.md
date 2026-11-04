@@ -79,7 +79,7 @@ Commit it in the secrets repo, then run `nix flake update secrets`.
 
 ## Add a new secrets host
 
-Add the host's SSH public key to `recipientAliases` in `modules/secrets.nix`, and to `homelab` if it shares those secrets. Then rekey from every host config that uses the affected secrets:
+Add the host's SSH public key to `hostKeys` in `modules/secrets.nix`. Each secret is encrypted to callum's keys and the hosts that enable it, so after changing which hosts use a secret, rekey it:
 
 ```bash
 nix-secrets rekey --flake .#{{host}}

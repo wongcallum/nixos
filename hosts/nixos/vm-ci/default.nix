@@ -133,11 +133,6 @@ in
           ];
         };
 
-        security.nix-secrets.defaultRecipients = lib.mkForce [
-          "callum"
-          "vm-ci"
-        ];
-
         # This host builds untrusted PRs, so it has no password.
         modules.users.callum.lockPassword = true;
 
