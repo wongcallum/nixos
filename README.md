@@ -28,11 +28,7 @@ Set `flake.nixpkgs.{{host}} = "unstable";` if the host should follow unstable.
 
 Add `{{host}}` to `ciHosts` in `modules/flake/checks.nix` so CI builds it and `deploy-schema` covers it.
 
-### Set up sops on a new host
-
-Run `./scripts/new-sops-host.nu`.
-
-#### Manual steps
+### Set up secrets on a new host
 
 ```bash
 set -gx temp $(mktemp -d) # or export in bash
@@ -43,7 +39,7 @@ ssh-keygen -t ed25519 -N "" -C "root@{{host}}" -f "$temp/persist/etc/ssh/ssh_hos
 chmod 0600 "$temp/persist/etc/ssh/ssh_host_ed25519_key"
 ```
 
-Then [add the new sops host](#add-a-new-sops-host) and install:
+Then [add the new secrets host](#add-a-new-secrets-host) and install:
 
 ```bash
 nixos-anywhere --flake .#{{host}} --extra-files "$temp" --target-host {{user@hostname}}
@@ -73,19 +69,23 @@ systemctl restart systemd-resolved
 
 ## Edit secrets
 
-`sops ../nixos-secrets/secrets.yaml`
-
-Then run `nix flake update secrets`.
-
-## Add a new sops host
+Declare the secret under `security.nix-secrets.secrets`, then, from the dev shell:
 
 ```bash
-ssh-to-age -i /path/to/new/host/.ssh/id_ed25519.pub
-nvim ../nixos-secrets/.sops.yaml # add the new key
-sops updatekeys ../nixos-secrets/secrets.yaml
+nix-secrets edit --flake .#{{host}} {{name}} # writes ../nixos-secrets/{{name}}.enc
 ```
 
-Then run `nix flake update secrets`.
+Commit it in the secrets repo, then run `nix flake update secrets`.
+
+## Add a new secrets host
+
+Add the host's SSH public key to `recipientAliases` in `modules/secrets.nix`, and to `homelab` if it shares those secrets. Then rekey from every host config that uses the affected secrets:
+
+```bash
+nix-secrets rekey --flake .#{{host}}
+```
+
+Commit the secrets repo, then run `nix flake update secrets`.
 
 ## Patch nixpkgs
 

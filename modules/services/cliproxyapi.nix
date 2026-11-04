@@ -30,7 +30,7 @@
       };
 
       config = {
-        sops.secrets."cliproxyapi/management-key" = { };
+        security.nix-secrets.secrets."cliproxyapi/management-key" = { };
 
         services.cliproxyapi = {
           enable = true;
@@ -40,7 +40,7 @@
             server.port = port;
             management = {
               allow-remote = true;
-              secret-key._secret = config.sops.secrets."cliproxyapi/management-key".path;
+              secret-key._secret = config.security.nix-secrets.secrets."cliproxyapi/management-key".path;
               disable-control-panel = true;
             };
             # With no client keys the proxy serves anyone; this one is never handed out.

@@ -70,7 +70,7 @@ let
       };
 
       modules = {
-        # The guest has no sops.
+        # The guest has no secrets.
         users.callum.lockPassword = true;
         # The gateway's hostname doesn't resolve here, so use liz's guest port.
         attic.endpoint = "http://${hostAddr}:${toString config.modules.attic.guestPort}/";

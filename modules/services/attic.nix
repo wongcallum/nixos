@@ -153,7 +153,7 @@ in
           };
           users.groups.atticd = { };
 
-          sops.secrets."attic/server-env" = {
+          security.nix-secrets.secrets."attic/server-env" = {
             restartUnits = [ "atticd.service" ];
           };
 
@@ -161,7 +161,7 @@ in
             enable = true;
             user = "atticd";
             group = "atticd";
-            environmentFile = config.sops.secrets."attic/server-env".path;
+            environmentFile = config.security.nix-secrets.secrets."attic/server-env".path;
 
             settings = {
               listen = "127.0.0.1:${toString listenPort}";

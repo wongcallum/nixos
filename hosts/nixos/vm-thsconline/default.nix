@@ -23,7 +23,7 @@ in
       ]
       ++ (with nixos; [
         persistence
-        sops
+        secrets
 
         ssh
 

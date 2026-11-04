@@ -42,7 +42,7 @@ in
         lobehub = lib.mkDefault true;
       };
 
-      sops.secrets."docker/lobehub_env" = {
+      security.nix-secrets.secrets."docker/lobehub_env" = {
         mode = "0440";
         restartUnits = [ "lobehub.service" ];
       };
@@ -152,7 +152,7 @@ in
                 image = "docker.io/lobehub/lobehub:latest";
                 autoUpdate = "registry";
                 publishPorts = [ "3210:3210" ];
-                environmentFiles = [ config.sops.secrets."docker/lobehub_env".path ];
+                environmentFiles = [ config.security.nix-secrets.secrets."docker/lobehub_env".path ];
                 environments = {
                   DATABASE_URL = "postgresql://postgres:postgres@172.28.0.2:5432/lobechat";
                   APP_URL = appUrl;

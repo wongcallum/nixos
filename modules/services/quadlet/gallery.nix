@@ -19,7 +19,7 @@ in
         gallery = lib.mkDefault true;
       };
 
-      sops.secrets."docker/gallery_env" = {
+      security.nix-secrets.secrets."docker/gallery_env" = {
         mode = "0440";
         restartUnits = [ "gallery-app.service" ];
       };
@@ -64,7 +64,7 @@ in
               containerConfig = {
                 image = "ghcr.io/wongcallum/gallery.callumwong.com:master";
                 autoUpdate = "registry";
-                environmentFiles = [ config.sops.secrets."docker/gallery_env".path ];
+                environmentFiles = [ config.security.nix-secrets.secrets."docker/gallery_env".path ];
                 environments = {
                   DATABASE_URL = "postgresql://postgres:postgres@172.24.0.2:5432/gallery";
                 };

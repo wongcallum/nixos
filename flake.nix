@@ -31,8 +31,8 @@
       inputs.nixpkgs.follows = "unstable-upstream";
       inputs.treefmt-nix.follows = "";
     };
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
+    nix-secrets = {
+      url = "github:unnamed-systems/nix-secrets";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     disko = {

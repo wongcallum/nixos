@@ -29,15 +29,14 @@ in
         alerts = [ { type = "telegram"; } ];
       in
       {
-        sops.secrets.${tokenSecret}.restartUnits = [ "gatus.service" ];
-        sops.templates."gatus.env" = {
-          content = "TELEGRAM_TOKEN=${config.sops.placeholder.${tokenSecret}}";
-          restartUnits = [ "gatus.service" ];
-        };
+        security.nix-secrets.secrets.${tokenSecret}.restartUnits = [ "gatus.service" ];
+        security.nix-secrets.templates."gatus.env".content = "TELEGRAM_TOKEN=${
+          config.security.nix-secrets.secrets.${tokenSecret}
+        }";
 
         services.gatus = {
           enable = true;
-          environmentFile = config.sops.templates."gatus.env".path;
+          environmentFile = config.security.nix-secrets.templates."gatus.env".path;
           settings = {
             web.port = port;
             storage = {

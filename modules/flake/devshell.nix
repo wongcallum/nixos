@@ -11,8 +11,7 @@ let
         '')
         pkgs.nixfmt-tree
         pkgs.nixos-anywhere
-        pkgs.sops
-        pkgs.ssh-to-age
+        inputs.nix-secrets.packages.${pkgs.stdenv.hostPlatform.system}.nix-secrets
         pkgs.statix
         pkgs.terraform
       ];

@@ -33,7 +33,7 @@ in
           immich = lib.mkDefault true;
         };
 
-        sops.secrets."docker/immich-stack_env" = lib.mkIf config.modules.containers.immich {
+        security.nix-secrets.secrets."docker/immich-stack_env" = lib.mkIf config.modules.containers.immich {
           mode = "0440";
           restartUnits = [ "immich-stack.service" ];
         };
@@ -148,7 +148,7 @@ in
                 containerConfig = {
                   image = "ghcr.io/majorfi/immich-stack:latest";
                   autoUpdate = "registry";
-                  environmentFiles = [ config.sops.secrets."docker/immich-stack_env".path ];
+                  environmentFiles = [ config.security.nix-secrets.secrets."docker/immich-stack_env".path ];
                   environments = {
                     API_URL = "http://172.25.0.5:2283/api";
                     RUN_MODE = "cron";

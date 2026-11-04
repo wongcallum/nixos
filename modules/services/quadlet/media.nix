@@ -39,7 +39,7 @@ in
         media-slskd = lib.mkDefault true;
       };
 
-      sops.secrets."docker/slskd_env" = lib.mkIf config.modules.containers.media-slskd {
+      security.nix-secrets.secrets."docker/slskd_env" = lib.mkIf config.modules.containers.media-slskd {
         mode = "0440";
         restartUnits = [ "media-slskd.service" ];
       };
@@ -172,7 +172,7 @@ in
               containerConfig = {
                 image = "docker.io/slskd/slskd:latest";
                 autoUpdate = "registry";
-                environmentFiles = [ config.sops.secrets."docker/slskd_env".path ];
+                environmentFiles = [ config.security.nix-secrets.secrets."docker/slskd_env".path ];
                 environments = {
                   SLSKD_REMOTE_CONFIGURATION = "false";
                   SLSKD_SLSK_LISTEN_PORT = "50300";

@@ -24,7 +24,7 @@ in
 
         ssh
         tailscale
-        sops
+        secrets
 
         dev
         t3code

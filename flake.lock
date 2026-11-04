@@ -388,6 +388,26 @@
         "type": "github"
       }
     },
+    "nix-secrets": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793717226,
+        "narHash": "sha256-WCcx6veQ5yrOUYA9MTXXbMb4ZpwpbV9EIV0zRIZw+u0=",
+        "owner": "unnamed-systems",
+        "repo": "nix-secrets",
+        "rev": "857a7594bc4cd65533bc9fcdd056dc843e10e441",
+        "type": "github"
+      },
+      "original": {
+        "owner": "unnamed-systems",
+        "repo": "nix-secrets",
+        "type": "github"
+      }
+    },
     "nixbot": {
       "inputs": {
         "nixpkgs": [
@@ -522,12 +542,12 @@
         "nix-discord-rpc": "nix-discord-rpc",
         "nix-monitored": "nix-monitored",
         "nix-output-monitor": "nix-output-monitor",
+        "nix-secrets": "nix-secrets",
         "nixbot": "nixbot",
         "nixpkgs": "nixpkgs_3",
         "prism-tower": "prism-tower",
         "quadlet-nix": "quadlet-nix",
         "secrets": "secrets",
-        "sops-nix": "sops-nix",
         "unstable": "unstable",
         "unstable-upstream": "unstable-upstream"
       }
@@ -547,26 +567,6 @@
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/wongcallum/nixos-secrets.git"
-      }
-    },
-    "sops-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1793052255,
-        "narHash": "sha256-Y/JIHTnMlOabDfyaSBubWGLDIVGihLEUuoMhFvQKaDo=",
-        "owner": "Mic92",
-        "repo": "sops-nix",
-        "rev": "60182817ee048ac94b4c68ea76d5ef2e8aac730d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "Mic92",
-        "repo": "sops-nix",
-        "type": "github"
       }
     },
     "spectrum": {

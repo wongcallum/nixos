@@ -18,7 +18,7 @@
           type = lib.types.str;
           default = "cloudflared/credentials.json";
           description = ''
-            sops key that holds this host's tunnel credentials
+            nix-secrets secret that holds this host's tunnel credentials
           '';
         };
 
@@ -41,7 +41,7 @@
         }
 
         (lib.mkIf (cfg.tunnelId != "") {
-          sops.secrets.${cfg.credentialsSecret} = {
+          security.nix-secrets.secrets.${cfg.credentialsSecret} = {
             restartUnits = [ "cloudflared-tunnel-${cfg.tunnelId}.service" ];
           };
 
@@ -49,7 +49,7 @@
             enable = true;
 
             tunnels.${cfg.tunnelId} = {
-              credentialsFile = config.sops.secrets.${cfg.credentialsSecret}.path;
+              credentialsFile = config.security.nix-secrets.secrets.${cfg.credentialsSecret}.path;
               inherit (cfg) ingress;
               default = "http_status:404";
             };

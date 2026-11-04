@@ -310,7 +310,7 @@ let
     };
 in
 {
-  sops.secrets."cameras/dvr-env".restartUnits = [ "go2rtc.service" ];
+  security.nix-secrets.secrets."cameras/dvr-env".restartUnits = [ "go2rtc.service" ];
 
   services.go2rtc = {
     enable = true;
@@ -356,7 +356,7 @@ in
       };
     }))
     {
-      go2rtc.serviceConfig.EnvironmentFile = config.sops.secrets."cameras/dvr-env".path;
+      go2rtc.serviceConfig.EnvironmentFile = config.security.nix-secrets.secrets."cameras/dvr-env".path;
 
       frigate-recordings = {
         description = "Provision the Frigate recordings dataset";

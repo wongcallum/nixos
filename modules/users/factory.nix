@@ -1,6 +1,6 @@
 { lib, ... }:
 {
-  config.flake.factory.user = username: isAdmin: useSopsPassword: {
+  config.flake.factory.user = username: isAdmin: useSecretPassword: {
     nixos."${username}" =
       { config, ... }:
       {
@@ -34,22 +34,17 @@
         ];
       };
 
-    nixos.sops =
+    nixos.secrets =
       { config, lib, ... }:
       let
         user = config.modules.users.${username} or { };
       in
-      lib.mkIf (useSopsPassword && (user.enable or false) && !(user.lockPassword or false)) {
-        sops.secrets."passwords/${username}" = {
-          owner = "root";
-          group = "root";
-          mode = "0400";
-          neededForUsers = true;
-        };
+      lib.mkIf (useSecretPassword && (user.enable or false) && !(user.lockPassword or false)) {
+        security.nix-secrets.secrets."passwords/${username}".neededForUsers = true;
 
         users.users.${username} = {
           initialPassword = lib.mkForce null;
-          hashedPasswordFile = config.sops.secrets."passwords/${username}".path;
+          hashedPasswordFile = config.security.nix-secrets.secrets."passwords/${username}".path;
         };
       };
   };

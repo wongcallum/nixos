@@ -67,7 +67,7 @@
         };
     in
     {
-      sops.secrets.${tokenSecret} = {
+      security.nix-secrets.secrets.${tokenSecret} = {
         owner = "grafana";
         restartUnits = [ "grafana.service" ];
       };
@@ -85,7 +85,7 @@
                   type = "telegram";
                   disableResolveMessage = false;
                   settings = {
-                    bottoken = "$__file{${config.sops.secrets.${tokenSecret}.path}}";
+                    bottoken = "$__file{${config.security.nix-secrets.secrets.${tokenSecret}.path}}";
                     chatid = "5603246758";
                     message = ''{{ template "tg.message" . }}'';
                     parse_mode = "HTML";

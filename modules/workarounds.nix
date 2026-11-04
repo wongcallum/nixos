@@ -59,6 +59,12 @@ in
       );
     };
 
+    nix-secrets-restart-units = {
+      upstream = "not filed; https://github.com/unnamed-systems/nix-secrets has no equivalent of sops-nix's restartUnits";
+      done = "nix-secrets can restart or reload units when a secret changes";
+      cleanup = "move each secret's restartUnits to the upstream option";
+    };
+
     nixbot-eval-options = {
       upstream = "not filed; https://github.com/Mic92/nixbot hard-codes --check-cache-status and leaves EvalSettings.extra_args unset";
       done = "upstream nixbot can pass nix options or extra arguments to nix-eval-jobs, or turn off --check-cache-status";

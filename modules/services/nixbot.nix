@@ -31,7 +31,7 @@ in
           default-server = cacheName;
           servers.${cacheName} = {
             endpoint = cacheUrl;
-            token-file = config.sops.secrets."attic/push-token".path;
+            token-file = config.security.nix-secrets.secrets."attic/push-token".path;
           };
         };
 
@@ -54,7 +54,7 @@ in
         # $HOME, but OpenSSH reads ~/.ssh from the passwd home.
         fetchSshConfig = pkgs.writeText "nixbot-fetch-ssh-config" ''
           Host github.com
-            IdentityFile ${config.sops.secrets."nixbot/github-deploy-key".path}
+            IdentityFile ${config.security.nix-secrets.secrets."nixbot/github-deploy-key".path}
             IdentitiesOnly yes
         '';
       in
@@ -105,7 +105,7 @@ in
             from its settings page.
           '';
 
-          sops.secrets = {
+          security.nix-secrets.secrets = {
             "nixbot/github-app-key".restartUnits = [ "nixbot.service" ];
             "nixbot/github-webhook-secret".restartUnits = [ "nixbot.service" ];
             "nixbot/github-oauth-secret".restartUnits = [ "nixbot.service" ];
@@ -144,10 +144,10 @@ in
             github = {
               enable = true;
               appId = cfg.githubAppId;
-              appSecretKeyFile = config.sops.secrets."nixbot/github-app-key".path;
-              webhookSecretFile = config.sops.secrets."nixbot/github-webhook-secret".path;
+              appSecretKeyFile = config.security.nix-secrets.secrets."nixbot/github-app-key".path;
+              webhookSecretFile = config.security.nix-secrets.secrets."nixbot/github-webhook-secret".path;
               oauthId = cfg.githubOauthId;
-              oauthSecretFile = config.sops.secrets."nixbot/github-oauth-secret".path;
+              oauthSecretFile = config.security.nix-secrets.secrets."nixbot/github-oauth-secret".path;
               repoAllowlist = [ cfg.repository ];
               topic = null;
             };

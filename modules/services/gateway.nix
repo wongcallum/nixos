@@ -89,12 +89,12 @@
           "d ${caddyDataDir} 0750 caddy caddy -"
         ];
 
-        sops.secrets."caddy/ca.pem" = {
+        security.nix-secrets.secrets."caddy/ca.pem" = {
           owner = "caddy";
           mode = "0440";
         };
 
-        sops.secrets."caddy/ca.key".owner = "caddy";
+        security.nix-secrets.secrets."caddy/ca.key".owner = "caddy";
 
         services.blocky = {
           enable = true;
@@ -141,8 +141,8 @@
               ca 7sref_ca {
                 name 7sref_ca
                 root {
-                  cert ${config.sops.secrets."caddy/ca.pem".path}
-                  key ${config.sops.secrets."caddy/ca.key".path}
+                  cert ${config.security.nix-secrets.secrets."caddy/ca.pem".path}
+                  key ${config.security.nix-secrets.secrets."caddy/ca.key".path}
                 }
               }
             }

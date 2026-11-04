@@ -24,7 +24,7 @@ in
 
       system.stateVersion = "26.05";
 
-      # milk has no sops.
+      # milk has no secrets.
       modules.users.callum.lockPassword = true;
 
       boot.initrd.availableKernelModules = [

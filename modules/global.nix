@@ -82,7 +82,7 @@ in
             options = {
               enable = lib.mkEnableOption "user account";
               lockPassword = lib.mkEnableOption ''
-                a locked password instead of the user's usual one (from sops or
+                a locked password instead of the user's usual one (from nix-secrets or
                 initialPassword), leaving SSH keys and passwordless sudo
               '';
             };

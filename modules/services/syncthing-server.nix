@@ -2,12 +2,12 @@
   flake.modules.nixos.syncthing-server =
     { config, ... }:
     {
-      sops.secrets."syncthing/key.pem" = {
+      security.nix-secrets.secrets."syncthing/key.pem" = {
         owner = "syncthing";
         mode = "0440";
       };
 
-      sops.secrets."syncthing/cert.pem" = {
+      security.nix-secrets.secrets."syncthing/cert.pem" = {
         owner = "syncthing";
         mode = "0440";
       };
@@ -17,8 +17,8 @@
         openDefaultPorts = true;
         dataDir = config.utils.dataDir "syncthing";
         configDir = config.utils.dataDir "syncthing";
-        key = config.sops.secrets."syncthing/key.pem".path;
-        cert = config.sops.secrets."syncthing/cert.pem".path;
+        key = config.security.nix-secrets.secrets."syncthing/key.pem".path;
+        cert = config.security.nix-secrets.secrets."syncthing/cert.pem".path;
         # Keep devices added in the UI.
         overrideDevices = false;
         overrideFolders = false;

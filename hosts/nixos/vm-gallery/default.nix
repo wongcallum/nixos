@@ -11,7 +11,7 @@ in
       ]
       ++ (with nixos; [
         persistence
-        sops
+        secrets
 
         ssh
 
@@ -32,13 +32,9 @@ in
         ingress."gallery.callumwong.com" = "http://127.0.0.1:3000";
       };
 
-      sops.secrets."passwords/vm-gallery-root" = {
-        owner = "root";
-        group = "root";
-        mode = "0400";
-        neededForUsers = true;
-      };
+      security.nix-secrets.secrets."passwords/vm-gallery-root".neededForUsers = true;
 
-      users.users.root.hashedPasswordFile = config.sops.secrets."passwords/vm-gallery-root".path;
+      users.users.root.hashedPasswordFile =
+        config.security.nix-secrets.secrets."passwords/vm-gallery-root".path;
     };
 }

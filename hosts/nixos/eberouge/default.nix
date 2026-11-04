@@ -22,7 +22,7 @@ in
 
         ssh
         tailscale
-        sops
+        secrets
 
         metrics
         gatus

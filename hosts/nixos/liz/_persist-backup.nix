@@ -19,7 +19,7 @@ let
 
   # The shell expands globs.
   paths = [
-    # sops decrypts with the SSH host key.
+    # nix-secrets decrypts with the SSH host key.
     "etc/ssh"
     "etc/machine-id"
     "passwd"

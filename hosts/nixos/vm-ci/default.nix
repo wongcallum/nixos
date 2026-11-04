@@ -39,7 +39,7 @@ in
           (modulesPath + "/profiles/qemu-guest.nix")
         ]
         ++ (with nixos; [
-          sops
+          secrets
 
           callum
 
@@ -133,7 +133,10 @@ in
           ];
         };
 
-        sops.defaultSopsFile = lib.mkForce "${inputs.secrets}/${hostname}.yaml";
+        security.nix-secrets.defaultRecipients = lib.mkForce [
+          "callum"
+          "vm-ci"
+        ];
 
         # This host builds untrusted PRs, so it has no password.
         modules.users.callum.lockPassword = true;

@@ -42,7 +42,7 @@ in
         watchdog
         impermanence-zfs
         persistence
-        sops
+        secrets
 
         callum
         colin
