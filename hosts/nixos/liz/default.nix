@@ -59,6 +59,7 @@ in
         syncthing-server
         qbittorrent
         thsconline
+        offsite-backup-source
 
         radicale
         trilium

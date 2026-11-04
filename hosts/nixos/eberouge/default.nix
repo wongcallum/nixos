@@ -26,6 +26,7 @@ in
 
         metrics
         gatus
+        offsite-backup-target
       ]);
 
       system.stateVersion = "26.05";

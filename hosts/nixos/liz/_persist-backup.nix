@@ -147,6 +147,7 @@ in
   systemd.services.liz-persist-backup = {
     description = "Encrypted archive of important /persist and VM state into /tank/callum";
     after = [ "zfs-mount.service" ];
+    onSuccess = [ "offsite-backup.service" ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = lib.getExe backup;
@@ -154,6 +155,8 @@ in
       IOSchedulingClass = "idle";
     };
   };
+
+  modules.offsiteBackup.file = outFile;
 
   systemd.timers.liz-persist-backup = {
     wantedBy = [ "timers.target" ];

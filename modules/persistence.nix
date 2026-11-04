@@ -28,7 +28,12 @@
       config = {
         fileSystems.${persistDir}.neededForBoot = true;
 
-        systemd.tmpfiles.rules = [ "d /var/lib/private 0700 root root -" ];
+        # Activation copies the persisted copy's mode onto /var/lib/private, and
+        # DynamicUser services refuse to start unless it's 0700.
+        systemd.tmpfiles.rules = [
+          "d /var/lib/private 0700 root root -"
+          "d ${persistDir}/var/lib/private 0700 root root -"
+        ];
 
         environment.persistence.${persistDir} = {
           enable = true;
