@@ -243,7 +243,8 @@ let
 
       hardware.nvidia-container-toolkit.enable = true;
       # The root is a tmpfs, so keep images on the store's disk.
-      virtualisation.containers.storage.settings.storage.graphroot = "/nix/var/lib/containers/storage";
+      virtualisation.containers.storage.rootful.settings.storage.graphroot =
+        "/nix/var/lib/containers/storage";
 
       # Only the upstream image runs the ONNX detector on the GPU.
       virtualisation.quadlet = {
