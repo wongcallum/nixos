@@ -120,6 +120,7 @@ in
     config.modules = {
       hostAddrs = {
         acid = "100.69.159.43";
+        eberouge = "100.75.221.118";
         liz = "100.103.248.5";
         salt = "100.83.198.98";
         shama = "100.66.58.20";

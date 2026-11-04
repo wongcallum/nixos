@@ -44,6 +44,9 @@ in
 
       modules.users.callum.lockPassword = true;
 
+      # Public IP. Reach SSH over Tailscale only.
+      services.openssh.openFirewall = false;
+
       networking.useNetworkd = true;
       systemd.network = {
         enable = true;
