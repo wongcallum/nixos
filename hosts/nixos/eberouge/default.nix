@@ -22,6 +22,10 @@ in
 
         ssh
         tailscale
+        sops
+
+        metrics
+        gatus
       ]);
 
       system.stateVersion = "26.05";

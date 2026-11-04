@@ -127,6 +127,7 @@ in
       };
 
       metrics.hosts = {
+        eberouge.exporters = [ "node" ];
         liz.exporters = [
           "node"
           "zfs"
