@@ -7,7 +7,10 @@ in
     { config, ... }:
     {
       imports = [
-        (microvmLib.mkGuestModule { hostname = "vm-gallery"; })
+        (microvmLib.mkGuestModule {
+          hostname = "vm-gallery";
+          lockRoot = true;
+        })
       ]
       ++ (with nixos; [
         persistence
@@ -31,10 +34,5 @@ in
         tunnelId = "3b2b04b1-c342-4988-afb1-6be0ccf1964c";
         ingress."gallery.callumwong.com" = "http://127.0.0.1:3000";
       };
-
-      security.nix-secrets.secrets."passwords/vm-gallery-root".neededForUsers = true;
-
-      users.users.root.hashedPasswordFile =
-        config.security.nix-secrets.secrets."passwords/vm-gallery-root".path;
     };
 }
