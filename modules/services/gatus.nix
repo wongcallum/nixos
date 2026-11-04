@@ -64,14 +64,6 @@ in
                 conditions = [ "[CONNECTED] == true" ];
                 inherit alerts;
               }
-              {
-                name = "grafana";
-                group = "liz";
-                url = "https://grafana.${config.modules.gateway.tld}/api/health";
-                interval = "1m";
-                conditions = [ "[STATUS] == 200" ];
-                inherit alerts;
-              }
             ]
             ++ map (domain: {
               name = domain;
