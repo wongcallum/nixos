@@ -309,6 +309,7 @@ in
             445
             config.modules.attic.guestPort
           ];
+          acceptReplies = true;
         };
 
         # A new guest closure changes the launch script, so deploys restart the VM.

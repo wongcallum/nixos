@@ -174,11 +174,13 @@
       };
 
     # liz's end of a VM's tap: address, NAT, and a firewall that only lets the guest
-    # reach hostPorts on liz and nothing private beyond it.
+    # reach hostPorts on liz and nothing private beyond it. acceptReplies lets it answer
+    # LAN and tailnet clients that reach it through liz's subnet route.
     mkHostLink =
       hostname:
       {
         hostPorts ? [ ],
+        acceptReplies ? false,
       }:
       let
         vm = vms.${hostname};
@@ -214,10 +216,13 @@
             iptables -I nixos-fw -i ${tap} -j ${tap}-in
 
             iptables -N ${tap}-fwd 2>/dev/null || iptables -F ${tap}-fwd
-            iptables -A ${tap}-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-            ${lib.concatMapStrings (dest: ''
-              iptables -A ${tap}-fwd -d ${dest} -j DROP
-            '') privateRanges}
+            ${lib.optionalString acceptReplies ''
+              iptables -A ${tap}-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+            ''}            ${
+              lib.concatMapStrings (dest: ''
+                iptables -A ${tap}-fwd -d ${dest} -j DROP
+              '') privateRanges
+            }
             iptables -D FORWARD -i ${tap} -j ${tap}-fwd 2>/dev/null || true
             iptables -I FORWARD -i ${tap} -j ${tap}-fwd
           '';

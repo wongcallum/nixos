@@ -88,6 +88,12 @@
                 default = [ ];
                 description = "TCP ports on the host the guest may connect to";
               };
+
+              acceptReplies = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = "Forward the guest's replies to LAN and tailnet clients";
+              };
             };
 
             config.description = lib.mkDefault name;
@@ -97,7 +103,7 @@
           name: vm:
           let
             tap = name;
-            link = vmLib.mkHostLink name { inherit (vm) hostPorts; };
+            link = vmLib.mkHostLink name { inherit (vm) hostPorts acceptReplies; };
             owner = if vm.user == null then "root" else vm.user;
             runDir = "/run/${name}";
             qmpSocket = "${runDir}/qmp.sock";
