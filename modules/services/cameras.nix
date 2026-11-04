@@ -305,7 +305,7 @@ in
           }
         ];
 
-        vmGpu.hostPorts = [
+        modules.qemuVms.vm-gpu.hostPorts = [
           rtspPort
           mqttPort
         ];

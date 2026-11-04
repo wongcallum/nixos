@@ -242,7 +242,7 @@ in
         };
       };
 
-    # liz's side: storage, QEMU and the point-to-point link.
+    # liz's side: storage and the QEMU VM.
     "${hostname}-host" =
       {
         config,
@@ -251,66 +251,8 @@ in
         ...
       }:
       let
-        cfg = config.vmGpu;
         guest = hosts.${hostname};
-        inherit (guest.config.vmGpu) shares;
-        inherit (net) tap hostAddr guestAddr;
-        guestMac = net.mac;
-
-        runDir = "/run/${hostname}";
-        guestCpus = "3-5 9-11";
-        guestVcpus = 6;
-        guestMemory = "8G";
-
-        qmpSocket = "${runDir}/qmp.sock";
-        shareSocket = tag: "${runDir}/${tag}.sock";
-
-        nixVolume = microvmLib.vmDisk "gpu";
-        nixVolumeSizeGiB = 100;
-        nixVolumeSize = "${toString nixVolumeSizeGiB}G";
-        nixVolumePath = "/dev/zvol/${nixVolume}";
-
-        kernel = "${guest.config.boot.kernelPackages.kernel}/${guest.config.system.boot.loader.kernelFile}";
-        initrd = "${guest.config.system.build.initialRamdisk}/${guest.config.system.boot.loader.initrdFile}";
-        cmdline = toString (
-          guest.config.boot.kernelParams
-          ++ [
-            "init=${guest.config.system.build.toplevel}/init"
-          ]
-        );
-
-        createVolumes = pkgs.writeShellApplication {
-          name = "vm-gpu-volume";
-          runtimeInputs = [
-            config.boot.zfs.package
-            pkgs.e2fsprogs
-          ];
-          text = ''
-            created=false
-            if ! zfs list -H -o name "${nixVolume}" >/dev/null 2>&1; then
-              zfs create -p -s -V ${nixVolumeSize} \
-                -o volblocksize=16K \
-                -o compression=lz4 \
-                "${nixVolume}"
-              created=true
-            elif [ "$(zfs get -Hp -o value volsize "${nixVolume}")" -lt ${
-              toString (nixVolumeSizeGiB * 1024 * 1024 * 1024)
-            } ]; then
-              zfs set volsize=${nixVolumeSize} "${nixVolume}"
-            fi
-            for _ in $(seq 1 50); do
-              [ -e "${nixVolumePath}" ] && break
-              sleep 0.1
-            done
-            if [ ! -b "${nixVolumePath}" ]; then
-              echo "Missing GPU VM block device: ${nixVolumePath}" >&2
-              exit 1
-            fi
-            if "$created"; then
-              mkfs.ext4 "${nixVolumePath}"
-            fi
-          '';
-        };
+        nixVolumePath = "/dev/zvol/${config.modules.qemuVms.${hostname}.disk.zvol}";
 
         # Run this only while QEMU is stopped.
         seedStore = pkgs.writeShellApplication {
@@ -327,111 +269,10 @@ in
             ln -sfn "$system" "$root/nix/var/nix/gcroots/vm-gpu-boot"
           '';
         };
-
-        shareDevices = lib.concatImapStrings (i: share: ''
-          -chardev "socket,id=chr-${share.tag},path=${shareSocket share.tag}"
-          -device "vhost-user-fs-pci,chardev=chr-${share.tag},tag=${share.tag},addr=0x${toString (i + 5)}"
-        '') shares;
-
-        launch = pkgs.writeShellApplication {
-          name = "vm-gpu-launch";
-          runtimeInputs = [ pkgs.qemu_kvm ];
-          text = ''
-            # Type=exec marks virtiofsd active before its socket is ready.
-            for sock in ${lib.concatMapStringsSep " " (share: shareSocket share.tag) shares}; do
-              for _ in $(seq 1 100); do
-                [ -S "$sock" ] && break
-                sleep 0.1
-              done
-            done
-
-            args=(
-              -name "vm-gpu,process=vm-gpu"
-              -machine "q35,accel=kvm,memory-backend=mem"
-              -cpu "host,topoext=on"
-              -smp "${toString guestVcpus},sockets=1,cores=3,threads=2"
-              -m "${guestMemory}"
-              # virtiofs needs guest memory in a shareable backend.
-              -object "memory-backend-memfd,id=mem,size=${guestMemory},share=on,prealloc=on"
-              -nodefaults
-              -display none
-
-              -kernel "${kernel}"
-              -initrd "${initrd}"
-              -append "${cmdline}"
-
-              -chardev "stdio,id=stdio,signal=off"
-              -serial "chardev:stdio"
-
-              -device "virtio-rng-pci"
-
-              # Fixed PCI addresses stop devices renumbering by creation order.
-              -drive "file=${nixVolumePath},if=none,id=drv-nix,format=raw,cache=none,aio=native,discard=unmap,detect-zeroes=unmap"
-              -device "virtio-blk-pci,drive=drv-nix,serial=${nixVolumeSerial},addr=0x3"
-
-              -netdev "tap,id=net0,ifname=${tap},script=no,downscript=no,vhost=on"
-              -device "virtio-net-pci,netdev=net0,mac=${guestMac},addr=0x4"
-
-              # As the boot display, the GPU's VBIOS would hang SeaBIOS, so hide its ROM.
-              -device "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
-              -device "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on,rombar=0"
-              -device "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1,rombar=0"
-
-              # Lets USB devices be hot-attached later.
-              -device "qemu-xhci,id=xhci,addr=0x5"
-
-              ${shareDevices}
-              -qmp "unix:${qmpSocket},server=on,wait=off"
-            )
-
-            exec qemu-system-x86_64 "''${args[@]}"
-          '';
-        };
-
-        shutdown = pkgs.writeShellApplication {
-          name = "vm-gpu-shutdown";
-          runtimeInputs = [ pkgs.socat ];
-          text = ''
-            [ -S "${qmpSocket}" ] || exit 0
-            printf '%s\n%s\n' \
-              '{"execute":"qmp_capabilities"}' \
-              '{"execute":"system_powerdown"}' \
-              | socat - "UNIX-CONNECT:${qmpSocket}" >/dev/null || true
-
-            mainPid="''${MAINPID:-}"
-            [ -n "$mainPid" ] || exit 0
-            while kill -0 "$mainPid" 2>/dev/null; do
-              sleep 1
-            done
-          '';
-        };
-
-        virtiofsdService = share: {
-          description = "virtiofsd for the GPU VM ${share.tag} share";
-          partOf = [ "vm-gpu.service" ];
-          # Pool datasets aren't systemd mounts.
-          after = [ "zfs-mount.service" ];
-          serviceConfig = {
-            Type = "exec";
-            ExecStart = lib.concatStringsSep " " (
-              [
-                (lib.getExe pkgs.virtiofsd)
-                "--socket-path ${shareSocket share.tag}"
-                "--shared-dir ${share.source}"
-                "--cache auto"
-                "--inode-file-handles=prefer"
-                "--posix-acl"
-                "--thread-pool-size ${toString guestVcpus}"
-                "--rlimit-nofile 1048576"
-              ]
-              ++ lib.optional share.readOnly "--readonly"
-            );
-            Restart = "no";
-          };
-        };
       in
       {
         imports = [
+          nixos.qemu-vms
           (microvmLib.mkVmStorage {
             name = "gpu";
             requiredBy = [
@@ -441,156 +282,84 @@ in
           })
         ];
 
-        options.vmGpu.hostPorts = lib.mkOption {
-          type = lib.types.listOf lib.types.port;
-          default = [ ];
-          description = "TCP ports on the host the guest may connect to";
+        modules.qemuVms.${hostname} = {
+          description = "GPU Virtual Machine";
+          inherit (net) hostAddr guestAddr mac;
+          vhostNet = true;
+          netPciAddr = "0x4";
+
+          cpu = "host,topoext=on";
+          smp = "6,sockets=1,cores=3,threads=2";
+          memory = "8G";
+          allowedCpus = "3-5 9-11";
+
+          disk = {
+            zvol = microvmLib.vmDisk "gpu";
+            sizeGiB = 100;
+            compression = "lz4";
+            serial = nixVolumeSerial;
+            pciAddr = "0x3";
+            mkfs = "ext4";
+          };
+
+          boot = {
+            kernel = "${guest.config.boot.kernelPackages.kernel}/${guest.config.system.boot.loader.kernelFile}";
+            initrd = "${guest.config.system.build.initialRamdisk}/${guest.config.system.boot.loader.initrdFile}";
+            cmdline = toString (
+              guest.config.boot.kernelParams ++ [ "init=${guest.config.system.build.toplevel}/init" ]
+            );
+          };
+
+          inherit (guest.config.vmGpu) shares;
+
+          extraArgs = [
+            # As the boot display, the GPU's VBIOS would hang SeaBIOS, so hide its ROM.
+            "-device"
+            "pcie-root-port,id=gpu-port,bus=pcie.0,addr=0x2,chassis=1,multifunction=on"
+            "-device"
+            "vfio-pci,host=0000:08:00.0,bus=gpu-port,addr=0x0.0x0,multifunction=on,rombar=0"
+            "-device"
+            "vfio-pci,host=0000:08:00.1,bus=gpu-port,addr=0x0.0x1,rombar=0"
+            # Lets USB devices be hot-attached later.
+            "-device"
+            "qemu-xhci,id=xhci,addr=0x5"
+          ];
+
+          hostPorts = [
+            445
+            config.modules.attic.guestPort
+          ];
         };
 
-        config = {
-          modules.gateway.services.llama-cpp = {
-            name = "llama.cpp";
-            domainName = "llama";
-            iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
-            addr = "${guestAddr}:${toString net.llamaPort}";
-            category = "Development";
+        # A new guest closure changes the launch script, so deploys restart the VM.
+        systemd.services.${hostname} = {
+          path = [
+            pkgs.util-linux
+            pkgs.e2fsprogs
+          ];
+          preStart = ''
+            root="/run/${hostname}/root"
+            mkdir -p "$root/nix"
+            mount -t ext4 "${nixVolumePath}" "$root/nix"
+            trap 'umount "$root/nix"' EXIT
+            resize2fs "${nixVolumePath}"
+            ${lib.getExe seedStore} "$root"
+          '';
+          serviceConfig = {
+            PrivateMounts = true;
+            TimeoutStartSec = "infinity";
+            TimeoutStopSec = "600s";
+            # VFIO locks the guest's entire address space in the IOMMU.
+            LimitMEMLOCK = "infinity";
           };
+        };
 
-          systemd = {
-            tmpfiles.rules = [
-              "d ${runDir} 0700 root root -"
-            ];
-
-            services = lib.mkMerge [
-              (lib.listToAttrs (
-                map (share: lib.nameValuePair "vm-gpu-virtiofsd-${share.tag}" (virtiofsdService share)) shares
-              ))
-              {
-                vm-gpu-volume = {
-                  description = "Provision the GPU VM zvol";
-                  after = [ "zfs.target" ];
-                  serviceConfig = {
-                    Type = "oneshot";
-                    RemainAfterExit = true;
-                    ExecStart = lib.getExe createVolumes;
-                  };
-                };
-
-                vm-gpu = {
-                  description = "GPU Virtual Machine";
-
-                  # A new guest closure changes the launch script, so deploys restart the VM.
-                  wantedBy = [ "multi-user.target" ];
-
-                  requires = [
-                    "vm-gpu-volume.service"
-                  ]
-                  ++ map (share: "vm-gpu-virtiofsd-${share.tag}.service") shares;
-                  after = [
-                    "vm-gpu-volume.service"
-                    "systemd-networkd.service"
-                  ]
-                  ++ map (share: "vm-gpu-virtiofsd-${share.tag}.service") shares;
-
-                  path = [
-                    pkgs.util-linux
-                    pkgs.e2fsprogs
-                  ];
-                  preStart = ''
-                    root="${runDir}/root"
-                    mkdir -p "$root/nix"
-                    mount -t ext4 "${nixVolumePath}" "$root/nix"
-                    trap 'umount "$root/nix"' EXIT
-                    resize2fs "${nixVolumePath}"
-                    ${lib.getExe seedStore} "$root"
-                  '';
-
-                  serviceConfig = {
-                    Type = "exec";
-                    PrivateMounts = true;
-                    TimeoutStartSec = "infinity";
-                    ExecStart = lib.getExe launch;
-                    ExecStop = lib.getExe shutdown;
-
-                    TimeoutStopSec = "600s";
-                    Restart = "no";
-
-                    # VFIO locks the guest's entire address space in the IOMMU.
-                    LimitMEMLOCK = "infinity";
-
-                    AllowedCPUs = guestCpus;
-                  };
-                };
-              }
-            ];
-
-            network = {
-              netdevs."25-${tap}" = {
-                netdevConfig = {
-                  Name = tap;
-                  Kind = "tap";
-                };
-                tapConfig = {
-                  User = "root";
-                  Group = "root";
-                };
-              };
-
-              networks."25-${tap}" = {
-                matchConfig.Name = tap;
-                address = [ "${hostAddr}/32" ];
-                routes = [
-                  {
-                    Destination = "${guestAddr}/32";
-                    Scope = "link";
-                  }
-                ];
-                networkConfig.ConfigureWithoutCarrier = true;
-                linkConfig.RequiredForOnline = false;
-              };
-            };
-          };
-
-          networking = {
-            nat = {
-              enable = true;
-              internalInterfaces = [ tap ];
-            };
-
-            firewall.extraCommands = ''
-              iptables -N vm-gpu-in 2>/dev/null || iptables -F vm-gpu-in
-              iptables -A vm-gpu-in -p tcp --dport 445 -j nixos-fw-accept
-              iptables -A vm-gpu-in -p tcp --dport ${toString config.modules.attic.guestPort} -j nixos-fw-accept
-              ${
-                lib.concatMapStrings (port: ''
-                  iptables -A vm-gpu-in -p tcp --dport ${toString port} -j nixos-fw-accept
-                '') cfg.hostPorts
-              }      iptables -A vm-gpu-in -m conntrack --ctstate NEW -j DROP
-              iptables -D nixos-fw -i ${tap} -j vm-gpu-in 2>/dev/null || true
-              iptables -I nixos-fw -i ${tap} -j vm-gpu-in
-
-              iptables -N vm-gpu-fwd 2>/dev/null || iptables -F vm-gpu-fwd
-              iptables -A vm-gpu-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-              ${lib.concatMapStringsSep "\n" (dest: "iptables -A vm-gpu-fwd -d ${dest} -j DROP") [
-                "10.0.0.0/8"
-                "172.16.0.0/12"
-                "192.168.0.0/16"
-                "100.64.0.0/10"
-                "169.254.0.0/16"
-              ]}
-              iptables -D FORWARD -i ${tap} -j vm-gpu-fwd 2>/dev/null || true
-              iptables -I FORWARD -i ${tap} -j vm-gpu-fwd
-            '';
-
-            firewall.extraStopCommands = ''
-              iptables -D nixos-fw -i ${tap} -j vm-gpu-in 2>/dev/null || true
-              iptables -D FORWARD -i ${tap} -j vm-gpu-fwd 2>/dev/null || true
-              iptables -F vm-gpu-in 2>/dev/null || true
-              iptables -X vm-gpu-in 2>/dev/null || true
-              iptables -F vm-gpu-fwd 2>/dev/null || true
-              iptables -X vm-gpu-fwd 2>/dev/null || true
-            '';
-          };
+        modules.gateway.services.llama-cpp = {
+          name = "llama.cpp";
+          domainName = "llama";
+          iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
+          addr = "${net.guestAddr}:${toString net.llamaPort}";
+          category = "Development";
         };
       };
   };

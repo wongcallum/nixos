@@ -81,7 +81,7 @@ in
       systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];
 
       # Keep CI off the cores the GPU VM is pinned to.
-      systemd.services.vm-ci.serviceConfig.AllowedCPUs = "0-2 6-8";
+      modules.qemuVms.vm-ci.allowedCpus = "0-2 6-8";
 
       virtualisation.quadlet.containers.media-jellyfin.containerConfig.publishPorts = [
         "192.168.0.2:8096:8096"
