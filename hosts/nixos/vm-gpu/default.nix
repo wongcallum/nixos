@@ -1,24 +1,17 @@
-{ config, microvmLib, ... }:
+{ config, vmLib, ... }:
 let
   inherit (config.flake.modules) nixos;
   hosts = config.flake.nixosConfigurations;
 
   hostname = "vm-gpu";
-  net = {
-    hostAddr = "10.0.1.1";
-    guestAddr = "10.0.1.3";
-    tap = hostname;
-    mac = "02:00:00:00:01:03";
-    llamaPort = 9931;
-  };
+  net = vmLib.vms.${hostname};
+  llamaPort = 9931;
 
-  stateDir = microvmLib.vmDir "gpu";
+  stateDir = vmLib.vmDir "gpu";
   nixVolumeSerial = "nix";
 in
 {
   flake.nixpkgs.${hostname} = "unstable";
-
-  _module.args.vmGpu = net;
 
   flake.modules.nixos = {
     "hosts/nixos/${hostname}" =
@@ -30,6 +23,8 @@ in
       }:
       {
         imports = with nixos; [
+          (vmLib.mkGuestNetwork hostname)
+
           persistence
 
           callum
@@ -51,8 +46,6 @@ in
         config = {
           system.stateVersion = "26.05";
           nixpkgs.config.cudaSupport = true;
-
-          networking.useNetworkd = true;
 
           vmGpu.shares = lib.mkBefore [
             {
@@ -146,7 +139,7 @@ in
               package = pkgs.llama-cpp.override { cudaSupport = true; };
               openFirewall = true;
               settings = {
-                port = net.llamaPort;
+                port = llamaPort;
                 host = "0.0.0.0";
 
                 models-max = 4;
@@ -161,18 +154,6 @@ in
           };
 
           systemd = {
-            network.networks."10-eth" = {
-              matchConfig.MACAddress = net.mac;
-              address = [ "${net.guestAddr}/32" ];
-              routes = [
-                {
-                  Gateway = net.hostAddr;
-                  GatewayOnLink = true;
-                }
-              ];
-              networkConfig = microvmLib.guestDns;
-            };
-
             services.llama-cpp = {
               unitConfig = {
                 Wants = [ "systemd-modules-load.service" ];
@@ -273,7 +254,7 @@ in
       {
         imports = [
           nixos.qemu-vms
-          (microvmLib.mkVmStorage {
+          (vmLib.mkVmStorage {
             name = "gpu";
             requiredBy = [
               "vm-gpu-volume.service"
@@ -284,7 +265,6 @@ in
 
         modules.qemuVms.${hostname} = {
           description = "GPU Virtual Machine";
-          inherit (net) hostAddr guestAddr mac;
           vhostNet = true;
           netPciAddr = "0x4";
 
@@ -294,7 +274,7 @@ in
           allowedCpus = "3-5 9-11";
 
           disk = {
-            zvol = microvmLib.vmDisk "gpu";
+            zvol = vmLib.vmDisk "gpu";
             sizeGiB = 100;
             compression = "lz4";
             serial = nixVolumeSerial;
@@ -358,7 +338,7 @@ in
           name = "llama.cpp";
           domainName = "llama";
           iconUrl = "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/llama-cpp.svg";
-          addr = "${net.guestAddr}:${toString net.llamaPort}";
+          addr = "${net.guestAddr}:${toString llamaPort}";
           category = "Development";
         };
       };

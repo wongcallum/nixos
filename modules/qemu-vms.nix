@@ -1,3 +1,4 @@
+{ vmLib, ... }:
 {
   # Both vm-*-host aspects import this; the key makes NixOS import it once.
   flake.modules.nixos.qemu-vms.key = "qemu-vms";
@@ -10,22 +11,11 @@
         ...
       }:
       let
-        privateRanges = [
-          "10.0.0.0/8"
-          "172.16.0.0/12"
-          "192.168.0.0/16"
-          "100.64.0.0/10"
-          "169.254.0.0/16"
-        ];
-
         vmModule =
           { name, ... }:
           {
             options = {
               description = lib.mkOption { type = lib.types.str; };
-              hostAddr = lib.mkOption { type = lib.types.str; };
-              guestAddr = lib.mkOption { type = lib.types.str; };
-              mac = lib.mkOption { type = lib.types.str; };
               vhostNet = lib.mkOption {
                 type = lib.types.bool;
                 default = false;
@@ -107,6 +97,7 @@
           name: vm:
           let
             tap = name;
+            link = vmLib.mkHostLink name { inherit (vm) hostPorts; };
             owner = if vm.user == null then "root" else vm.user;
             runDir = "/run/${name}";
             qmpSocket = "${runDir}/qmp.sock";
@@ -215,7 +206,7 @@
                   -device "virtio-blk-pci,drive=drv-disk,serial=${vm.disk.serial}${pciAddr vm.disk.pciAddr}"
 
                   -netdev "tap,id=net0,ifname=${tap},script=no,downscript=no${lib.optionalString vm.vhostNet ",vhost=on"}"
-                  -device "virtio-net-pci,netdev=net0,mac=${vm.mac}${pciAddr vm.netPciAddr}"
+                  -device "virtio-net-pci,netdev=net0,mac=${vmLib.vms.${name}.mac}${pciAddr vm.netPciAddr}"
 
                   ${shareDevices}
                   -qmp "unix:${qmpSocket},server=on,wait=off"
@@ -354,55 +345,11 @@
                     Group = owner;
                   };
                 };
-
-                networks."25-${tap}" = {
-                  matchConfig.Name = tap;
-                  address = [ "${vm.hostAddr}/32" ];
-                  routes = [
-                    {
-                      Destination = "${vm.guestAddr}/32";
-                      Scope = "link";
-                    }
-                  ];
-                  networkConfig.ConfigureWithoutCarrier = true;
-                  linkConfig.RequiredForOnline = false;
-                };
+                inherit (link.systemd.network) networks;
               };
             };
 
-            networking = {
-              nat = {
-                enable = true;
-                internalInterfaces = [ tap ];
-              };
-
-              firewall.extraCommands = ''
-                iptables -N ${name}-in 2>/dev/null || iptables -F ${name}-in
-                ${lib.concatMapStrings (port: ''
-                  iptables -A ${name}-in -p tcp --dport ${toString port} -j nixos-fw-accept
-                '') vm.hostPorts}
-                iptables -A ${name}-in -m conntrack --ctstate NEW -j DROP
-                iptables -D nixos-fw -i ${tap} -j ${name}-in 2>/dev/null || true
-                iptables -I nixos-fw -i ${tap} -j ${name}-in
-
-                iptables -N ${name}-fwd 2>/dev/null || iptables -F ${name}-fwd
-                iptables -A ${name}-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-                ${lib.concatMapStrings (dest: ''
-                  iptables -A ${name}-fwd -d ${dest} -j DROP
-                '') privateRanges}
-                iptables -D FORWARD -i ${tap} -j ${name}-fwd 2>/dev/null || true
-                iptables -I FORWARD -i ${tap} -j ${name}-fwd
-              '';
-
-              firewall.extraStopCommands = ''
-                iptables -D nixos-fw -i ${tap} -j ${name}-in 2>/dev/null || true
-                iptables -D FORWARD -i ${tap} -j ${name}-fwd 2>/dev/null || true
-                iptables -F ${name}-in 2>/dev/null || true
-                iptables -X ${name}-in 2>/dev/null || true
-                iptables -F ${name}-fwd 2>/dev/null || true
-                iptables -X ${name}-fwd 2>/dev/null || true
-              '';
-            };
+            inherit (link) networking;
           };
       in
       {

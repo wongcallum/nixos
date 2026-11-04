@@ -1,7 +1,7 @@
 {
   config,
   inputs,
-  microvmLib,
+  vmLib,
   ...
 }:
 let
@@ -22,8 +22,8 @@ in
         inputs.disko.nixosModules.default
         inputs.microvm.nixosModules.host
       ]
-      ++ map microvmLib.mkHostNetworking (lib.attrNames microvmLib.guests)
-      ++ map microvmLib.mkGuestStorage (lib.attrNames microvmLib.guests)
+      ++ map (hostname: vmLib.mkHostLink hostname { }) (lib.attrNames vmLib.microvmGuests)
+      ++ map vmLib.mkGuestStorage (lib.attrNames vmLib.microvmGuests)
       ++ (with nixos; [
         uefi
         zram
@@ -70,11 +70,11 @@ in
       microvm.vms = lib.mapAttrs (hostname: _: {
         evaluatedConfig = nixosConfigurations.${hostname};
         restartIfChanged = true;
-      }) microvmLib.guests;
+      }) vmLib.microvmGuests;
 
       _module.args = {
         sshKeys = keys.callum;
-        inherit microvmLib;
+        inherit vmLib;
       };
 
       # The mirror share lives on tank, which isn't a systemd mount.

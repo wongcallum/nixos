@@ -2,7 +2,7 @@
   config,
   inputs,
   lib,
-  microvmLib,
+  vmLib,
   ...
 }:
 let
@@ -11,9 +11,7 @@ let
 
   hostname = "vm-ci";
 
-  hostAddr = "10.0.1.1";
-  guestAddr = "10.0.1.4";
-  guestMac = "02:00:00:00:01:04";
+  inherit (vmLib.vms.${hostname}) hostAddr guestAddr;
 
   vcpu = 6;
   mem = 16384; # MiB
@@ -36,6 +34,7 @@ in
 
           inputs.disko.nixosModules.default
           (modulesPath + "/profiles/qemu-guest.nix")
+          (vmLib.mkGuestNetwork hostname)
         ]
         ++ (with nixos; [
           secrets
@@ -78,22 +77,6 @@ in
             # Fragmentation leaves few free 2 MiB blocks, so the default order returned little memory.
             "page_reporting.page_reporting_order=5"
           ];
-        };
-
-        networking.useNetworkd = true;
-        systemd.network = {
-          enable = true;
-          networks."10-eth" = {
-            matchConfig.MACAddress = guestMac;
-            address = [ "${guestAddr}/32" ];
-            routes = [
-              {
-                Gateway = hostAddr;
-                GatewayOnLink = true;
-              }
-            ];
-            networkConfig = microvmLib.guestDns;
-          };
         };
 
         # pahole needs about 7 GiB for shama's kernel BTF. zram pages don't count
@@ -182,15 +165,13 @@ in
 
         modules.qemuVms.${hostname} = {
           description = "CI virtual machine";
-          inherit hostAddr guestAddr;
-          mac = guestMac;
           user = hostname;
 
           smp = toString vcpu;
           memory = "${toString mem}M";
 
           disk = {
-            zvol = microvmLib.vmDisk "ci";
+            zvol = vmLib.vmDisk "ci";
             sizeGiB = 128;
             compression = "zstd";
             serial = "ci";

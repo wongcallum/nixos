@@ -1,7 +1,6 @@
 {
   lib,
-  microvmLib,
-  vmGpu,
+  vmLib,
   ...
 }:
 let
@@ -149,20 +148,11 @@ in
           "nvme-Patriot_M.2_P300_128GB_P300ADBB22111800174"
           "nvme-Samsung_SSD_980_PRO_1TB_S5GXNX0T913718H"
         ];
-
-        vm-gpu = {
-          exporters = [ "node" ];
-          address = vmGpu.guestAddr;
-        };
-        vm-ci = {
-          exporters = [ "node" ];
-          address = "10.0.1.4";
-        };
       }
-      // lib.mapAttrs (hostname: _: {
+      // lib.mapAttrs (_: vm: {
         exporters = [ "node" ];
-        address = (microvmLib.addressing hostname).guestAddr;
-      }) microvmLib.guests;
+        address = vm.guestAddr;
+      }) vmLib.vms;
     };
   };
 }

@@ -5,12 +5,43 @@
   ...
 }:
 {
-  _module.args.microvmLib = rec {
-    # liz's microVM guests. Each index sets the guest's MAC and 10.0.0.x address.
-    guests = {
-      vm-gallery = 1;
-      vm-thsconline = 3;
+  _module.args.vmLib = rec {
+    # Every VM liz runs. Each gets a point-to-point tap named after it.
+    vms = {
+      vm-gallery = {
+        runner = "microvm";
+        hostAddr = "10.0.0.1";
+        guestAddr = "10.0.0.2";
+        mac = "02:00:00:00:00:01";
+      };
+      vm-thsconline = {
+        runner = "microvm";
+        hostAddr = "10.0.0.1";
+        guestAddr = "10.0.0.4";
+        mac = "02:00:00:00:00:03";
+      };
+      vm-gpu = {
+        runner = "qemu";
+        hostAddr = "10.0.1.1";
+        guestAddr = "10.0.1.3";
+        mac = "02:00:00:00:01:03";
+      };
+      vm-ci = {
+        runner = "qemu";
+        hostAddr = "10.0.1.1";
+        guestAddr = "10.0.1.4";
+        mac = "02:00:00:00:01:04";
+      };
     };
+    microvmGuests = lib.filterAttrs (_: vm: vm.runner == "microvm") vms;
+
+    privateRanges = [
+      "10.0.0.0/8"
+      "172.16.0.0/12"
+      "192.168.0.0/16"
+      "100.64.0.0/10"
+      "169.254.0.0/16"
+    ];
 
     # All of a VM's data, disks included, lives under rpool/vm/<name>.
     vmName = hostname: lib.removePrefix "vm-" hostname;
@@ -66,17 +97,6 @@
         ];
       };
 
-    addressing =
-      hostname:
-      let
-        n = guests.${hostname};
-      in
-      {
-        hostAddr = "10.0.0.1";
-        guestAddr = "10.0.0.${toString (n + 1)}";
-        mac = "02:00:00:00:00:${lib.fixedWidthString 2 "0" (lib.toLower (lib.toHexString n))}";
-      };
-
     # lockRoot makes root SSH key-only instead of the default password login.
     mkGuestModule =
       {
@@ -84,15 +104,14 @@
         lockRoot ? false,
       }:
       let
-        addr = addressing hostname;
+        addr = vms.${hostname};
       in
       {
         imports = [
           inputs.microvm.nixosModules.microvm
+          (mkGuestNetwork hostname)
           config.flake.modules.nixos.metrics
         ];
-
-        networking.useNetworkd = true;
 
         nix.optimise.automatic = lib.mkForce false;
 
@@ -123,20 +142,6 @@
           ];
         };
 
-        systemd.network = {
-          networks."10-eth" = {
-            matchConfig.MACAddress = addr.mac;
-            address = [ "${addr.guestAddr}/32" ];
-            routes = [
-              {
-                Gateway = addr.hostAddr;
-                GatewayOnLink = true;
-              }
-            ];
-            networkConfig = guestDns;
-          };
-        };
-
         users.users.root = lib.mkIf lockRoot {
           hashedPassword = "!";
           openssh.authorizedKeys.keys = config.flake.keys.callum;
@@ -148,56 +153,82 @@
         };
       };
 
-    mkHostNetworking =
+    mkGuestNetwork =
       hostname:
       let
-        addr = addressing hostname;
-
-        blockedDestinations = [
-          "10.0.0.0/8"
-          "172.16.0.0/12"
-          "192.168.0.0/16"
-          "100.64.0.0/10"
-          "169.254.0.0/16"
-        ];
-
-        forwardDrop = op: dest: "iptables -${op} FORWARD -i ${hostname} -d ${dest} -j DROP";
-
-        addForwardDrops = lib.concatMapStringsSep "\n" (dest: ''
-          ${forwardDrop "D" dest} 2>/dev/null || true
-          ${forwardDrop "I" dest}
-        '') blockedDestinations;
-
-        delForwardDrops = lib.concatMapStringsSep "\n" (
-          dest: "${forwardDrop "D" dest} 2>/dev/null || true"
-        ) blockedDestinations;
+        vm = vms.${hostname};
       in
       {
-        systemd.network.networks."10-${hostname}" = {
-          matchConfig.Name = hostname;
-          address = [ "${addr.hostAddr}/32" ];
-          networkConfig.ConfigureWithoutCarrier = true;
+        networking.useNetworkd = true;
+        systemd.network.networks."10-eth" = {
+          matchConfig.MACAddress = vm.mac;
+          address = [ "${vm.guestAddr}/32" ];
           routes = [
             {
-              Destination = "${addr.guestAddr}/32";
+              Gateway = vm.hostAddr;
+              GatewayOnLink = true;
+            }
+          ];
+          networkConfig = guestDns;
+        };
+      };
+
+    # liz's end of a VM's tap: address, NAT, and a firewall that only lets the guest
+    # reach hostPorts on liz and nothing private beyond it.
+    mkHostLink =
+      hostname:
+      {
+        hostPorts ? [ ],
+      }:
+      let
+        vm = vms.${hostname};
+        tap = hostname;
+      in
+      {
+        systemd.network.networks."25-${tap}" = {
+          matchConfig.Name = tap;
+          address = [ "${vm.hostAddr}/32" ];
+          routes = [
+            {
+              Destination = "${vm.guestAddr}/32";
               Scope = "link";
             }
           ];
+          networkConfig.ConfigureWithoutCarrier = true;
+          linkConfig.RequiredForOnline = false;
         };
 
         networking = {
           nat = {
             enable = true;
-            internalInterfaces = [ hostname ];
+            internalInterfaces = [ tap ];
           };
 
           firewall.extraCommands = ''
-            iptables -I nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP
-            ${addForwardDrops}
+            iptables -N ${tap}-in 2>/dev/null || iptables -F ${tap}-in
+            ${lib.concatMapStrings (port: ''
+              iptables -A ${tap}-in -p tcp --dport ${toString port} -j nixos-fw-accept
+            '') hostPorts}
+            iptables -A ${tap}-in -m conntrack --ctstate NEW -j DROP
+            iptables -D nixos-fw -i ${tap} -j ${tap}-in 2>/dev/null || true
+            iptables -I nixos-fw -i ${tap} -j ${tap}-in
+
+            iptables -N ${tap}-fwd 2>/dev/null || iptables -F ${tap}-fwd
+            iptables -A ${tap}-fwd -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+            ${lib.concatMapStrings (dest: ''
+              iptables -A ${tap}-fwd -d ${dest} -j DROP
+            '') privateRanges}
+            iptables -D FORWARD -i ${tap} -j ${tap}-fwd 2>/dev/null || true
+            iptables -I FORWARD -i ${tap} -j ${tap}-fwd
           '';
+
           firewall.extraStopCommands = ''
-            iptables -D nixos-fw -i ${hostname} -m conntrack --ctstate NEW -j DROP 2>/dev/null || true
-            ${delForwardDrops}
+            iptables -D nixos-fw -i ${tap} -j ${tap}-in 2>/dev/null || true
+            iptables -D FORWARD -i ${tap} -j ${tap}-fwd 2>/dev/null || true
+            iptables -F ${tap}-in 2>/dev/null || true
+            iptables -X ${tap}-in 2>/dev/null || true
+            iptables -F ${tap}-fwd 2>/dev/null || true
+            iptables -X ${tap}-fwd 2>/dev/null || true
           '';
         };
       };

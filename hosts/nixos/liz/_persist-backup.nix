@@ -2,13 +2,13 @@
   config,
   lib,
   pkgs,
-  microvmLib,
+  vmLib,
   sshKeys,
   ...
 }:
 let
   dataset = "rpool/persist";
-  inherit (microvmLib) vmParent;
+  inherit (vmLib) vmParent;
   snapshot = "backup-staging";
   # Relative to /, which the archive is built from.
   snapshotPath = dir: "${lib.removePrefix "/" dir}/.zfs/snapshot/${snapshot}";
@@ -73,7 +73,7 @@ let
   members =
     map (p: "${snapshotPath config.utils.persistDir}/${p}") paths
     ++ lib.concatLists (
-      lib.mapAttrsToList (name: map (p: "${snapshotPath (microvmLib.vmDir name)}/${p}")) vmPaths
+      lib.mapAttrsToList (name: map (p: "${snapshotPath (vmLib.vmDir name)}/${p}")) vmPaths
     );
 
   # /persist paths keep their old place at the archive root.

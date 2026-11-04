@@ -1,11 +1,11 @@
 {
   inputs,
   lib,
-  vmGpu,
+  vmLib,
   ...
 }:
 let
-  inherit (vmGpu) hostAddr guestAddr;
+  inherit (vmLib.vms.vm-gpu) hostAddr guestAddr;
 
   rtspPort = 8554;
   mqttPort = 1883;
@@ -129,7 +129,7 @@ let
   # TensorRT engines rebuild slowly, and the root is a tmpfs.
   modelCacheDir = "/nix/var/cache/frigate";
 
-  frigateSettings = {
+  frigateSettings = llamaPort: {
     # Without it, Frigate migrates the config as if from 0.13 and mangles genai.
     version = "0.18-0";
 
@@ -183,7 +183,7 @@ let
     };
     genai.local = {
       provider = "llamacpp";
-      base_url = "http://127.0.0.1:${toString vmGpu.llamaPort}";
+      base_url = "http://127.0.0.1:${toString llamaPort}";
       model = vlm;
       # A chat model's embeddings make semantic search silently useless.
       roles = [
@@ -277,7 +277,7 @@ in
         systemd.services = lib.mkMerge [
           (lib.genAttrs [ "go2rtc" "mosquitto" ] (_: {
             # Binding the tap's address fails until networkd configures it.
-            after = [ "sys-subsystem-net-devices-${utils.escapeSystemdPath vmGpu.tap}.device" ];
+            after = [ "sys-subsystem-net-devices-${utils.escapeSystemdPath "vm-gpu"}.device" ];
             serviceConfig = {
               Restart = "on-failure";
               RestartSec = 5;
@@ -324,7 +324,9 @@ in
       { config, pkgs, ... }:
       let
         dataDir = config.utils.dataDir "frigate";
-        configFile = (pkgs.formats.yaml { }).generate "frigate.yml" frigateSettings;
+        configFile = (pkgs.formats.yaml { }).generate "frigate.yml" (
+          frigateSettings config.services.llama-cpp.settings.port
+        );
       in
       {
         imports = [ inputs.quadlet-nix.nixosModules.quadlet ];

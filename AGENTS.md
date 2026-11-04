@@ -45,7 +45,7 @@ A host's `default.nix` imports features from `config.flake.modules.nixos` and ho
 - **Feature toggles:** define `options.modules.*` in `modules/global.nix` and gate features on them.
 - **Containers:** `config.utils.mkContainer` (`modules/utils.nix`) for Quadlet containers.
 - **Persistent state:** root is rolled back on boot (`impermanence-zfs` / `impermanence-btrfs`). Use `config.utils.dataDir "<name>"` for service data and `config.utils.cacheDir "<name>"` for regenerable caches; add other state to `environment.persistence.${config.modules.persistence.persistDir}`.
-- **microVM networking:** `microvmLib.mkHostNetworking` and `microvmLib.mkGuestModule` (`modules/lib/microvm.nix`).
+- **VMs on liz:** every guest is a host under `hosts/nixos/vm-*` with an entry in `vmLib.vms` (`modules/lib/vms.nix`), which holds its runner and addresses. microVM guests use `vmLib.mkGuestModule`. QEMU guests use `vmLib.mkGuestNetwork` and are declared in a `vm-*-host` aspect via `modules.qemuVms` (`modules/qemu-vms.nix`).
 - **Users:** `self.factory.user <name> <isAdmin> <useSopsPassword>` (`modules/users/factory.nix`) plus a per-user module.
 - **Web services:** add an entry to the registry in `modules/services/gateway.nix`; Caddy and `prism-tower` derive their config from it.
 

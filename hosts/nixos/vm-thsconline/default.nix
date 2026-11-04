@@ -1,7 +1,7 @@
 {
   config,
   lib,
-  microvmLib,
+  vmLib,
   ...
 }:
 let
@@ -16,7 +16,7 @@ in
     { pkgs, ... }:
     {
       imports = [
-        (microvmLib.mkGuestModule {
+        (vmLib.mkGuestModule {
           hostname = "vm-thsconline";
           lockRoot = true;
         })

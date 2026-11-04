@@ -1,4 +1,4 @@
-{ config, microvmLib, ... }:
+{ config, vmLib, ... }:
 let
   inherit (config.flake.modules) nixos;
 in
@@ -7,7 +7,7 @@ in
     { config, ... }:
     {
       imports = [
-        (microvmLib.mkGuestModule {
+        (vmLib.mkGuestModule {
           hostname = "vm-gallery";
           lockRoot = true;
         })
