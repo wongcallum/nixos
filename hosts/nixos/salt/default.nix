@@ -3,6 +3,8 @@ let
   inherit (config.flake.modules) nixos;
 in
 {
+  flake.nixpkgs.salt = "unstable";
+
   flake.modules.nixos."hosts/nixos/salt" =
     { config, lib, ... }:
     {
