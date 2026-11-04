@@ -15,11 +15,6 @@ let
 in
 {
   flake.workarounds = {
-    askama-config-path-symlink = {
-      upstream = "https://github.com/askama-rs/askama/pull/744 (closed unmerged); crane side: https://github.com/ipetkov/crane/issues/965";
-      done = "the askama_derive in openscq30's Cargo.lock includes askama PR 744 or another fix for askama.toml reached through a symlink, or crane vendors crates without per-crate symlinks";
-    };
-
     cadvisor-overlay = {
       upstream = "https://github.com/NixOS/nixpkgs/pull/520137";
       done = "liz's and salt's nixpkgs ship cadvisor >= 0.57.0 (liz is on stable, so it may need a backport)";
@@ -103,12 +98,6 @@ in
       upstream = "https://github.com/NixOS/nixpkgs/issues/533948 (buildFHSEnv skips install phases, so appimageTools.wrapType2 drops desktopItems)";
       done = "xnviewmp ships a desktop entry in nixpkgs-unstable, from a package fix or a general fix for the issue";
       cleanup = "remove the commit from scripts/patch-nixpkgs.sh and rerun it; the fork stays";
-    };
-
-    zapfast-waproto-oom = {
-      upstream = "not filed; zapfast's release profile builds whatsapp-rust's generated waproto crate as one codegen unit";
-      done = "zapfast's Cargo.toml gives waproto its own release profile, or shama's zapfast builds on vm-ci without the override";
-      fixed = (lib.importTOML "${inputs.zapfast}/Cargo.toml").profile.release ? package.waproto;
     };
   };
 }

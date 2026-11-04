@@ -1,19 +1,4 @@
 { inputs, pkgs, ... }:
-let
-  inherit (inputs.self.packages.${pkgs.stdenv.hostPlatform.system}) openscq30-cli;
-  # As one codegen unit, waproto runs rustc out of memory in vm-ci's 10G daemon cgroup.
-  # workaround: zapfast-waproto-oom
-  zapfast = inputs.zapfast.packages.${pkgs.stdenv.hostPlatform.system}.zapfast.overrideAttrs (old: {
-    # In Cargo.toml, so the check phase's `cargo test` builds it the same way.
-    postPatch = (old.postPatch or "") + ''
-      cat >> Cargo.toml <<EOF
-
-      [profile.release.package.waproto]
-      codegen-units = 16
-      EOF
-    '';
-  });
-in
 {
   imports = with inputs.self.modules.nixos; [
     helium
@@ -26,7 +11,7 @@ in
     (obs-studio.override { browserSupport = false; })
     picard
     tigervnc
-    openscq30-cli
+    open-scq30
     zapfast
     android-tools
     aria2

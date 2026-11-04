@@ -76,16 +76,7 @@
       url = "github:wongcallum/FreesmLauncher/multi-modrinth";
       inputs.nixpkgs.follows = "unstable";
     };
-    crane.url = "github:ipetkov/crane";
-    zapfast = {
-      url = "github:crmne/zapfast";
-      inputs.nixpkgs.follows = "unstable";
-    };
     llm-agents.url = "github:numtide/llm-agents.nix";
-    openscq30 = {
-      url = "github:Oppzippy/OpenSCQ30/v2.13.0";
-      flake = false;
-    };
   };
 
   outputs =
