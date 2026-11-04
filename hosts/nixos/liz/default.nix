@@ -17,8 +17,6 @@ in
         ./_networking.nix
         ./_console.nix
         ./_vfio.nix
-        ./_vm-gpu.nix
-        ./_cameras.nix
         ./_persist-backup.nix
 
         inputs.disko.nixosModules.default
@@ -26,15 +24,6 @@ in
       ]
       ++ map microvmLib.mkHostNetworking (lib.attrNames microvmLib.guests)
       ++ map microvmLib.mkGuestStorage (lib.attrNames microvmLib.guests)
-      ++ [
-        (microvmLib.mkVmStorage {
-          name = "gpu";
-          requiredBy = [
-            "vm-gpu-volume.service"
-            "vm-gpu-virtiofsd-persist.service"
-          ];
-        })
-      ]
       ++ (with nixos; [
         uefi
         zram
@@ -71,8 +60,11 @@ in
         quadlet-lobehub
 
         attic
-        vm-ci-host
         cliproxyapi
+
+        vm-ci-host
+        vm-gpu-host
+        cameras
       ]);
 
       microvm.vms = lib.mapAttrs (hostname: _: {

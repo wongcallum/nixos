@@ -1,13 +1,11 @@
 {
-  config,
   inputs,
   lib,
-  pkgs,
-  utils,
+  vmGpu,
   ...
 }:
 let
-  inherit (config.vmGpu) hostAddr guestAddr llamaPort;
+  inherit (vmGpu) hostAddr guestAddr;
 
   rtspPort = 8554;
   mqttPort = 1883;
@@ -74,6 +72,8 @@ let
   # Frigate's documented export. Upstream publishes only PyTorch weights.
   yoloModel =
     let
+      # The export runs on the CPU, so it avoids the guest's CUDA torch.
+      pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
       python = pkgs.python3.withPackages (
         ps: with ps; [
           ipython
@@ -183,7 +183,7 @@ let
     };
     genai.local = {
       provider = "llamacpp";
-      base_url = "http://127.0.0.1:${toString llamaPort}";
+      base_url = "http://127.0.0.1:${toString vmGpu.llamaPort}";
       model = vlm;
       # A chat model's embeddings make semantic search silently useless.
       roles = [
@@ -231,175 +231,181 @@ let
       ];
     }) cameras;
   };
-
-  guestModule =
-    { config, pkgs, ... }:
-    let
-      dataDir = config.utils.dataDir "frigate";
-      configFile = (pkgs.formats.yaml { }).generate "frigate.yml" frigateSettings;
-    in
-    {
-      imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
-
-      hardware.nvidia-container-toolkit.enable = true;
-      # The root is a tmpfs, so keep images on the store's disk.
-      virtualisation.containers.storage.rootful.settings.storage.graphroot =
-        "/nix/var/lib/containers/storage";
-
-      # Only the upstream image runs the ONNX detector on the GPU.
-      virtualisation.quadlet = {
-        autoUpdate.enable = true;
-
-        containers.frigate = config.utils.mkContainer {
-          containerConfig = {
-            image = "ghcr.io/blakeblackshear/frigate:stable-tensorrt";
-            autoUpdate = "registry";
-            podmanArgs = [ "--network=host" ];
-            devices = [ "nvidia.com/gpu=all" ];
-            shmSize = "256m";
-            tmpfses = [ "/tmp/cache:size=1g" ];
-            volumes = [
-              "${dataDir}:/config"
-              "${modelCacheDir}:/config/model_cache"
-              "${yoloModel}:/models/yolo.onnx:ro"
-              "${dbDir}:/db"
-              "/media/frigate:/media/frigate"
-              "/etc/localtime:/etc/localtime:ro"
-            ];
-          };
-          unitConfig = {
-            RequiresMountsFor = [
-              dataDir
-              "/media/frigate"
-            ];
-            After = [ "nvidia-container-toolkit-cdi-generator.service" ];
-          };
-          # A writable copy, so UI edits save until the next restart.
-          serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/install -Dm0644 ${configFile} ${dataDir}/config.yml";
-        };
-      };
-
-      systemd.tmpfiles.rules = [
-        "d ${modelCacheDir} 0755 root root -"
-        "d ${dbDir} 0755 root root -"
-      ];
-
-      # Home Assistant on liz uses the unauthenticated 5000. Caddy uses 8971.
-      networking.firewall.allowedTCPPorts = [
-        5000
-        8971
-      ];
-
-      modules.llama-cpp.models.${vlm} = {
-        model = {
-          repo = "Qwen/Qwen3-VL-4B-Instruct-GGUF";
-          rev = "1cd86afb9a95c410a6038ab3b40d8b578c892266";
-          file = "Qwen3VL-4B-Instruct-Q4_K_M.gguf";
-          sha256 = "66358cb18bb6b3b1b6675aa412c7a88ef01d228f481184d13668e5201c730a0a";
-        };
-        mmproj = {
-          repo = "Qwen/Qwen3-VL-4B-Instruct-GGUF";
-          rev = "1cd86afb9a95c410a6038ab3b40d8b578c892266";
-          file = "mmproj-Qwen3VL-4B-Instruct-F16.gguf";
-          sha256 = "256f3a43bd4205ffef48d6b92715e1e70b5b0e9aef06522584967513a9985331";
-        };
-        load-on-startup = true;
-        # Shares the 12 GB card with OCR, translation and the detector.
-        cache-type-k = "q8_0";
-        cache-type-v = "q8_0";
-      };
-    };
 in
 {
-  security.nix-secrets.secrets."cameras/dvr-env".restartUnits = [ "go2rtc.service" ];
+  flake.modules.nixos = {
+    # liz's side: the DVR restream, MQTT and Frigate's recordings dataset.
+    cameras =
+      { config, utils, ... }:
+      {
+        security.nix-secrets.secrets."cameras/dvr-env".restartUnits = [ "go2rtc.service" ];
 
-  services.go2rtc = {
-    enable = true;
-    settings = {
-      # The web UI shows source URLs, credentials included.
-      api.listen = "127.0.0.1:1984";
-      # tailscale0 is trusted, so keep the unauthenticated restream on the tap.
-      rtsp.listen = "${hostAddr}:${toString rtspPort}";
-      webrtc.listen = "";
+        services.go2rtc = {
+          enable = true;
+          settings = {
+            # The web UI shows source URLs, credentials included.
+            api.listen = "127.0.0.1:1984";
+            # tailscale0 is trusted, so keep the unauthenticated restream on the tap.
+            rtsp.listen = "${hostAddr}:${toString rtspPort}";
+            webrtc.listen = "";
 
-      # The secret sets DVR_URL to rtsp://user:password@address:554.
-      streams = lib.concatMapAttrs (name: channel: {
-        ${name} = "\${DVR_URL}/Streaming/Channels/${toString channel}01";
-        "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString channel}02";
-      }) (lib.mapAttrs (_: camera: camera.channel) cameras // otherChannels);
-    };
-  };
+            # The secret sets DVR_URL to rtsp://user:password@address:554.
+            streams = lib.concatMapAttrs (name: channel: {
+              ${name} = "\${DVR_URL}/Streaming/Channels/${toString channel}01";
+              "${name}_sub" = "\${DVR_URL}/Streaming/Channels/${toString channel}02";
+            }) (lib.mapAttrs (_: camera: camera.channel) cameras // otherChannels);
+          };
+        };
 
-  services.mosquitto = {
-    enable = true;
-    listeners =
-      map
-        (address: {
-          inherit address;
-          port = mqttPort;
-          omitPasswordAuth = true;
-          settings.allow_anonymous = true;
-          acl = [ "topic readwrite #" ];
-        })
-        [
-          "127.0.0.1"
-          hostAddr
+        services.mosquitto = {
+          enable = true;
+          listeners =
+            map
+              (address: {
+                inherit address;
+                port = mqttPort;
+                omitPasswordAuth = true;
+                settings.allow_anonymous = true;
+                acl = [ "topic readwrite #" ];
+              })
+              [
+                "127.0.0.1"
+                hostAddr
+              ];
+        };
+
+        systemd.services = lib.mkMerge [
+          (lib.genAttrs [ "go2rtc" "mosquitto" ] (_: {
+            # Binding the tap's address fails until networkd configures it.
+            after = [ "sys-subsystem-net-devices-${utils.escapeSystemdPath vmGpu.tap}.device" ];
+            serviceConfig = {
+              Restart = "on-failure";
+              RestartSec = 5;
+            };
+          }))
+          {
+            go2rtc.serviceConfig.EnvironmentFile = config.security.nix-secrets.secrets."cameras/dvr-env".path;
+
+            frigate-recordings = {
+              description = "Provision the Frigate recordings dataset";
+              after = [ "zfs-mount.service" ];
+              before = [ "vm-gpu-virtiofsd-recordings.service" ];
+              requiredBy = [ "vm-gpu-virtiofsd-recordings.service" ];
+              path = [ config.boot.zfs.package ];
+              script = ''
+                zfs list -H -o name ${recordingsDataset} >/dev/null 2>&1 \
+                  || zfs create ${recordingsDataset}
+                zfs set quota=${recordingsQuota} ${recordingsDataset}
+              '';
+              serviceConfig = {
+                Type = "oneshot";
+                RemainAfterExit = true;
+              };
+            };
+          }
         ];
-  };
 
-  systemd.services = lib.mkMerge [
-    (lib.genAttrs [ "go2rtc" "mosquitto" ] (_: {
-      # Binding the tap's address fails until networkd configures it.
-      after = [ "sys-subsystem-net-devices-${utils.escapeSystemdPath config.vmGpu.tap}.device" ];
-      serviceConfig = {
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-    }))
-    {
-      go2rtc.serviceConfig.EnvironmentFile = config.security.nix-secrets.secrets."cameras/dvr-env".path;
+        vmGpu.hostPorts = [
+          rtspPort
+          mqttPort
+        ];
 
-      frigate-recordings = {
-        description = "Provision the Frigate recordings dataset";
-        after = [ "zfs-mount.service" ];
-        before = [ "vm-gpu-virtiofsd-recordings.service" ];
-        requiredBy = [ "vm-gpu-virtiofsd-recordings.service" ];
-        path = [ config.boot.zfs.package ];
-        script = ''
-          zfs list -H -o name ${recordingsDataset} >/dev/null 2>&1 \
-            || zfs create ${recordingsDataset}
-          zfs set quota=${recordingsQuota} ${recordingsDataset}
-        '';
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
+        modules.gateway.services.automation-frigate = {
+          name = "Frigate";
+          domainName = "frigate";
+          addr = "${guestAddr}:8971";
+          iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/frigate.png";
+          category = "Automation";
         };
       };
-    }
-  ];
 
-  vmGpu = {
-    guestModules = [ guestModule ];
-    shares = [
+    # vm-gpu's side.
+    frigate =
+      { config, pkgs, ... }:
+      let
+        dataDir = config.utils.dataDir "frigate";
+        configFile = (pkgs.formats.yaml { }).generate "frigate.yml" frigateSettings;
+      in
       {
-        tag = "recordings";
-        source = "/${recordingsDataset}";
-        mountPoint = "/media/frigate";
-        readOnly = false;
-        neededForBoot = false;
-      }
-    ];
-    hostPorts = [
-      rtspPort
-      mqttPort
-    ];
-  };
+        imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
 
-  modules.gateway.services.automation-frigate = {
-    name = "Frigate";
-    domainName = "frigate";
-    addr = "${guestAddr}:8971";
-    iconUrl = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/frigate.png";
-    category = "Automation";
+        hardware.nvidia-container-toolkit.enable = true;
+        # The root is a tmpfs, so keep images on the store's disk.
+        virtualisation.containers.storage.rootful.settings.storage.graphroot =
+          "/nix/var/lib/containers/storage";
+
+        # Only the upstream image runs the ONNX detector on the GPU.
+        virtualisation.quadlet = {
+          autoUpdate.enable = true;
+
+          containers.frigate = config.utils.mkContainer {
+            containerConfig = {
+              image = "ghcr.io/blakeblackshear/frigate:stable-tensorrt";
+              autoUpdate = "registry";
+              podmanArgs = [ "--network=host" ];
+              devices = [ "nvidia.com/gpu=all" ];
+              shmSize = "256m";
+              tmpfses = [ "/tmp/cache:size=1g" ];
+              volumes = [
+                "${dataDir}:/config"
+                "${modelCacheDir}:/config/model_cache"
+                "${yoloModel}:/models/yolo.onnx:ro"
+                "${dbDir}:/db"
+                "/media/frigate:/media/frigate"
+                "/etc/localtime:/etc/localtime:ro"
+              ];
+            };
+            unitConfig = {
+              RequiresMountsFor = [
+                dataDir
+                "/media/frigate"
+              ];
+              After = [ "nvidia-container-toolkit-cdi-generator.service" ];
+            };
+            # A writable copy, so UI edits save until the next restart.
+            serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/install -Dm0644 ${configFile} ${dataDir}/config.yml";
+          };
+        };
+
+        systemd.tmpfiles.rules = [
+          "d ${modelCacheDir} 0755 root root -"
+          "d ${dbDir} 0755 root root -"
+        ];
+
+        # Home Assistant on liz uses the unauthenticated 5000. Caddy uses 8971.
+        networking.firewall.allowedTCPPorts = [
+          5000
+          8971
+        ];
+
+        modules.llama-cpp.models.${vlm} = {
+          model = {
+            repo = "Qwen/Qwen3-VL-4B-Instruct-GGUF";
+            rev = "1cd86afb9a95c410a6038ab3b40d8b578c892266";
+            file = "Qwen3VL-4B-Instruct-Q4_K_M.gguf";
+            sha256 = "66358cb18bb6b3b1b6675aa412c7a88ef01d228f481184d13668e5201c730a0a";
+          };
+          mmproj = {
+            repo = "Qwen/Qwen3-VL-4B-Instruct-GGUF";
+            rev = "1cd86afb9a95c410a6038ab3b40d8b578c892266";
+            file = "mmproj-Qwen3VL-4B-Instruct-F16.gguf";
+            sha256 = "256f3a43bd4205ffef48d6b92715e1e70b5b0e9aef06522584967513a9985331";
+          };
+          load-on-startup = true;
+          # Shares the 12 GB card with OCR, translation and the detector.
+          cache-type-k = "q8_0";
+          cache-type-v = "q8_0";
+        };
+
+        vmGpu.shares = [
+          {
+            tag = "recordings";
+            source = "/${recordingsDataset}";
+            mountPoint = "/media/frigate";
+            readOnly = false;
+            neededForBoot = false;
+          }
+        ];
+      };
   };
 }

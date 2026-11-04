@@ -1,4 +1,9 @@
-{ lib, microvmLib, ... }:
+{
+  lib,
+  microvmLib,
+  vmGpu,
+  ...
+}:
 let
   exporterPorts = {
     node = 9002;
@@ -147,7 +152,7 @@ in
 
         vm-gpu = {
           exporters = [ "node" ];
-          address = "10.0.1.3";
+          address = vmGpu.guestAddr;
         };
         vm-ci = {
           exporters = [ "node" ];

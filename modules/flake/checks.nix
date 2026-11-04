@@ -18,6 +18,7 @@ in
       "salt"
       "shama"
       "vm-ci"
+      "vm-gpu"
       "vm-gallery"
       "vm-thsconline"
     ];
