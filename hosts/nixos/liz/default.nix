@@ -6,8 +6,7 @@
 }:
 let
   inherit (config.flake.modules) nixos;
-  inherit (config.flake) keys;
-  hostNixpkgs = config.flake.nixpkgs;
+  inherit (config.flake) keys nixosConfigurations;
 in
 {
   flake.modules.nixos."hosts/nixos/liz" =
@@ -77,14 +76,7 @@ in
       ]);
 
       microvm.vms = lib.mapAttrs (hostname: _: {
-        config.imports = [
-          nixos.base
-          nixos.global
-          nixos."hosts/nixos/${hostname}"
-        ];
-        # nixos.base sets nixpkgs.config, which nixpkgs forbids with an external pkgs.
-        pkgs = null;
-        nixpkgs = inputs.${hostNixpkgs.${hostname} or "nixpkgs"};
+        evaluatedConfig = nixosConfigurations.${hostname};
         restartIfChanged = true;
       }) microvmLib.guests;
 
