@@ -84,7 +84,7 @@ in
     };
 
     tuned-ppd-no-turbo = {
-      upstream = "not filed; https://github.com/redhat-performance/tuned, tuned/ppd/controller.py";
+      upstream = "https://github.com/redhat-performance/tuned/issues/876";
       done = "the locked tuned's PPD controller only reports no_turbo=1 as PerformanceDegraded=high-operating-temperature under the performance profile";
     };
 
