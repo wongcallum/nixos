@@ -11,7 +11,7 @@ in
       main = {
         device = lib.mkDefault "/dev/sda";
         # Matches the boot volume, so the imported image needs no resizing.
-        imageSize = "80G";
+        imageSize = "50G";
         type = "disk";
         content = {
           type = "gpt";
