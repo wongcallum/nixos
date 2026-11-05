@@ -8,20 +8,22 @@
 let
   system = "x86_64-linux";
 
-  pkgs = inputs.nixpkgs.legacyPackages.${system};
+  mkDeployPkgs =
+    system:
+    import inputs.nixpkgs {
+      inherit system;
+      overlays = [
+        inputs.deploy-rs.overlays.default
+        (_: super: {
+          deploy-rs = {
+            inherit (inputs.nixpkgs.legacyPackages.${system}) deploy-rs;
+            inherit (super.deploy-rs) lib;
+          };
+        })
+      ];
+    };
 
-  deployPkgs = import inputs.nixpkgs {
-    inherit system;
-    overlays = [
-      inputs.deploy-rs.overlays.default
-      (_: super: {
-        deploy-rs = {
-          inherit (pkgs) deploy-rs;
-          inherit (super.deploy-rs) lib;
-        };
-      })
-    ];
-  };
+  deployPkgs = mkDeployPkgs system;
 
   ciDeploy = self.deploy // {
     nodes = lib.filterAttrs (
@@ -36,7 +38,7 @@ in
     default = { };
   };
 
-  config._module.args.deployLib = deployPkgs.deploy-rs.lib;
+  config._module.args.deployLibFor = s: (mkDeployPkgs s).deploy-rs.lib;
 
   config.flake = {
     checks.${system} = {

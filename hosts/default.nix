@@ -2,7 +2,7 @@
   config,
   inputs,
   lib,
-  deployLib,
+  deployLibFor,
   ...
 }:
 let
@@ -26,6 +26,12 @@ in
     description = "nixpkgs input name per host";
   };
 
+  options.flake.systems = lib.mkOption {
+    type = lib.types.attrsOf lib.types.str;
+    default = { };
+    description = "System per host; defaults to x86_64-linux";
+  };
+
   config =
     let
       # Excludes the installer images, which aren't deploy targets.
@@ -33,7 +39,7 @@ in
         hostname: module:
         let
           baseName = config.flake.nixpkgs.${hostname} or "nixpkgs";
-          system = "x86_64-linux";
+          system = config.flake.systems.${hostname} or "x86_64-linux";
         in
         inputs.${baseName}.lib.nixosSystem {
           inherit system;
@@ -52,11 +58,13 @@ in
 
       flake.deploy.nodes = lib.mapAttrs (hostname: hostConfiguration: {
         inherit hostname;
+        # Other architectures can't build here.
+        remoteBuild = hostConfiguration.pkgs.stdenv.hostPlatform.system != "x86_64-linux";
         profiles.system = {
           user = "root";
           sshUser = "callum";
           interactiveSudo = !(hostConfiguration.config.modules.users.callum.lockPassword or false);
-          path = deployLib.activate.nixos hostConfiguration;
+          path = (deployLibFor hostConfiguration.pkgs.stdenv.hostPlatform.system).activate.nixos hostConfiguration;
         };
       }) machines;
     };
