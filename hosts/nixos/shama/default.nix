@@ -97,12 +97,6 @@ in
           ];
         };
 
-        loader.limine.extraEntries = ''
-          /Windows
-              protocol: efi
-              path: guid(195e89e2-24cb-41c5-8ceb-26751ca21fa2):/EFI/Microsoft/Boot/bootmgfw.efi
-        '';
-
         loader.efi.canTouchEfiVariables = true;
       };
 
