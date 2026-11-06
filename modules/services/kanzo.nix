@@ -11,7 +11,7 @@ in
     }:
     let
       dataDir = config.utils.dataDir "kanzo";
-      package = pkgs.callPackage ../../packages/kanzo { };
+      package = pkgs.kanzo;
     in
     {
       modules.kanzo.enable = lib.mkDefault true;

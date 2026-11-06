@@ -1,14 +1,6 @@
 {
   flake.modules.nixos.fonts =
     { lib, pkgs, ... }:
-    let
-      comic-mono-nf = pkgs.callPackage ../packages/fonts/comic-mono-nf-v1 { };
-      bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
-      harmonyos-sans = pkgs.callPackage ../packages/fonts/harmonyos-sans { };
-      chivo-mono = pkgs.callPackage ../packages/fonts/chivo-mono { };
-      xanh-mono = pkgs.callPackage ../packages/fonts/xanh-mono { };
-
-    in
     {
       modules.fonts.enable = lib.mkDefault true;
 
@@ -33,12 +25,12 @@
           chivo-mono
           xanh-mono
           paper-mono
-          comic-mono-nf
+          comic-mono-nf-v1
           ioskeley-mono.standard
           libertinus
 
           terminus_font
-          bitmap-fonts
+          personal-bitmap-fonts
         ];
         fontconfig = {
           allowBitmaps = true;

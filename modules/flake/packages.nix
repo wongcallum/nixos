@@ -1,5 +1,19 @@
-{ inputs, ... }:
+{ inputs, lib, ... }:
+let
+  byName = ../../pkgs/by-name;
+  packageFiles = lib.concatMapAttrs (
+    shard: _:
+    lib.mapAttrs (name: _: byName + "/${shard}/${name}/package.nix") (
+      builtins.readDir (byName + "/${shard}")
+    )
+  ) (builtins.readDir byName);
+in
 {
+  flake.overlays.default =
+    final: _prev: lib.mapAttrs (_: file: final.callPackage file { }) packageFiles;
+
+  flake.modules.nixos.base.nixpkgs.overlays = [ inputs.self.overlays.default ];
+
   perSystem =
     {
       config,
@@ -8,19 +22,15 @@
       ...
     }:
     let
-      # GUI packages dlopen the hosts' GPU drivers, so they need the same glibc as
-      # the hosts, which run unstable.
-      unstablePkgs = import inputs.unstable {
-        inherit system;
-        config.allowUnfree = true;
-      };
+      # A desktop host's package set, so these are the exact builds hosts install.
+      hostPkgs = inputs.self.nixosConfigurations.shama.pkgs;
     in
     {
-      packages = {
-        lobehub-desktop = unstablePkgs.callPackage ../../packages/lobehub-desktop { };
-        kinochrome = unstablePkgs.callPackage ../../packages/kinochrome { };
-        chainner = unstablePkgs.callPackage ../../packages/chainner { };
-      };
+      packages = lib.optionalAttrs (system == "x86_64-linux") (
+        lib.filterAttrs (_: lib.meta.availableOn hostPkgs.stdenv.hostPlatform) (
+          lib.mapAttrs (name: _: hostPkgs.${name}) packageFiles
+        )
+      );
 
       # Builds the packages in CI, which pushes them to attic.
       checks.packages = pkgs.symlinkJoin {

@@ -20,31 +20,58 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-{ pkgs, ... }:
+{
+  lib,
+  stdenv,
+  fetchurl,
+  writeText,
+  writeShellScript,
+  buildFHSEnv,
+  makeWrapper,
+  autoPatchelfHook,
+  widevine-cdm,
+  gtk3,
+  nss,
+  nspr,
+  alsa-lib,
+  cups,
+  libdrm,
+  mesa,
+  expat,
+  libxkbcommon,
+  pango,
+  cairo,
+  at-spi2-atk,
+  at-spi2-core,
+  dbus,
+  libva,
+  libGL,
+  nix-update-script,
+}:
 let
   version = "0.14.8.2";
 
-  src = pkgs.fetchurl {
+  src = fetchurl {
     url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz";
     sha256 = "sha256-3XUwBw9sSQgPjTVX3oBGwK9PQXgN5J+ktdICey67wAE=";
   };
 
-  widevineConfig = pkgs.writeText "latest-component-updated-widevine-cdm" (
+  widevineConfig = writeText "latest-component-updated-widevine-cdm" (
     builtins.toJSON {
-      Path = "${pkgs.widevine-cdm}/share/google/chrome/WidevineCdm";
+      Path = "${widevine-cdm}/share/google/chrome/WidevineCdm";
     }
   );
 
-  heliumPkg = pkgs.stdenv.mkDerivation rec {
+  heliumPkg = stdenv.mkDerivation rec {
     pname = "helium";
     inherit version src;
 
-    nativeBuildInputs = with pkgs; [
+    nativeBuildInputs = [
       makeWrapper
       autoPatchelfHook
     ];
 
-    buildInputs = with pkgs; [
+    buildInputs = [
       stdenv.cc.cc.lib
       gtk3
       nss
@@ -99,13 +126,13 @@ let
     meta = {
       description = "Private, fast, and honest web browser";
       homepage = "https://helium.computer/";
-      license = pkgs.lib.licenses.gpl3Plus;
+      license = lib.licenses.gpl3Plus;
       platforms = [ "x86_64-linux" ];
     };
   };
 
   # --policy-dir and user-flags only fire once those config paths exist
-  heliumWrapper = pkgs.writeShellScript "helium-wrapper" ''
+  heliumWrapper = writeShellScript "helium-wrapper" ''
     USER_DATA_DIR=""
     for arg in "$@"; do
       if [[ "$arg" == --user-data-dir=* ]]; then
@@ -135,14 +162,15 @@ let
     exec ${heliumPkg}/bin/helium $POLICY_FLAGS $USER_FLAGS "$@"
   '';
 
-  wrappedHelium = pkgs.buildFHSEnv {
-    name = "helium";
+  wrappedHelium = buildFHSEnv {
+    pname = "helium";
+    inherit version;
     targetPkgs = _pkgs: [
       heliumPkg
-      pkgs.mesa
-      pkgs.libGL
-      pkgs.libdrm
-      pkgs.libva
+      mesa
+      libGL
+      libdrm
+      libva
     ];
     runScript = heliumWrapper;
     extraInstallCommands = ''
@@ -157,12 +185,14 @@ let
         fi
       done
     '';
-    meta = {
+    passthru = {
+      inherit src;
+      updateScript = nix-update-script { };
+    };
+    meta = heliumPkg.meta // {
       mainProgram = "helium";
       description = "Helium browser with Widevine DRM";
     };
   };
 in
-{
-  helium = wrappedHelium;
-}
+wrappedHelium

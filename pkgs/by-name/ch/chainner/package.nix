@@ -44,6 +44,7 @@
   systemd,
   wayland,
   zlib,
+  nix-update-script,
 }:
 
 let
@@ -144,6 +145,11 @@ buildFHSEnv {
     ln -s ${chainner-unwrapped}/share/applications $out/share/applications
     ln -s ${chainner-unwrapped}/share/icons $out/share/icons
   '';
+
+  passthru = {
+    inherit src;
+    updateScript = nix-update-script { };
+  };
 
   meta = {
     description = "Node-based image processing GUI, born as an AI upscaling application";

@@ -2,11 +2,13 @@
   lib,
   stdenvNoCC,
   fetchFromGitHub,
+  nix-update-script,
 }:
 
 stdenvNoCC.mkDerivation {
   pname = "chivo-mono";
   version = "0-unstable-2022-11-10";
+  passthru.updateScript = nix-update-script { extraArgs = [ "--version=branch" ]; };
   meta.sourceProvenance = [ lib.sourceTypes.binaryBytecode ];
 
   src = fetchFromGitHub {

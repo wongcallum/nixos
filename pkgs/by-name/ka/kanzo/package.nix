@@ -3,6 +3,7 @@
   rustPlatform,
   fetchFromGitHub,
   gitMinimal,
+  nix-update-script,
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
@@ -19,6 +20,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
   nativeCheckInputs = [ gitMinimal ];
 
   cargoHash = "sha256-40wOkEKsf5owShOL1OYL98NDAMDeJe1Y7GDRe8xBAU8=";
+
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "Kanban board and MCP server for you and your coding agents";

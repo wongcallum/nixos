@@ -1,9 +1,6 @@
 {
   flake.modules.nixos.console-font =
     { pkgs, ... }:
-    let
-      bitmap-fonts = pkgs.callPackage ../packages/fonts/personal-bitmap-fonts { };
-    in
     {
       console = {
         earlySetup = true;
@@ -18,7 +15,7 @@
             export HOME="$TMPDIR"
             fontforge -lang=py -c \
               'import fontforge, sys; fontforge.open(sys.argv[1]).generate("font.bdf")' \
-              ${bitmap-fonts}/share/fonts/misc/Bm437_IBM_PS-55_re.otb
+              ${pkgs.personal-bitmap-fonts}/share/fonts/misc/Bm437_IBM_PS-55_re.otb
 
             sets=${pkgs.bdf2psf}/share/bdf2psf
 

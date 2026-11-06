@@ -4,6 +4,7 @@
   pkg-config,
   libinput,
   fetchFromGitHub,
+  nix-update-script,
 }:
 stdenv.mkDerivation {
   pname = "enable-3fg-drag";
@@ -26,6 +27,8 @@ stdenv.mkDerivation {
     install -Dm755 libenable-3fg-drag.so -t $out/lib
     runHook postInstall
   '';
+
+  passthru.updateScript = nix-update-script { extraArgs = [ "--version=branch" ]; };
 
   meta = {
     description = "LD_PRELOAD shim enabling libinput three-finger drag (macOS-style) in Wayland compositors";

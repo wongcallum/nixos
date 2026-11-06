@@ -12,6 +12,7 @@
   libxcursor,
   libxi,
   libxrandr,
+  nix-update-script,
 }:
 
 let
@@ -71,6 +72,8 @@ rustPlatform.buildRustPackage {
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs} \
       --prefix PATH : ${lib.makeBinPath [ ffmpeg ]}
   '';
+
+  passthru.updateScript = nix-update-script { extraArgs = [ "--version=branch" ]; };
 
   meta = {
     description = "GPU accelerated Magic Lantern raw video processor";

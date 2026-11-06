@@ -2,11 +2,13 @@
   lib,
   stdenvNoCC,
   fetchFromGitHub,
+  nix-update-script,
 }:
 
 stdenvNoCC.mkDerivation {
   pname = "xanh-mono";
   version = "0-unstable-2020-09-29";
+  passthru.updateScript = nix-update-script { extraArgs = [ "--version=branch" ]; };
   meta.sourceProvenance = [ lib.sourceTypes.binaryBytecode ];
 
   src = fetchFromGitHub {

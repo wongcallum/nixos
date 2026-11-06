@@ -2,6 +2,7 @@
   lib,
   appimageTools,
   fetchurl,
+  nix-update-script,
 }:
 
 let
@@ -26,6 +27,8 @@ appimageTools.wrapType2 {
     install -Dm444 ${appimageContents}/usr/share/icons/hicolor/514x514/apps/lobehub-desktop.png \
       $out/share/pixmaps/lobehub-desktop.png
   '';
+
+  passthru.updateScript = nix-update-script { };
 
   meta = {
     description = "LobeHub desktop application, an open-source AI chat client";

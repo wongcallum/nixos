@@ -16,9 +16,8 @@
       services.geoclue2.enable = true;
 
       # workaround: niri-3fg-drag
-      systemd.user.services.niri.environment.LD_PRELOAD = "${
-        pkgs.callPackage ../../packages/enable-3fg-drag { }
-      }/lib/libenable-3fg-drag.so";
+      systemd.user.services.niri.environment.LD_PRELOAD =
+        "${pkgs.enable-3fg-drag}/lib/libenable-3fg-drag.so";
 
       fonts.packages = with pkgs; [
         material-symbols

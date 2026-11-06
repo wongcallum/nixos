@@ -47,7 +47,7 @@ in
     niri-3fg-drag = {
       upstream = "https://github.com/niri-wm/niri/discussions/2786";
       done = "niri has a native three-finger-drag setting, and enabling it keeps dragging working without the LD_PRELOAD shim";
-      cleanup = "delete packages/enable-3fg-drag";
+      cleanup = "delete pkgs/by-name/en/enable-3fg-drag";
     };
 
     nix-monitored-completions = {
