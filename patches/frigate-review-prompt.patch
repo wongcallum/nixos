@@ -23,20 +23,21 @@ index 3698e99a..7e87172c 100644
      confidence: float = Field(
          ge=0.0,
 diff --git a/frigate/genai/prompts.py b/frigate/genai/prompts.py
-index 33045606..68e33978 100644
+index 33045606..00502c2e 100644
 --- a/frigate/genai/prompts.py
 +++ b/frigate/genai/prompts.py
-@@ -64,21 +64,22 @@ Describe the scene based on observable actions and movements, evaluate the activ
+@@ -64,21 +64,23 @@ Describe the scene based on observable actions and movements, evaluate the activ
  
  When forming your description:
  - **Treat "Objects in Scene" as the list of tracked subjects to describe.** Do not introduce additional people or vehicles that are not present in this list. You may freely reference other items, surfaces, and environmental details visible in the frames when describing what the listed subjects are doing.
 -- **Describe the most likely activity from visible cues across the sequence** — the subject's path, what they are carrying, and what they interact with. Avoid asserting completed outcomes you do not observe; describe in-progress actions rather than results.
 -- Describe what you observe: actions, movements, interactions with objects and the environment. Include any observable environmental changes (e.g., lighting changes triggered by activity).
 -- Note visible details such as clothing, items being carried or placed, tools or equipment present, and how they interact with the property or objects.
-+- **Describe only what the frames show**: the subject's path, what they are carrying, and what they handle. If you cannot tell what a subject is doing, say where they are and what they hold rather than guessing. Avoid asserting completed outcomes you do not observe; describe in-progress actions rather than results.
-+- **Do not guess roles or intent.** Do not call someone a delivery driver, visitor, or worker, or say they are checking, inspecting, attempting, or preparing something, unless it is plainly visible. Being near an object is not interacting with it.
-+- Name objects only when they are clearly visible: a bag is a bag, not a package.
-+- Leaving the frame is not leaving the property. Use the property description above to say where a subject goes.
++- **Describe only what the frames clearly show.** A general description that is correct is far better than a specific one that might be wrong. If you cannot tell what a subject is doing, say only where they are and where they go.
++- **Only describe an interaction when it is plain in the frames.** Do not say a subject opens, closes, enters, picks up, puts down, places, or uses something unless you can see it happen. Standing, walking, or bending near an object is not interacting with it.
++- **Do not guess roles or intent.** Do not call someone a delivery driver, visitor, or worker, or say they are checking, inspecting, attempting, or preparing something.
++- Name objects only when they are clearly visible: a bag is a bag, not a package. Leave out details such as colors, clothing, and tools unless you are sure of them.
++- **Do not describe subjects leaving.** Do not say a subject leaves, exits, or goes through a gate or door on the way out, or where they go after the last frame; the direction is easy to get wrong. Describe what they do while in view.
  - Consider the full sequence chronologically: what happens from start to finish, how duration and actions relate to the location and objects involved.
  - **Use the actual timestamp provided in "Activity started at"** below for time of day context—do not infer time from image brightness or darkness. Unusual hours (late night/early morning) should increase suspicion when the observable behavior itself appears questionable. However, recognize that some legitimate activities can occur at any hour.
 -- **Consider duration as a primary factor**: Apply the duration thresholds defined in the activity patterns above. Brief sequences during normal hours with apparent purpose typically indicate normal activity unless explicit suspicious actions are visible.
@@ -51,10 +52,10 @@ index 33045606..68e33978 100644
 -- `title`: Name the primary activity across the observations, together with the location. An activity is what is being done with objects, tools, or surfaces; locomotion through the scene qualifies as the activity only when no other interaction is observed. For named subjects, always use their name. For unnamed objects, refer to them naturally with articles.
 -- `shortSummary`: Briefly summarize the primary activity across the observations.
 +Respond with a JSON object matching the provided schema. Write plainly: describe what happened, not what did not (no remarks such as "no unusual behavior"), and add no hedging or commentary such as "likely", "appears", "seems", "routine", or "consistent with". Field-specific guidance:
-+- `observations`: Include the very start of the activity — for example, a vehicle entering the frame or pulling into the driveway — even if it lasts only a few frames and the rest of the clip is dominated by a longer activity. Include each object handled and notable change in position or state. Each item is a single concrete fact written as a complete sentence.
++- `observations`: Include the very start of the activity — for example, a vehicle entering the frame or pulling into the driveway — even if it lasts only a few frames and the rest of the clip is dominated by a longer activity. Include each clearly visible change in position or state. Each item is a single concrete fact you can see, written as a complete sentence.
 +- `scene`: Describe how the sequence begins, then the progression of events in order, drawing only on the observations. A brief activity needs only a sentence or two. For named subjects (those with a `←` separator in "Objects in Scene"), always use their name — do not replace them with generic terms. For unnamed objects (e.g., "person", "car"), refer to them naturally with articles (e.g., "a person", "the car"). Your description should align with and support the threat level you assign.
-+- `title`: A short phrase naming the primary activity. An activity is what is being done with objects, tools, or surfaces; locomotion through the scene qualifies as the activity only when no other interaction is observed. For named subjects, always use their name. For unnamed objects, refer to them naturally with articles.
-+- `shortSummary`: One natural sentence of at most 20 words, with articles, about the primary activity and what the subject handles. It is shown as a phone notification. Leave out the time, date, duration, weather, and lighting, and mention arriving or leaving only when that is all the subject does.
++- `title`: A short phrase naming the primary activity. Name an interaction with an object only when it is plainly visible; otherwise name the movement (e.g., "Person walks up the driveway"). For named subjects, always use their name. For unnamed objects, refer to them naturally with articles.
++- `shortSummary`: One natural sentence of at most 20 words, with articles, about the primary activity, shown as a phone notification. Include only what is clearly visible. Leave out the time, date, duration, weather, and lighting, and do not mention the subject leaving.
  - `potential_threat_level`: Must be consistent with your scene description and the activity patterns above.
  {get_concern_prompt()}
  
