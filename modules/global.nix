@@ -20,7 +20,6 @@ in
         description = "Top-level domain for services";
       };
 
-      kanzo.enable = lib.mkEnableOption "Kanzo";
       ssh.enable = lib.mkEnableOption "OpenSSH";
       tailscale.enable = lib.mkEnableOption "Tailscale";
       fonts.enable = lib.mkEnableOption "fonts";

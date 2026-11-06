@@ -49,7 +49,6 @@ in
         thsconline
         offsite-backup-source
 
-        kanzo
         radicale
         trilium
         quadlet-productivity

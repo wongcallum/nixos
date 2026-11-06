@@ -7,16 +7,13 @@
       fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
       reverseProxyConfig =
         service:
-        let
-          body =
-            lib.optionalString service.tlsInsecureSkipVerify ''
-              transport http {
-                tls_insecure_skip_verify
-              }
-            ''
-            + service.reverseProxyExtraConfig;
-        in
-        lib.optionalString (body != "") " {\n${body}}";
+        lib.optionalString service.tlsInsecureSkipVerify ''
+          {
+            transport http {
+              tls_insecure_skip_verify
+            }
+          }
+        '';
       serviceConfig =
         service:
         if service.staticRoot != null then
@@ -64,11 +61,6 @@
                   type = lib.types.bool;
                   default = false;
                   description = "Disable TLS certificate verification for this reverse-proxy upstream";
-                };
-                reverseProxyExtraConfig = lib.mkOption {
-                  type = lib.types.lines;
-                  default = "";
-                  description = "Extra directives for this service's reverse_proxy block";
                 };
                 iconUrl = lib.mkOption {
                   type = lib.types.str;
