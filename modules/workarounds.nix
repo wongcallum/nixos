@@ -39,6 +39,12 @@ in
           (inputs.freesmlauncher.packages.x86_64-linux.freesmlauncher.override { jdks = [ ]; }).qtWrapperArgs;
     };
 
+    frigate-review-prompt = {
+      upstream = "not filed";
+      done = "Frigate's review description prompt no longer asks for the most likely activity or every arrival and departure, and its schema no longer forces shortSummary to at least 70 characters";
+      cleanup = "delete patches/frigate-review-prompt.patch, move the writing rules back into review.genai.activity_context_prompt if still needed, and return to the stable-tensorrt tag";
+    };
+
     kdeconnect-no-bluetooth = {
       upstream = "https://bugs.kde.org/show_bug.cgi?id=513536";
       done = "the bug is fixed and the release with the fix reaches nixpkgs-unstable; 26.08 disabling the Bluetooth backend by default only hides it";
