@@ -49,11 +49,11 @@
 
 let
   pname = "chainner";
-  version = "0.25.1";
+  version = "0.26.1";
 
   src = fetchurl {
     url = "https://github.com/chaiNNer-org/chaiNNer/releases/download/v${version}/chaiNNer_${version}-x64-linux-debian.deb";
-    hash = "sha256-6XqfdKlTRuLrPxpMzfYz4KT6U6r2A4VMUvUKCqnkNlg=";
+    hash = "sha256-Gs+kXKJ6OL6FwcNZml6UdpOhkCZOJ5yGH17u/wSGoxU=";
   };
 
   runtimeLibs = [

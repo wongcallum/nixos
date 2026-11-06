@@ -49,11 +49,11 @@
   nix-update-script,
 }:
 let
-  version = "0.14.8.2";
+  version = "0.21.1.1";
 
   src = fetchurl {
     url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz";
-    sha256 = "sha256-3XUwBw9sSQgPjTVX3oBGwK9PQXgN5J+ktdICey67wAE=";
+    sha256 = "sha256-bNfyQBU8ucDN+ie/GmZR3crnOomK/ESak90Q2oO0vUU=";
   };
 
   widevineConfig = writeText "latest-component-updated-widevine-cdm" (

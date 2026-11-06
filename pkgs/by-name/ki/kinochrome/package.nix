@@ -28,13 +28,13 @@ let
 in
 rustPlatform.buildRustPackage {
   pname = "kinochrome";
-  version = "0.1.0-unstable-2026-07-29";
+  version = "0.1.0-unstable-2026-09-06";
 
   src = fetchgit {
     url = "https://git.sr.ht/~grego/kinochrome";
-    rev = "4f1106c50fbbd78d3240b9806acbdee5d9683df4";
+    rev = "5c29e42cdd07cd2e09a503a2936926be94535aad";
     fetchSubmodules = true;
-    hash = "sha256-qpTtGtUOQvaCxWiWio+1stPWs4Bfa0VJLXbkndR2z/s=";
+    hash = "sha256-S55B9vZnPrYGBk81qhsyGF+rrvtHPE6RVSwKaBmaQDQ=";
   };
 
   cargoHash = "sha256-Dtn2cWiMaEH8rtAXfycjh71Pk1tIcj450apxD1VYuHU=";

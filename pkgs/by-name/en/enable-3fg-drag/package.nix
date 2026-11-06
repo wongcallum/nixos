@@ -8,7 +8,7 @@
 }:
 stdenv.mkDerivation {
   pname = "enable-3fg-drag";
-  version = "unstable-2026-07-10";
+  version = "0-unstable-2026-07-10";
 
   src = fetchFromGitHub {
     owner = "joaodriessen";
