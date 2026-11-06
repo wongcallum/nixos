@@ -179,6 +179,28 @@ let
       genai = {
         enabled = true;
         image_source = "recordings";
+        # Replaces Frigate's default, threat levels included. The schema forces shortSummary to
+        # 70-140 characters, so asking for fewer words makes the model pad.
+        activity_context_prompt = ''
+          ### The property
+          - Camera 1 looks down the private driveway from the house. At the far end are a sliding gate and a pedestrian gate onto the footpath and street. Wheelie bins and a car are often on the driveway.
+          - Camera 2 looks down at the front door and porch.
+          - The household often washes the car, moves the bins, uses the hose and gardens here, and walks in and out through the gates.
+
+          ### Threat levels
+          - 0: ordinary activity, including an unknown person who walks in and out in daylight.
+          - 1: an unidentified person on the property between 11 PM and 5 AM; trying door or car handles; looking into windows or cars; taking items; climbing fences; loitering with no visible purpose.
+          - 2: a weapon or break-in tool, forced entry, violence, or damage or theft in progress.
+
+          ### Writing rules
+          - Report only actions visible in the frames. If you can't tell what someone is doing, say where they are and what they hold.
+          - Don't guess roles or intent. Don't call anyone a delivery person, visitor or worker, and don't say they are inspecting, checking, attempting or preparing something unless it is plainly visible. Walking near a gate is not opening or inspecting it.
+          - Name objects only when clearly visible: a bag is a bag, not a package.
+          - Describe what happened, not what didn't: leave out remarks like "no unusual behaviour".
+          - No hedging or commentary such as "likely", "appears", "seems", "routine", "consistent with" or "suggesting".
+          - title: a short phrase naming the main activity.
+          - shortSummary: one complete sentence of 12 to 20 words about the main activity. Leave out the time, date, duration, weather and lighting, and only mention arriving or leaving if that is all the person does.
+        '';
       };
     };
     genai.local = {
@@ -394,6 +416,12 @@ in
             sha256 = "256f3a43bd4205ffef48d6b92715e1e70b5b0e9aef06522584967513a9985331";
           };
           load-on-startup = true;
+          # https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct#generation-hyperparameters
+          temp = 0.7;
+          top-p = 0.8;
+          top-k = 20;
+          min-p = 0;
+          presence-penalty = 1.5;
           # Shares the 12 GB card with OCR, translation and the detector.
           cache-type-k = "q8_0";
           cache-type-v = "q8_0";
