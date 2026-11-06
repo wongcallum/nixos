@@ -179,8 +179,7 @@ let
       genai = {
         enabled = true;
         image_source = "recordings";
-        # Replaces Frigate's default, threat levels included. The schema forces shortSummary to
-        # 70-140 characters, so asking for fewer words makes the model pad.
+        # Replaces Frigate's default, threat levels included.
         activity_context_prompt = ''
           ### The property
           - Camera 1 looks down the private driveway from the house. At the far end are a sliding gate and a pedestrian gate onto the footpath and street. Wheelie bins and a car are often on the driveway.
@@ -191,15 +190,6 @@ let
           - 0: ordinary activity, including an unknown person who walks in and out in daylight.
           - 1: an unidentified person on the property between 11 PM and 5 AM; trying door or car handles; looking into windows or cars; taking items; climbing fences; loitering with no visible purpose.
           - 2: a weapon or break-in tool, forced entry, violence, or damage or theft in progress.
-
-          ### Writing rules
-          - Report only actions visible in the frames. If you can't tell what someone is doing, say where they are and what they hold.
-          - Don't guess roles or intent. Don't call anyone a delivery person, visitor or worker, and don't say they are inspecting, checking, attempting or preparing something unless it is plainly visible. Walking near a gate is not opening or inspecting it.
-          - Name objects only when clearly visible: a bag is a bag, not a package.
-          - Describe what happened, not what didn't: leave out remarks like "no unusual behaviour".
-          - No hedging or commentary such as "likely", "appears", "seems", "routine", "consistent with" or "suggesting".
-          - title: a short phrase naming the main activity.
-          - shortSummary: one complete sentence of 12 to 20 words about the main activity. Leave out the time, date, duration, weather and lighting, and only mention arriving or leaving if that is all the person does.
         '';
       };
     };
@@ -349,6 +339,22 @@ in
         configFile = (pkgs.formats.yaml { }).generate "frigate.yml" (
           frigateSettings config.services.llama-cpp.settings.port
         );
+        # workaround: frigate-review-prompt
+        frigateVersion = "0.18.2";
+        patchedSrc = pkgs.applyPatches {
+          name = "frigate-${frigateVersion}-patched";
+          src = pkgs.fetchFromGitHub {
+            owner = "blakeblackshear";
+            repo = "frigate";
+            rev = "v${frigateVersion}";
+            hash = "sha256-uu+TCH5QW6OZhPyA/QiORnqIsVxT+h3FDocv1K/cDNk=";
+          };
+          patches = [ ../../patches/frigate-review-prompt.patch ];
+        };
+        patchedFiles = [
+          "frigate/genai/prompts.py"
+          "frigate/data_processing/post/types.py"
+        ];
       in
       {
         imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
@@ -364,7 +370,8 @@ in
 
           containers.frigate = config.utils.mkContainer {
             containerConfig = {
-              image = "ghcr.io/blakeblackshear/frigate:stable-tensorrt";
+              # Pinned to the version of the patched files mounted over it.
+              image = "ghcr.io/blakeblackshear/frigate:${frigateVersion}-tensorrt";
               autoUpdate = "registry";
               podmanArgs = [ "--network=host" ];
               devices = [ "nvidia.com/gpu=all" ];
@@ -377,7 +384,8 @@ in
                 "${dbDir}:/db"
                 "/media/frigate:/media/frigate"
                 "/etc/localtime:/etc/localtime:ro"
-              ];
+              ]
+              ++ map (file: "${patchedSrc}/${file}:/opt/frigate/${file}:ro") patchedFiles;
             };
             unitConfig = {
               RequiresMountsFor = [

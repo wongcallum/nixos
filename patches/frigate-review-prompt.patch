@@ -1,0 +1,60 @@
+diff --git a/frigate/data_processing/post/types.py b/frigate/data_processing/post/types.py
+index 3698e99a..7e87172c 100644
+--- a/frigate/data_processing/post/types.py
++++ b/frigate/data_processing/post/types.py
+@@ -15,7 +15,6 @@ class ReviewMetadata(BaseModel):
+         description="Enumerate the significant observations across all frames, in chronological order.",
+     )
+     scene: str = Field(
+-        min_length=150,
+         max_length=600,
+         description="A chronological narrative of what happens from start to finish, drawing directly from the items in observations.",
+     )
+@@ -24,9 +23,8 @@ class ReviewMetadata(BaseModel):
+         description="Title for the activity.",
+     )
+     shortSummary: str = Field(
+-        min_length=70,
+-        max_length=140,
+-        description="A brief summary for the activity.",
++        max_length=200,
++        description="One sentence summarizing the primary activity.",
+     )
+     confidence: float = Field(
+         ge=0.0,
+diff --git a/frigate/genai/prompts.py b/frigate/genai/prompts.py
+index 33045606..68e33978 100644
+--- a/frigate/genai/prompts.py
++++ b/frigate/genai/prompts.py
+@@ -64,21 +64,22 @@ Describe the scene based on observable actions and movements, evaluate the activ
+ 
+ When forming your description:
+ - **Treat "Objects in Scene" as the list of tracked subjects to describe.** Do not introduce additional people or vehicles that are not present in this list. You may freely reference other items, surfaces, and environmental details visible in the frames when describing what the listed subjects are doing.
+-- **Describe the most likely activity from visible cues across the sequence** — the subject's path, what they are carrying, and what they interact with. Avoid asserting completed outcomes you do not observe; describe in-progress actions rather than results.
+-- Describe what you observe: actions, movements, interactions with objects and the environment. Include any observable environmental changes (e.g., lighting changes triggered by activity).
+-- Note visible details such as clothing, items being carried or placed, tools or equipment present, and how they interact with the property or objects.
++- **Describe only what the frames show**: the subject's path, what they are carrying, and what they handle. If you cannot tell what a subject is doing, say where they are and what they hold rather than guessing. Avoid asserting completed outcomes you do not observe; describe in-progress actions rather than results.
++- **Do not guess roles or intent.** Do not call someone a delivery driver, visitor, or worker, or say they are checking, inspecting, attempting, or preparing something, unless it is plainly visible. Being near an object is not interacting with it.
++- Name objects only when they are clearly visible: a bag is a bag, not a package.
++- Leaving the frame is not leaving the property. Use the property description above to say where a subject goes.
+ - Consider the full sequence chronologically: what happens from start to finish, how duration and actions relate to the location and objects involved.
+ - **Use the actual timestamp provided in "Activity started at"** below for time of day context—do not infer time from image brightness or darkness. Unusual hours (late night/early morning) should increase suspicion when the observable behavior itself appears questionable. However, recognize that some legitimate activities can occur at any hour.
+-- **Consider duration as a primary factor**: Apply the duration thresholds defined in the activity patterns above. Brief sequences during normal hours with apparent purpose typically indicate normal activity unless explicit suspicious actions are visible.
++- Brief sequences during normal hours with apparent purpose typically indicate normal activity unless explicit suspicious actions are visible.
+ - **Weigh all evidence holistically**: Match the activity against the normal and suspicious patterns defined above, then evaluate based on the complete context (zone, objects, time, actions, duration). Apply the threat level indicators consistently. Use your judgment for edge cases.
+ 
+ ## Response Field Guidelines
+ 
+-Respond with a JSON object matching the provided schema. Field-specific guidance:
+-- `observations`: Include the very start of the activity — for example, a vehicle entering the frame or pulling into the driveway — even if it lasts only a few frames and the rest of the clip is dominated by a longer activity. Include each arrival, departure, object handled, and notable change in position or state. Each item is a single concrete fact written as a complete sentence.
+-- `scene`: Describe how the sequence begins, then the progression of events — all significant movements and actions in order. For example, if a vehicle arrives and then a person exits, describe both sequentially. For named subjects (those with a `←` separator in "Objects in Scene"), always use their name — do not replace them with generic terms. For unnamed objects (e.g., "person", "car"), refer to them naturally with articles (e.g., "a person", "the car"). Your description should align with and support the threat level you assign.
+-- `title`: Name the primary activity across the observations, together with the location. An activity is what is being done with objects, tools, or surfaces; locomotion through the scene qualifies as the activity only when no other interaction is observed. For named subjects, always use their name. For unnamed objects, refer to them naturally with articles.
+-- `shortSummary`: Briefly summarize the primary activity across the observations.
++Respond with a JSON object matching the provided schema. Write plainly: describe what happened, not what did not (no remarks such as "no unusual behavior"), and add no hedging or commentary such as "likely", "appears", "seems", "routine", or "consistent with". Field-specific guidance:
++- `observations`: Include the very start of the activity — for example, a vehicle entering the frame or pulling into the driveway — even if it lasts only a few frames and the rest of the clip is dominated by a longer activity. Include each object handled and notable change in position or state. Each item is a single concrete fact written as a complete sentence.
++- `scene`: Describe how the sequence begins, then the progression of events in order, drawing only on the observations. A brief activity needs only a sentence or two. For named subjects (those with a `←` separator in "Objects in Scene"), always use their name — do not replace them with generic terms. For unnamed objects (e.g., "person", "car"), refer to them naturally with articles (e.g., "a person", "the car"). Your description should align with and support the threat level you assign.
++- `title`: A short phrase naming the primary activity. An activity is what is being done with objects, tools, or surfaces; locomotion through the scene qualifies as the activity only when no other interaction is observed. For named subjects, always use their name. For unnamed objects, refer to them naturally with articles.
++- `shortSummary`: One natural sentence of at most 20 words, with articles, about the primary activity and what the subject handles. It is shown as a phone notification. Leave out the time, date, duration, weather, and lighting, and mention arriving or leaving only when that is all the subject does.
+ - `potential_threat_level`: Must be consistent with your scene description and the activity patterns above.
+ {get_concern_prompt()}
+ 
