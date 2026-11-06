@@ -67,7 +67,7 @@ let
   # Frigate prunes recordings by free space, which the quota limits.
   recordingsQuota = "300G";
 
-  vlm = "qwen3-vl-4b";
+  vlm = "qwen3.5-4b";
 
   # Frigate's documented export. Upstream publishes only PyTorch weights.
   yoloModel =
@@ -412,19 +412,20 @@ in
 
         modules.llama-cpp.models.${vlm} = {
           model = {
-            repo = "Qwen/Qwen3-VL-4B-Instruct-GGUF";
-            rev = "1cd86afb9a95c410a6038ab3b40d8b578c892266";
-            file = "Qwen3VL-4B-Instruct-Q4_K_M.gguf";
-            sha256 = "66358cb18bb6b3b1b6675aa412c7a88ef01d228f481184d13668e5201c730a0a";
+            repo = "unsloth/Qwen3.5-4B-GGUF";
+            rev = "e87f176479d0855a907a41277aca2f8ee7a09523";
+            file = "Qwen3.5-4B-Q4_K_M.gguf";
+            sha256 = "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4";
           };
           mmproj = {
-            repo = "Qwen/Qwen3-VL-4B-Instruct-GGUF";
-            rev = "1cd86afb9a95c410a6038ab3b40d8b578c892266";
-            file = "mmproj-Qwen3VL-4B-Instruct-F16.gguf";
-            sha256 = "256f3a43bd4205ffef48d6b92715e1e70b5b0e9aef06522584967513a9985331";
+            repo = "unsloth/Qwen3.5-4B-GGUF";
+            rev = "e87f176479d0855a907a41277aca2f8ee7a09523";
+            file = "mmproj-F16.gguf";
+            sha256 = "cd88edcf8d031894960bb0c9c5b9b7e1fea6ebee02b9f7ce925a00d12891f864";
           };
           load-on-startup = true;
-          # https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct#generation-hyperparameters
+          # Non-thinking defaults; Frigate turns thinking off for reviews.
+          # https://huggingface.co/Qwen/Qwen3.5-4B#using-qwen35-via-the-chat-completions-api
           temp = 0.7;
           top-p = 0.8;
           top-k = 20;
