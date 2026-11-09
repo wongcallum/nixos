@@ -95,6 +95,13 @@ in
       fixed = lib.versionAtLeast (pkgsFor "liz").prometheus-smokeping-prober.version "0.12.0";
     };
 
+    tsukimi-aws-lc = {
+      upstream = "https://github.com/NixOS/nixpkgs/pull/585084";
+      done = "nixpkgs-unstable's tsukimi has aws-lc in buildInputs";
+      cleanup = "remove the PR from scripts/patch-nixpkgs.sh and rerun it";
+      fixed = lib.any (p: (p.pname or "") == "aws-lc") (pkgsFor "shama").tsukimi.buildInputs;
+    };
+
     tuned-ppd-no-turbo = {
       upstream = "https://github.com/redhat-performance/tuned/issues/876";
       done = "the locked tuned's PPD controller only reports no_turbo=1 as PerformanceDegraded=high-operating-temperature under the performance profile";
@@ -110,6 +117,13 @@ in
       upstream = "https://github.com/NixOS/nixpkgs/issues/533948 (buildFHSEnv skips install phases, so appimageTools.wrapType2 drops desktopItems)";
       done = "xnviewmp ships a desktop entry in nixpkgs-unstable, from a package fix or a general fix for the issue";
       cleanup = "remove the commit from scripts/patch-nixpkgs.sh and rerun it; the fork stays";
+    };
+
+    zapfast-system-libs = {
+      upstream = "https://github.com/NixOS/nixpkgs/pull/585883";
+      done = "nixpkgs-unstable's zapfast has openssl and sqlcipher in buildInputs";
+      cleanup = "remove the PR from scripts/patch-nixpkgs.sh and rerun it";
+      fixed = lib.any (p: (p.pname or "") == "sqlcipher") (pkgsFor "shama").zapfast.buildInputs;
     };
   };
 }
