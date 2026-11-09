@@ -46,7 +46,6 @@ in
       };
 
       modules = {
-        limine.rememberLastEntry = true;
         syncthing-desktop.user = "callum";
         firefox.transparency.enableToolbox = true;
       };
