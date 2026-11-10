@@ -394,10 +394,20 @@ in
                 dataDir
                 "/media/frigate"
               ];
-              After = [ "nvidia-container-toolkit-cdi-generator.service" ];
+              After = [
+                "nvidia-container-toolkit-cdi-generator.service"
+                "llama-cpp.service"
+              ];
+              Wants = [ "llama-cpp.service" ];
             };
-            # A writable copy, so UI edits save until the next restart.
-            serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/install -Dm0644 ${configFile} ${dataDir}/config.yml";
+            serviceConfig.ExecStartPre = [
+              # workaround: frigate-llama-probe
+              # Frigate probes the model once at startup and, if llama.cpp isn't up, keeps
+              # defaults that leave thinking on. Cameras matter more, so start anyway.
+              "-${pkgs.coreutils}/bin/timeout 60 ${pkgs.bash}/bin/bash -c 'until ${lib.getExe pkgs.curl} -sf -o /dev/null \"http://127.0.0.1:${toString config.services.llama-cpp.settings.port}/props?model=${vlm}\"; do ${pkgs.coreutils}/bin/sleep 2; done'"
+              # A writable copy, so UI edits save until the next restart.
+              "${pkgs.coreutils}/bin/install -Dm0644 ${configFile} ${dataDir}/config.yml"
+            ];
           };
         };
 

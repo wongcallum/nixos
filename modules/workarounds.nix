@@ -39,6 +39,11 @@ in
           (inputs.freesmlauncher.packages.x86_64-linux.freesmlauncher.override { jdks = [ ]; }).qtWrapperArgs;
     };
 
+    frigate-llama-probe = {
+      upstream = "not filed";
+      done = "Frigate re-probes llama.cpp's model capabilities after a failed startup probe, instead of keeping defaults that leave thinking on";
+    };
+
     frigate-review-prompt = {
       upstream = "not filed";
       done = "Frigate's review description prompt no longer asks for the most likely activity or every arrival and departure, and its schema no longer forces shortSummary to at least 70 characters";
