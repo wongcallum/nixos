@@ -1,5 +1,26 @@
+diff --git a/frigate/config/camera/review.py b/frigate/config/camera/review.py
+index f267f46..cc091f1 100644
+--- a/frigate/config/camera/review.py
++++ b/frigate/config/camera/review.py
+@@ -3,6 +3,7 @@ from enum import Enum
+ from pydantic import Field, field_validator
+ 
+ from ..base import FrigateBaseModel
++from ..env import EnvString
+ 
+ __all__ = ["ReviewConfig", "DetectionsConfig", "AlertsConfig", "ImageSourceEnum"]
+ 
+@@ -138,7 +139,7 @@ class GenAIReviewConfig(FrigateBaseModel):
+         description="Preferred language to request from the GenAI provider for generated responses.",
+         default=None,
+     )
+-    activity_context_prompt: str = Field(
++    activity_context_prompt: EnvString = Field(
+         default="""### Normal Activity Indicators (Level 0)
+ - Known/verified people in any zone at any time
+ - People with pets in residential areas
 diff --git a/frigate/data_processing/post/types.py b/frigate/data_processing/post/types.py
-index 3698e99a..7e87172c 100644
+index 3698e99..7e87172 100644
 --- a/frigate/data_processing/post/types.py
 +++ b/frigate/data_processing/post/types.py
 @@ -15,7 +15,6 @@ class ReviewMetadata(BaseModel):
@@ -23,7 +44,7 @@ index 3698e99a..7e87172c 100644
      confidence: float = Field(
          ge=0.0,
 diff --git a/frigate/genai/prompts.py b/frigate/genai/prompts.py
-index 33045606..00502c2e 100644
+index 3304560..00502c2 100644
 --- a/frigate/genai/prompts.py
 +++ b/frigate/genai/prompts.py
 @@ -64,21 +64,23 @@ Describe the scene based on observable actions and movements, evaluate the activ

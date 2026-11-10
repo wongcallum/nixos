@@ -42,7 +42,7 @@ in
     frigate-review-prompt = {
       upstream = "not filed";
       done = "Frigate's review description prompt no longer asks for the most likely activity or every arrival and departure, and its schema no longer forces shortSummary to at least 70 characters";
-      cleanup = "delete patches/frigate-review-prompt.patch, move the writing rules back into review.genai.activity_context_prompt if still needed, and return to the stable-tensorrt tag";
+      cleanup = "delete patches/frigate-review-prompt.patch, move the writing rules back into the cameras/frigate-activity-context secret if still needed, return to the stable-tensorrt tag, and pass activity_context_prompt in some other way (upstream substitutes {FRIGATE_*} only in some fields)";
     };
 
     kdeconnect-no-bluetooth = {

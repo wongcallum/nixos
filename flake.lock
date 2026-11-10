@@ -555,10 +555,10 @@
     "secrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1793795591,
-        "narHash": "sha256-ZnSE7B+vezzaqaRPRxgd31yTbS/CsP/J4K0VSE5wSEA=",
+        "lastModified": 1794287049,
+        "narHash": "sha256-mQmrNoQosaF1jSqEHay8pPvdxVlVtIm4buRjq3LCf/k=",
         "ref": "refs/heads/master",
-        "rev": "d480e93c41fcac4e09418dae107aca1cd90ee9ad",
+        "rev": "7daf951d465d8a89a632a5526ab6cb682ee154ff",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/wongcallum/nixos-secrets.git"

@@ -8,6 +8,7 @@ let
     vm-gallery = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIpEZOQZwJ3cRNhpP4I0JeItjUPEKvU2SobD8BMEHvBJ";
     vm-thsconline = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEt4f9wshu5jTW2+G0UyPMnvmX9CsMi/MpyARtZuWLBT";
     vm-ci = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEp2GceFAJuovixjsm2uicrS3iVzCf5k2cD77dmr7Kx1";
+    vm-gpu = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOgU4N/E7FKJaw3R8xhUSu7NEee1dHfw9m3+IBMjqzeM";
   };
 in
 {

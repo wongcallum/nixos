@@ -179,13 +179,9 @@ let
       genai = {
         enabled = true;
         image_source = "recordings";
-        # Replaces Frigate's default, threat levels included.
-        activity_context_prompt = ''
-          ### Threat levels
-          - 0: ordinary activity, including an unknown person who walks in and out in daylight.
-          - 1: an unidentified person on the property between 11 PM and 5 AM; trying door or car handles; looking into windows or cars; taking items; climbing fences; loitering with no visible purpose.
-          - 2: a weapon or break-in tool, forced entry, violence, or damage or theft in progress.
-        '';
+        # Replaces Frigate's default, threat levels included. A secret, as it
+        # describes the property.
+        activity_context_prompt = "{FRIGATE_ACTIVITY_CONTEXT}";
       };
     };
     genai.local = {
@@ -347,12 +343,17 @@ in
           patches = [ ../../patches/frigate-review-prompt.patch ];
         };
         patchedFiles = [
+          "frigate/config/camera/review.py"
           "frigate/genai/prompts.py"
           "frigate/data_processing/post/types.py"
         ];
       in
       {
         imports = [ inputs.quadlet-nix.nixosModules.quadlet ];
+
+        security.nix-secrets.secrets."cameras/frigate-activity-context".restartUnits = [
+          "frigate.service"
+        ];
 
         hardware.nvidia-container-toolkit.enable = true;
         # The root is a tmpfs, so keep images on the store's disk.
@@ -380,7 +381,13 @@ in
                 "/media/frigate:/media/frigate"
                 "/etc/localtime:/etc/localtime:ro"
               ]
-              ++ map (file: "${patchedSrc}/${file}:/opt/frigate/${file}:ro") patchedFiles;
+              ++ map (file: "${patchedSrc}/${file}:/opt/frigate/${file}:ro") patchedFiles
+              # Frigate reads FRIGATE_* files here as variables.
+              ++ [
+                "${
+                  config.security.nix-secrets.secrets."cameras/frigate-activity-context".path
+                }:/run/secrets/FRIGATE_ACTIVITY_CONTEXT:ro"
+              ];
             };
             unitConfig = {
               RequiresMountsFor = [

@@ -26,6 +26,7 @@ in
           (vmLib.mkGuestNetwork hostname)
 
           persistence
+          secrets
 
           callum
 
@@ -58,7 +59,7 @@ in
           ];
 
           modules = {
-            # The guest has no secrets.
+            # The guest doesn't get the password secret.
             users.callum.lockPassword = true;
             # The gateway's hostname doesn't resolve here, so use liz's guest port.
             attic.endpoint = "http://${net.hostAddr}:${toString config.modules.attic.guestPort}/";
