@@ -29,8 +29,6 @@ in
       system.stateVersion = "26.05";
 
       boot = {
-        blacklistedKernelModules = [ "nouveau" ];
-
         initrd.availableKernelModules = [
           "ahci"
           "xhci_pci"
@@ -44,7 +42,41 @@ in
       hardware = {
         enableRedistributableFirmware = true;
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+        nvidia = {
+          # 580 is the last branch to support Pascal, which the open modules never did.
+          package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
+          open = false;
+          modesetting.enable = true;
+        };
       };
+
+      services.xserver.videoDrivers = [ "nvidia" ];
+
+      # From niri's NVIDIA notes: without this, niri holds onto ~1 GiB of freed VRAM.
+      environment.etc."nvidia/nvidia-application-profiles-rc.d/50-limit-free-buffer-pool-in-wayland-compositors.json".text =
+        builtins.toJSON {
+          rules = [
+            {
+              pattern = {
+                feature = "procname";
+                matches = "niri";
+              };
+              profile = "Limit Free Buffer Pool On Wayland Compositors";
+            }
+          ];
+          profiles = [
+            {
+              name = "Limit Free Buffer Pool On Wayland Compositors";
+              settings = [
+                {
+                  key = "GLVidHeapReuseRatio";
+                  value = 0;
+                }
+              ];
+            }
+          ];
+        };
 
       networking = {
         useNetworkd = true;
