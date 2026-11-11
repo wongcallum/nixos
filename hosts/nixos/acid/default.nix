@@ -19,13 +19,10 @@ in
       ]
       ++ (with nixos; [
         limine
-        zram
         impermanence-btrfs
         callum
         ssh
-        tailscale
-
-        dev
+        desktop
         t3code
       ]);
 
@@ -49,7 +46,13 @@ in
         cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
       };
 
-      networking.useNetworkd = true;
+      networking = {
+        useNetworkd = true;
+        wireless.iwd.enable = true;
+        # acid is only reachable over Wi-Fi, so iwd and networkd keep it rather than desktop's NetworkManager.
+        networkmanager.enable = lib.mkForce false;
+      };
+
       systemd.network = {
         enable = true;
         networks."10-eth" = {
@@ -66,8 +69,6 @@ in
       systemd.targets = lib.genAttrs [ "sleep" "suspend" "hibernate" "hybrid-sleep" ] (_: {
         enable = false;
       });
-
-      networking.wireless.iwd.enable = true;
 
       services.avahi = {
         enable = true;
