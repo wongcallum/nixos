@@ -78,26 +78,6 @@ in
           ];
         };
 
-      networking = {
-        useNetworkd = true;
-        wireless.iwd.enable = true;
-        # acid is only reachable over Wi-Fi, so iwd and networkd keep it rather than desktop's NetworkManager.
-        networkmanager.enable = lib.mkForce false;
-      };
-
-      systemd.network = {
-        enable = true;
-        networks."10-eth" = {
-          matchConfig.Type = "ether";
-          networkConfig = {
-            DHCP = "yes";
-            IPv6AcceptRA = true;
-          };
-          linkConfig.RequiredForOnline = "routable";
-        };
-        wait-online.anyInterface = true;
-      };
-
       systemd.targets = lib.genAttrs [ "sleep" "suspend" "hibernate" "hybrid-sleep" ] (_: {
         enable = false;
       });
