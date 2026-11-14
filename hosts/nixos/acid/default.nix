@@ -24,6 +24,7 @@ in
         ssh
         desktop
         t3code
+        libvirt
       ]);
 
       system.stateVersion = "26.05";
