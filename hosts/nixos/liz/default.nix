@@ -10,7 +10,12 @@ let
 in
 {
   flake.modules.nixos."hosts/nixos/liz" =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     {
       imports = [
         ./_disko.nix
@@ -79,6 +84,10 @@ in
 
       # The mirror share lives on tank, which isn't a systemd mount.
       systemd.services."microvm-virtiofsd@vm-thsconline".after = [ "zfs-mount.service" ];
+
+      # Sync needs the same protocol version as shama's trilium-desktop, which is on unstable.
+      services.trilium-server.package =
+        inputs.unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.trilium-server;
 
       # Keep CI off the cores the GPU VM is pinned to.
       modules.qemuVms.vm-ci.allowedCpus = "0-2 6-8";
