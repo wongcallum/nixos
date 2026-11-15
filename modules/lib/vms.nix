@@ -114,6 +114,7 @@
         ];
 
         nix.optimise.automatic = lib.mkForce false;
+        programs.nh.clean.enable = lib.mkForce false;
 
         microvm = {
           hypervisor = lib.mkDefault "qemu";
