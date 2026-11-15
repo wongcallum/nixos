@@ -77,6 +77,14 @@
       inputs.nixpkgs.follows = "unstable";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
+    bootvine = {
+      url = "git+https://codeberg.org/wvhulle/bootvine";
+      inputs = {
+        nixpkgs.follows = "unstable";
+        crane.follows = "";
+        rust-overlay.follows = "";
+      };
+    };
   };
 
   outputs =

@@ -14,6 +14,7 @@
         fonts
         dev
         console-font
+        bootvine
         zram
         tailscale
       ];
