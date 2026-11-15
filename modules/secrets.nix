@@ -17,7 +17,8 @@ in
     let
       hostname = config.networking.hostName;
       cfg = config.security.nix-secrets;
-      encFile = secret: cfg.storage + "/${secret.name}.enc";
+      # workaround: nix-secrets-readonly-storage
+      encFile = secret: "${inputs.secrets}/${secret.name}.enc";
       enabled = lib.filterAttrs (_: s: s.enable) cfg.secrets;
       restarts = lib.filterAttrs (_: s: s.restartUnits != [ ]) enabled;
       # Every host gets the same recipients for a secret, so rekeying from any host's config agrees.
@@ -55,10 +56,17 @@ in
             assertion = enabled == { } || hostKeys ? ${hostname};
             message = "${hostname} uses nix-secrets but has no key in modules/secrets.nix.";
           }
-        ];
+        ]
+        # workaround: nix-secrets-readonly-storage
+        ++ lib.mapAttrsToList (attr: s: {
+          assertion = builtins.pathExists (encFile s);
+          message = "Secret `security.nix-secrets.secrets.${attr}` is enabled, but ${s.name}.enc is missing from the secrets repository.";
+        }) enabled;
 
         security.nix-secrets = {
           enable = true;
+          # workaround: nix-secrets-readonly-storage
+          checks.missingSecrets.enable = false;
           storage = builtins.path {
             name = "secrets";
             path = inputs.secrets;

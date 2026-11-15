@@ -76,6 +76,12 @@ in
       cleanup = "move each secret's restartUnits to the upstream option";
     };
 
+    nix-secrets-readonly-storage = {
+      upstream = "not filed; https://github.com/unnamed-systems/nix-secrets checks for secrets by reading storage at eval time, which fails under `nix flake check --no-build` once the filtered copy is garbage-collected";
+      done = "nix-secrets' missingSecrets check no longer reads files under storage at eval time";
+      cleanup = "drop checks.missingSecrets.enable and the replacement assertions, but keep encFile reading inputs.secrets for nix-secrets-restart-units";
+    };
+
     nixbot-eval-options = {
       upstream = "not filed; https://github.com/Mic92/nixbot hard-codes --check-cache-status and leaves EvalSettings.extra_args unset";
       done = "upstream nixbot can pass nix options or extra arguments to nix-eval-jobs, or turn off --check-cache-status";
