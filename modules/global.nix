@@ -20,6 +20,12 @@ in
         description = "Top-level domain for services";
       };
 
+      gateway.aliasTlds = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ "sevensref" ];
+        description = "Extra top-level domains that serve the same services as `tld`";
+      };
+
       ssh.enable = lib.mkEnableOption "OpenSSH";
       tailscale.enable = lib.mkEnableOption "Tailscale";
       fonts.enable = lib.mkEnableOption "fonts";

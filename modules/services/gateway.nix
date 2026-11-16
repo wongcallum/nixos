@@ -4,7 +4,9 @@
     { config, pkgs, ... }:
     let
       caddyDataDir = config.utils.dataDir "caddy";
-      fqdn = domainName: "${domainName}.${config.modules.gateway.tld}";
+      inherit (config.modules.gateway) tld aliasTlds;
+      tlds = [ tld ] ++ aliasTlds;
+      fqdn = domainName: "${domainName}.${tld}";
       reverseProxyConfig =
         service:
         lib.optionalString service.tlsInsecureSkipVerify ''
@@ -25,16 +27,23 @@
           "reverse_proxy ${service.addr}${reverseProxyConfig service}";
       gatewayServices = builtins.attrValues config.modules.gateway.services;
       # Serve plain HTTP too, for devices that can't install the internal CA.
-      mkVhost = domainName: body: {
-        "http://${fqdn domainName}, https://${fqdn domainName}".extraConfig = ''
-          tls {
-            issuer internal {
-              ca 7sref_ca
+      mkVhost =
+        domainName: body:
+        let
+          addrs = lib.concatMapStringsSep ", " (
+            t: "http://${domainName}.${t}, https://${domainName}.${t}"
+          ) tlds;
+        in
+        {
+          ${addrs}.extraConfig = ''
+            tls {
+              issuer internal {
+                ca 7sref_ca
+              }
             }
-          }
-          ${body}
-        '';
-      };
+            ${body}
+          '';
+        };
     in
     {
       options.modules.gateway = {
@@ -103,7 +112,7 @@
               "https://1.1.1.1/dns-query"
               "https://1.0.0.1/dns-query"
             ];
-            customDNS.mapping.${config.modules.gateway.tld} = config.modules.hostAddrs.liz;
+            customDNS.mapping = lib.genAttrs tlds (_: config.modules.hostAddrs.liz);
             blocking = {
               denylists.ads = [ "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" ];
               clientGroupsBlock.default = [ "ads" ];
