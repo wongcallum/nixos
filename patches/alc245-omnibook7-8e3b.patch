@@ -1,14 +1,14 @@
 --- a/sound/hda/codecs/realtek/alc269.c
 +++ b/sound/hda/codecs/realtek/alc269.c
-@@ -4381,6 +4381,7 @@
+@@ -4385,6 +4385,7 @@
  	ALC245_FIXUP_BASS_HP_DAC,
  	ALC245_FIXUP_ACER_MICMUTE_LED,
  	ALC245_FIXUP_CS35L41_I2C_2_MUTE_LED,
 +	ALC245_FIXUP_HP_OMNIBOOK_7_14_FR0XXX,
- 	ALC236_FIXUP_HP_DMIC,
  	ALC256_FIXUP_HONOR_MRB_XXX_M1020_AUDIO,
  	ALC245_FIXUP_HP_ENVY_X360_15_FH0XXX,
-@@ -7094,6 +7095,12 @@
+ 	ALC287_FIXUP_ACER_MICMUTE_LED,
+@@ -7135,6 +7136,12 @@
  		.chained = true,
  		.chain_id = ALC287_FIXUP_CS35L41_I2C_2,
  	},
@@ -18,10 +18,10 @@
 +		.chained = true,
 +		.chain_id = ALC245_FIXUP_HP_X360_MUTE_LEDS,
 +	},
- 	[ALC236_FIXUP_HP_DMIC] = {
+ 	[ALC256_FIXUP_HONOR_MRB_XXX_M1020_AUDIO] = {
  		.type = HDA_FIXUP_PINS,
  		.v.pins = (const struct hda_pintbl[]) {
-@@ -7771,7 +7778,7 @@
+@@ -7811,7 +7818,7 @@
  	SND_PCI_QUIRK(0x103c, 0x8e36, "HP 14 Enstrom OmniBook X", ALC287_FIXUP_CS35L41_I2C_2),
  	SND_PCI_QUIRK(0x103c, 0x8e37, "HP 16 Piston OmniBook X", ALC287_FIXUP_CS35L41_I2C_2),
  	SND_PCI_QUIRK(0x103c, 0x8e3a, "HP Agusta", ALC287_FIXUP_CS35L41_I2C_2),
