@@ -14,6 +14,7 @@ in
     }:
     {
       imports = [
+        ./_audio.nix
         ./_disko.nix
         ./_packages.nix
 
@@ -51,34 +52,11 @@ in
       };
 
       boot = {
-        kernelPackages = pkgs.linuxPackages_cachyos.cachyOverride {
-          cachyVars = pkgs.linuxPackages_cachyos.kernel.cachyConfig.cachyVars // {
-            _processor_opt = "GENERIC_V3";
-            _tickrate = "idle";
-            _hugepage = "madvise";
-          };
-        };
+        kernelPackages = pkgs.linuxPackages_cachyos;
         kernelModules = [
           "kvm-intel"
           "uinput"
           "ntsync"
-        ];
-
-        # workaround: shama-audio-patches
-        kernelPatches = [
-          {
-            name = "cs35l41-omnibook7-8e3b";
-            patch = pkgs.fetchpatch {
-              url = "https://lore.kernel.org/linux-sound/0108019f32ada4d0-8ff2c576-8eb9-4ac4-803e-8ff4e1ce57d3-000000@ap-southeast-2.amazonses.com/raw";
-              hash = "sha256-oN9tNA0jeRLel1Rv8gjjNc7iLTBTaYxTZ8ibRhuEjCI=";
-            };
-          }
-          {
-            # Rebased onto 7.3:
-            # https://lore.kernel.org/linux-sound/0108019f32adb483-2c606373-6a9f-483c-ba13-c413bc432170-000000@ap-southeast-2.amazonses.com/
-            name = "alc245-omnibook7-8e3b";
-            patch = ../../../patches/alc245-omnibook7-8e3b.patch;
-          }
         ];
 
         initrd = {
