@@ -1,5 +1,5 @@
 diff --git a/nixbot/nixbot/build_run.py b/nixbot/nixbot/build_run.py
-index b563d73..2e01fb4 100644
+index 835c45e..5f24f41 100644
 --- a/nixbot/nixbot/build_run.py
 +++ b/nixbot/nixbot/build_run.py
 @@ -215,6 +215,11 @@ def _eval_settings(
@@ -15,10 +15,10 @@ index b563d73..2e01fb4 100644
          legacy_attr_prefix=o.config.legacy_attr_prefix,
      )
 diff --git a/nixbot/nixbot/config.py b/nixbot/nixbot/config.py
-index d40d13d..737bb3c 100644
+index 6718422..f223c14 100644
 --- a/nixbot/nixbot/config.py
 +++ b/nixbot/nixbot/config.py
-@@ -375,6 +375,8 @@ class Config(BaseModel):
+@@ -385,6 +385,8 @@ class Config(BaseModel):
      # docs/OIDC.md, semantics in auth.can_view_private.
      private_repo_viewers: dict[str, list[str]] = {}
      eval_worker_count: int | None = None
@@ -28,7 +28,7 @@ index d40d13d..737bb3c 100644
      eval_concurrency: int = 1
      # Global cap on concurrent attribute builds; None = derive from CPU count.
 diff --git a/nixosModules/nixbot.nix b/nixosModules/nixbot.nix
-index c268c9c..0555068 100644
+index 1a54300..b0c2432 100644
 --- a/nixosModules/nixbot.nix
 +++ b/nixosModules/nixbot.nix
 @@ -43,6 +43,7 @@ let
@@ -36,10 +36,10 @@ index c268c9c..0555068 100644
        eval_max_memory_size = cfg.evalMaxMemorySize;
        eval_worker_count = cfg.evalWorkerCount;
 +      eval_extra_nix_options = cfg.evalNixOptions;
+       eval_concurrency = cfg.evalConcurrency;
        build_concurrency = cfg.buildConcurrency;
        build_store =
-         if cfg.buildStore.url == null then
-@@ -336,6 +337,20 @@ in
+@@ -398,6 +399,20 @@ in
        description = "Number of nix-eval-jobs worker processes; null uses the core count.";
      };
  
