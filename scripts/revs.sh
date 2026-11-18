@@ -21,7 +21,7 @@ done < <(nix eval --raw .#vmFollows --apply \
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-query=(cat /nix/var/nix/profiles/system/config-revision)
+query=(sh -c "'readlink -f /run/current-system; cat /nix/var/nix/profiles/system/config-revision 2>/dev/null'")
 declare -A queried
 for host in "${hosts[@]}"; do
   target=${follows[$host]:-$host}
@@ -29,25 +29,40 @@ for host in "${hosts[@]}"; do
   queried[$target]=1
   host=$target
   if [[ $host == "$(hostname)" ]]; then
-    "${query[@]}"
+    eval "${query[*]}"
   else
-    ssh -o BatchMode=yes -o ConnectTimeout=5 "$host" "${query[@]}"
+    ssh -o BatchMode=yes -o ConnectTimeout=5 "$host" "${query[*]}"
   fi >"$tmp/$host" 2>"$tmp/$host.err" &
 done
 wait
+
+# A manual switch replaces the profile, dropping the recorded revision. All that
+# can be told then is whether the running system is what HEAD builds.
+declare -A system revs
+for target in "${!queried[@]}"; do
+  { read -r system[$target] && read -r revs[$target]; } <"$tmp/$target"
+  [[ -n ${system[$target]} && -z ${revs[$target]} ]] || continue
+  echo "$target: no recorded revision, evaluating HEAD to compare..." >&2
+  expected=$(nix eval --raw ".#nixosConfigurations.$target.config.system.build.toplevel.outPath")
+  if [[ $expected == "${system[$target]}" ]]; then
+    revs[$target]=$(git rev-parse HEAD)
+    git diff --quiet HEAD || revs[$target]+=-dirty
+  else
+    revs[$target]=differs
+  fi
+done
 
 for host in "${hosts[@]}"; do
   target=${follows[$host]:-$host}
   via=""
   [[ $target != "$host" ]] && via=" (via $target)"
-  rev=$(<"$tmp/$target")
-  if [[ -z $rev ]]; then
-    if grep -q 'No such file' "$tmp/$target.err"; then
-      status="unknown (deployed before revisions were recorded)"
-    else
-      status="unreachable"
-    fi
-    printf '%s\t-\t%s\n' "$host" "$status$via"
+  if [[ -z ${system[$target]-} ]]; then
+    printf '%s\t-\t%s\n' "$host" "unreachable$via"
+    continue
+  fi
+  rev=${revs[$target]}
+  if [[ $rev == differs ]]; then
+    printf '%s\t-\t%s\n' "$host" "unknown, not what HEAD builds (switched without deploy)$via"
     continue
   fi
   commit=${rev%-dirty}
