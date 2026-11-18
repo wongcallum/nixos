@@ -5,7 +5,17 @@
   ...
 }:
 {
-  _module.args.vmLib = rec {
+  # Guests that run whatever closure liz was last switched to, for scripts/revs.sh.
+  options.flake.vmFollows = lib.mkOption {
+    type = lib.types.attrsOf lib.types.str;
+    default = { };
+  };
+
+  config.flake.vmFollows = lib.mapAttrs (_: _: "liz") (
+    lib.filterAttrs (_: vm: !(vm.separateDeploy or false)) config._module.args.vmLib.vms
+  );
+
+  config._module.args.vmLib = rec {
     # Every VM liz runs. Each gets a point-to-point tap named after it.
     vms = {
       vm-gallery = {
@@ -30,6 +40,7 @@
         runner = "qemu";
         hostAddr = "10.0.1.1";
         guestAddr = "10.0.1.4";
+        separateDeploy = true;
         mac = "02:00:00:00:01:04";
       };
     };

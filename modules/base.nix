@@ -10,6 +10,8 @@
       imports = [ inputs.self.modules.generic.utils ];
       nixpkgs.config.allowUnfree = true;
 
+      system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+
       time.timeZone = "Australia/Sydney";
       i18n.defaultLocale = "en_US.UTF-8";
 
