@@ -34,6 +34,34 @@ in
 
   config =
     let
+      # Every switch method builds this attribute, so the profile it sets carries the
+      # revision for scripts/revs.sh. Only the flake's view of the toplevel is wrapped:
+      # the system inside is untouched, so a commit that doesn't change a host leaves
+      # its closure alone. Hosts that embed another host (liz's guests) must go through
+      # `unwrapped`, or they'd change on every commit too.
+      withRevision =
+        host:
+        let
+          inherit (host.config.system.build) toplevel;
+        in
+        host
+        // {
+          unwrapped = host;
+          config = host.config // {
+            system = host.config.system // {
+              build = host.config.system.build // {
+                toplevel = host.pkgs.buildEnv {
+                  inherit (toplevel) name;
+                  paths = [
+                    toplevel
+                    (host.pkgs.writeTextDir "config-revision" (inputs.self.rev or inputs.self.dirtyRev or "unknown"))
+                  ];
+                };
+              };
+            };
+          };
+        };
+
       # Excludes the installer images, which aren't deploy targets.
       machines = mkHosts "hosts/nixos/" config.flake.modules.nixos (
         hostname: module:
@@ -41,16 +69,18 @@ in
           baseName = config.flake.nixpkgs.${hostname} or "nixpkgs";
           system = config.flake.systems.${hostname} or "x86_64-linux";
         in
-        inputs.${baseName}.lib.nixosSystem {
-          inherit system;
-          specialArgs = lib.recursiveUpdate inputs { inherit inputs; };
-          modules = [
-            { networking.hostName = hostname; }
-            config.flake.modules.nixos.base
-            config.flake.modules.nixos.global
-            module
-          ];
-        }
+        withRevision (
+          inputs.${baseName}.lib.nixosSystem {
+            inherit system;
+            specialArgs = lib.recursiveUpdate inputs { inherit inputs; };
+            modules = [
+              { networking.hostName = hostname; }
+              config.flake.modules.nixos.base
+              config.flake.modules.nixos.global
+              module
+            ];
+          }
+        )
       );
     in
     {
@@ -64,17 +94,7 @@ in
           user = "root";
           sshUser = "callum";
           interactiveSudo = !(hostConfiguration.config.modules.users.callum.lockPassword or false);
-          # The revision sits beside the toplevel, not in it, so a commit that doesn't
-          # touch a host leaves its closure alone. scripts/revs.sh reads it.
-          path = hostConfiguration.pkgs.buildEnv {
-            name = "deploy-${hostname}";
-            paths = [
-              ((deployLibFor hostConfiguration.pkgs.stdenv.hostPlatform.system).activate.nixos hostConfiguration)
-              (hostConfiguration.pkgs.writeTextDir "config-revision" (
-                inputs.self.rev or inputs.self.dirtyRev or "unknown"
-              ))
-            ];
-          };
+          path = (deployLibFor hostConfiguration.pkgs.stdenv.hostPlatform.system).activate.nixos hostConfiguration;
         };
       }) machines;
     };

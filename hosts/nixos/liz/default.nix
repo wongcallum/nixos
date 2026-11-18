@@ -73,7 +73,7 @@ in
       ]);
 
       microvm.vms = lib.mapAttrs (hostname: _: {
-        evaluatedConfig = nixosConfigurations.${hostname};
+        evaluatedConfig = nixosConfigurations.${hostname}.unwrapped;
         restartIfChanged = true;
       }) vmLib.microvmGuests;
 

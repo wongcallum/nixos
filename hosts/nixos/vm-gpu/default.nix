@@ -233,7 +233,7 @@ in
         ...
       }:
       let
-        guest = hosts.${hostname};
+        guest = hosts.${hostname}.unwrapped;
         nixVolumePath = "/dev/zvol/${config.modules.qemuVms.${hostname}.disk.zvol}";
 
         # Run this only while QEMU is stopped.

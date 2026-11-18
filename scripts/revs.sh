@@ -36,14 +36,14 @@ for host in "${hosts[@]}"; do
 done
 wait
 
-# A manual switch replaces the profile, dropping the recorded revision. All that
+# Systems switched before revisions were recorded have none. All that
 # can be told then is whether the running system is what HEAD builds.
 declare -A system revs
 for target in "${!queried[@]}"; do
   { read -r system[$target] && read -r revs[$target]; } <"$tmp/$target"
   [[ -n ${system[$target]} && -z ${revs[$target]} ]] || continue
   echo "$target: no recorded revision, evaluating HEAD to compare..." >&2
-  expected=$(nix eval --raw ".#nixosConfigurations.$target.config.system.build.toplevel.outPath")
+  expected=$(nix eval --raw ".#nixosConfigurations.$target.unwrapped.config.system.build.toplevel.outPath")
   if [[ $expected == "${system[$target]}" ]]; then
     revs[$target]=$(git rev-parse HEAD)
     git diff --quiet HEAD || revs[$target]+=-dirty
