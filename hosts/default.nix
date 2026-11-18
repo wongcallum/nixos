@@ -64,7 +64,17 @@ in
           user = "root";
           sshUser = "callum";
           interactiveSudo = !(hostConfiguration.config.modules.users.callum.lockPassword or false);
-          path = (deployLibFor hostConfiguration.pkgs.stdenv.hostPlatform.system).activate.nixos hostConfiguration;
+          # The revision sits beside the toplevel, not in it, so a commit that doesn't
+          # touch a host leaves its closure alone. scripts/revs.sh reads it.
+          path = hostConfiguration.pkgs.buildEnv {
+            name = "deploy-${hostname}";
+            paths = [
+              ((deployLibFor hostConfiguration.pkgs.stdenv.hostPlatform.system).activate.nixos hostConfiguration)
+              (hostConfiguration.pkgs.writeTextDir "config-revision" (
+                inputs.self.rev or inputs.self.dirtyRev or "unknown"
+              ))
+            ];
+          };
         };
       }) machines;
     };

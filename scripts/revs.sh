@@ -21,7 +21,7 @@ done < <(nix eval --raw .#vmFollows --apply \
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-query=(/run/current-system/sw/bin/nixos-version --configuration-revision)
+query=(cat /nix/var/nix/profiles/system/config-revision)
 declare -A queried
 for host in "${hosts[@]}"; do
   target=${follows[$host]:-$host}
@@ -42,7 +42,7 @@ for host in "${hosts[@]}"; do
   [[ $target != "$host" ]] && via=" (via $target)"
   rev=$(<"$tmp/$target")
   if [[ -z $rev ]]; then
-    if grep -q 'revision is unknown' "$tmp/$target.err"; then
+    if grep -q 'No such file' "$tmp/$target.err"; then
       status="unknown (deployed before revisions were recorded)"
     else
       status="unreachable"
