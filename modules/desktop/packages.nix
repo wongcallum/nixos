@@ -36,6 +36,7 @@
       kdePackages.baloo-widgets
       kdePackages.dolphin-plugins
       kdePackages.kdegraphics-thumbnailers
+      kdePackages.ffmpegthumbs
 
       equibop
       feishin
