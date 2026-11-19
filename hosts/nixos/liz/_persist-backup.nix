@@ -31,7 +31,6 @@ let
     "data/qbittorrent"
     "data/radicale"
     "data/gitea"
-    "data/leafwiki"
     "data/syncthing"
     "data/home-assistant"
     "data/trilium"

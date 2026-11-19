@@ -121,9 +121,6 @@ in
         gallery = lib.mkEnableOption "Gallery";
 
         immich = lib.mkEnableOption "Immich";
-
-        lobehub = lib.mkEnableOption "LobeHub";
-        leafwiki = lib.mkEnableOption "LeafWiki";
       };
     };
 

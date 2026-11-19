@@ -57,12 +57,10 @@ in
         radicale
         trilium
         quadlet-productivity
-        quadlet-leafwiki
         quadlet-media
         quadlet-automation
         quadlet-development
         quadlet-immich
-        quadlet-lobehub
 
         attic
         cliproxyapi
