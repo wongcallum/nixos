@@ -67,6 +67,7 @@ in
 
         vm-ci-host
         vm-gpu-host
+        vm-ubuntu-host
         cameras
       ]);
 

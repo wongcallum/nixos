@@ -43,6 +43,14 @@
         separateDeploy = true;
         mac = "02:00:00:00:01:04";
       };
+      # Ubuntu, so not a NixOS host.
+      vm-ubuntu = {
+        runner = "qemu";
+        hostAddr = "10.0.1.1";
+        guestAddr = "10.0.1.5";
+        separateDeploy = true;
+        mac = "02:00:00:00:01:05";
+      };
     };
     microvmGuests = lib.filterAttrs (_: vm: vm.runner == "microvm") vms;
 
