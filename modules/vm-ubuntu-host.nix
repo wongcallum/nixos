@@ -31,7 +31,7 @@ in
             shell = "/bin/bash";
             sudo = "ALL=(ALL) NOPASSWD:ALL";
             lock_passwd = true;
-            ssh_authorized_keys = keys.callum;
+            ssh_authorized_keys = keys.callum ++ keys.colin;
           }
         ];
         packages = [ "prometheus-node-exporter" ];
