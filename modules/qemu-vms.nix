@@ -74,7 +74,7 @@
               shares = lib.mkOption {
                 type = lib.types.listOf lib.types.attrs;
                 default = [ ];
-                description = "virtiofs shares, as { tag, source, readOnly }";
+                description = "virtiofs shares, as { tag, source, readOnly, posixAcl ? true }";
               };
 
               extraArgs = lib.mkOption {
@@ -165,7 +165,8 @@
                 ''}
                 ${lib.optionalString useMemfd ''
                   # Type=exec marks virtiofsd active before its socket is ready.
-                  for sock in ${lib.concatMapStringsSep " " (share: shareSocket share.tag) vm.shares}; do
+                  socks=(${lib.escapeShellArgs (map (share: shareSocket share.tag) vm.shares)})
+                  for sock in "''${socks[@]}"; do
                     for _ in $(seq 1 100); do
                       [ -S "$sock" ] && break
                       sleep 0.1
@@ -254,10 +255,11 @@
                     "--shared-dir ${share.source}"
                     "--cache auto"
                     "--inode-file-handles=prefer"
-                    "--posix-acl"
                     "--thread-pool-size ${toString (lib.toInt (lib.head (lib.splitString "," vm.smp)))}"
                     "--rlimit-nofile 1048576"
                   ]
+                  # A dataset with acltype=off can't serve --posix-acl.
+                  ++ lib.optional (share.posixAcl or true) "--posix-acl"
                   ++ lib.optional share.readOnly "--readonly"
                 );
                 Restart = "no";
