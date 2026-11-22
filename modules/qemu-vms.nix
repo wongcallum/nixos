@@ -227,16 +227,25 @@
               name = "${name}-shutdown";
               runtimeInputs = [ pkgs.socat ];
               text = ''
-                [ -S "${qmpSocket}" ] || exit 0
-                printf '%s\n%s\n' \
-                  '{"execute":"qmp_capabilities"}' \
-                  '{"execute":"system_powerdown"}' \
-                  | socat - "UNIX-CONNECT:${qmpSocket}" >/dev/null || true
+                powerdown() {
+                  [ -S "${qmpSocket}" ] || return 0
+                  printf '%s\n%s\n' \
+                    '{"execute":"qmp_capabilities"}' \
+                    '{"execute":"system_powerdown"}' \
+                    | socat - "UNIX-CONNECT:${qmpSocket}" >/dev/null || true
+                }
 
+                powerdown
                 mainPid="''${MAINPID:-}"
                 [ -n "$mainPid" ] || exit 0
+                # A guest still booting drops the ACPI event, so keep resending it.
+                i=0
                 while kill -0 "$mainPid" 2>/dev/null; do
                   sleep 1
+                  i=$((i + 1))
+                  if [ $((i % 10)) -eq 0 ]; then
+                    powerdown
+                  fi
                 done
               '';
             };
