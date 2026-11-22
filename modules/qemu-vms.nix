@@ -165,7 +165,8 @@
                 ''}
                 ${lib.optionalString useMemfd ''
                   # Type=exec marks virtiofsd active before its socket is ready.
-                  for sock in ${lib.concatMapStringsSep " " (share: shareSocket share.tag) vm.shares}; do
+                  socks=(${lib.escapeShellArgs (map (share: shareSocket share.tag) vm.shares)})
+                  for sock in "''${socks[@]}"; do
                     for _ in $(seq 1 100); do
                       [ -S "$sock" ] && break
                       sleep 0.1
