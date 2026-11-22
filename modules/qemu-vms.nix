@@ -261,7 +261,10 @@
                   # A dataset with acltype=off can't serve --posix-acl.
                   ++ lib.optional (share.posixAcl or true) "--posix-acl"
                   ++ lib.optional share.readOnly "--readonly"
+                  ++ lib.optional (vm.user != null) "--socket-group ${vm.user}"
                 );
+                # The socket must be group-writable for the sandboxed QEMU to connect.
+                UMask = lib.mkIf (vm.user != null) "0007";
                 Restart = "no";
               };
             };
