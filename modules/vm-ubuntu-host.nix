@@ -113,6 +113,17 @@ in
           "virtio-blk-pci,drive=drv-seed,serial=cidata"
         ];
 
+        # Photos for the blog-nest API. The guest mounts the tag in /etc/fstab.
+        shares = [
+          {
+            tag = "blog-photos";
+            source = "/tank/colin/blog-photos";
+            readOnly = true;
+            # tank/colin has acltype=off, which --posix-acl can't serve.
+            posixAcl = false;
+          }
+        ];
+
         acceptReplies = true;
       };
 
