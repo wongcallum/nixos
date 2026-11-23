@@ -81,8 +81,6 @@
       url = "git+https://codeberg.org/wvhulle/bootvine";
       inputs = {
         nixpkgs.follows = "unstable";
-        crane.follows = "";
-        rust-overlay.follows = "";
       };
     };
   };

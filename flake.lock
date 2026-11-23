@@ -2,13 +2,13 @@
   "nodes": {
     "bootvine": {
       "inputs": {
-        "crane": [],
+        "crane": "crane",
         "flake-parts": "flake-parts",
         "import-tree": "import-tree",
         "nixpkgs": [
           "unstable"
         ],
-        "rust-overlay": []
+        "rust-overlay": "rust-overlay"
       },
       "locked": {
         "lastModified": 1795177966,
@@ -76,6 +76,21 @@
         "owner": "chaotic-cx",
         "ref": "nyxpkgs-unstable",
         "repo": "nyx",
+        "type": "github"
+      }
+    },
+    "crane": {
+      "locked": {
+        "lastModified": 1794962885,
+        "narHash": "sha256-zrweT2tXbcWiJMACOhOr2eYFJKVa6g59ouRaZ3BS5Do=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "95e62def851e9d650f0eab63cb4f59a3306e20bd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
         "type": "github"
       }
     },
@@ -611,6 +626,27 @@
         "secrets": "secrets",
         "unstable": "unstable",
         "unstable-upstream": "unstable-upstream"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "bootvine",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795340093,
+        "narHash": "sha256-fosvQ7eeQMrh6RvUXotBc6d92dHskAI6tu1EERJQ2LY=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "5aa410a1df0e4e9c25f3818320651c2bddf66aff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "secrets": {
