@@ -3,20 +3,13 @@ let
   # Hardcoded upstream.
   stateDir = "/var/lib/nixbot";
   postgresDir = "/var/lib/postgresql";
-
-  # The patch changes the module too, so import it from the patched source.
-  # workaround: nixbot-eval-options
-  nixbotSrc = inputs.nixpkgs.legacyPackages.x86_64-linux.applyPatches {
-    name = "nixbot-source";
-    src = inputs.nixbot;
-    patches = [ ../../patches/nixbot-eval-nix-options.patch ];
-  };
 in
 {
   flake.modules.nixos = {
     nixbot =
       {
         config,
+        options,
         lib,
         pkgs,
         ...
@@ -59,7 +52,7 @@ in
         '';
       in
       {
-        imports = [ "${nixbotSrc}/nixosModules/nixbot.nix" ];
+        imports = [ inputs.nixbot.nixosModules.nixbot ];
 
         options.modules.nixbot = {
           domain = lib.mkOption {
@@ -135,11 +128,11 @@ in
             evalWorkerCount = 1;
             evalMaxMemorySize = 6144;
 
-            # Cache status checks ask every substituter about each uncached path, so eval
-            # skips the extra ones. The daemon rejects substituters missing from nix.conf.
-            evalNixOptions.substituters = lib.concatStringsSep " " (
-              [ config.modules.attic.substituter ] ++ config.nix.settings.substituters
-            );
+            # workaround: nixbot-eval-options
+            packages.nixbot = options.services.nixbot.packages.nixbot.default.overridePythonAttrs (old: {
+              patches = (old.patches or [ ]) ++ [ ../../patches/nixbot-eval-nix-options.patch ];
+              patchFlags = [ "-p2" ];
+            });
 
             github = {
               enable = true;
@@ -181,12 +174,23 @@ in
             # Upstream binds every interface when nginx is off.
             sockets.nixbot.socketConfig.ListenStream = lib.mkForce "${cfg.listenAddress}:${toString config.services.nixbot.port}";
 
-            services.nixbot.serviceConfig.MemoryMax = "7G";
+            services.nixbot = {
+              serviceConfig.MemoryMax = "7G";
 
-            services.nixbot.preStart = ''
-              install -d -m 700 ${stateDir}/.ssh
-              install -m 600 ${fetchSshConfig} ${stateDir}/.ssh/config
-            '';
+              # Cache status checks ask every substituter about each uncached path, so eval
+              # skips the extra ones. The daemon rejects substituters missing from nix.conf.
+              # workaround: nixbot-eval-options
+              environment.NIXBOT_EVAL_EXTRA_NIX_OPTIONS = builtins.toJSON {
+                substituters = lib.concatStringsSep " " (
+                  [ config.modules.attic.substituter ] ++ config.nix.settings.substituters
+                );
+              };
+
+              preStart = ''
+                install -d -m 700 ${stateDir}/.ssh
+                install -m 600 ${fetchSshConfig} ${stateDir}/.ssh/config
+              '';
+            };
           };
         };
       };

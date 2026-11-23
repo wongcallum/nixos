@@ -85,7 +85,7 @@ in
     nixbot-eval-options = {
       upstream = "not filed; https://github.com/Mic92/nixbot hard-codes --check-cache-status and leaves EvalSettings.extra_args unset";
       done = "upstream nixbot can pass nix options or extra arguments to nix-eval-jobs, or turn off --check-cache-status";
-      cleanup = "delete patches/nixbot-eval-nix-options.patch, import inputs.nixbot.nixosModules.nixbot directly, and move evalNixOptions to the upstream option";
+      cleanup = "delete patches/nixbot-eval-nix-options.patch and move NIXBOT_EVAL_EXTRA_NIX_OPTIONS to the upstream option";
     };
 
     pkexec-display-forwarding = {
