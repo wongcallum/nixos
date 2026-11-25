@@ -15,54 +15,61 @@
       device = "/dev/disk/by-partlabel/SHAMA-ROOT";
       type = "disk";
       content = {
-        type = "btrfs";
-        extraArgs = [
-          "-f"
-          "-L"
-          "shama"
-        ];
-        subvolumes = {
-          "root" = {
-            mountpoint = "/";
-            mountOptions = [
-              "compress=zstd"
-              "noatime"
-            ];
-          };
-          "home" = {
-            mountpoint = "/home";
-            mountOptions = [
-              "compress=zstd"
-              "noatime"
-            ];
-          };
-          "nix" = {
-            mountpoint = "/nix";
-            mountOptions = [
-              "compress=zstd"
-              "noatime"
-            ];
-          };
-          "persist" = {
-            mountpoint = "/persist";
-            mountOptions = [
-              "compress=zstd"
-              "noatime"
-            ];
-          };
-          "log" = {
-            mountpoint = "/var/log";
-            mountOptions = [
-              "compress=zstd"
-              "noatime"
-            ];
-          };
-          "lib" = {
-            mountpoint = "/var/lib";
-            mountOptions = [
-              "compress=zstd"
-              "noatime"
-            ];
+        type = "luks";
+        name = "cryptroot";
+        # Only read while formatting; nixos-anywhere uploads it with --disk-encryption-keys.
+        passwordFile = "/tmp/disk.key";
+        settings.allowDiscards = true;
+        content = {
+          type = "btrfs";
+          extraArgs = [
+            "-f"
+            "-L"
+            "shama"
+          ];
+          subvolumes = {
+            "root" = {
+              mountpoint = "/";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
+            "home" = {
+              mountpoint = "/home";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
+            "nix" = {
+              mountpoint = "/nix";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
+            "persist" = {
+              mountpoint = "/persist";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
+            "log" = {
+              mountpoint = "/var/log";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
+            "lib" = {
+              mountpoint = "/var/lib";
+              mountOptions = [
+                "compress=zstd"
+                "noatime"
+              ];
+            };
           };
         };
       };
