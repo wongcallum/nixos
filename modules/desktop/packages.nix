@@ -15,8 +15,6 @@
     environment.systemPackages = with pkgs; [
       wl-clipboard
 
-      vscode
-
       pavucontrol
 
       mpv

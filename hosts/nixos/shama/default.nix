@@ -39,6 +39,10 @@ in
 
       system.stateVersion = "26.05";
 
+      # Travels; automatic-timezoned follows the location instead.
+      time.timeZone = lib.mkForce null;
+      services.automatic-timezoned.enable = true;
+
       environment.sessionVariables = {
         LIBVA_DRIVER_NAME = "iHD";
 
