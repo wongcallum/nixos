@@ -8,8 +8,13 @@
 
   config.flake.keys = {
     callum = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINVWggYwR03buagFQafziFDQXnZc+4Ehw3oYlrRZYo64 callum@hackintosh"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPiRQrYaEkLcMHlDGPLkQm/5LHXldN5H7e+4pxlMJEFX callum@acid"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIInBiS3lc/8BUJLibu1+6KSu+pEOLXPCRxY/FLF5GMo5 callum@shama"
+    ];
+
+    # Login only. Kept out of `callum`, which liz also encrypts its offsite backup to.
+    callum-mobile = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEHAMMGYb7UB1CKfiEWstJHhG9J0FsyyGJSufkEeqWm1 callum@poco-f7"
     ];
 
     colin = [

@@ -21,7 +21,7 @@ in
         {
           users.users.callum = {
             initialPassword = "changeme";
-            openssh.authorizedKeys.keys = keys.callum;
+            openssh.authorizedKeys.keys = keys.callum ++ keys.callum-mobile;
             extraGroups = lib.mkMerge [
               (lib.optionals config.virtualisation.libvirtd.enable [ "libvirtd" ])
               (lib.optionals config.virtualisation.docker.enable [ "docker" ])
