@@ -1,16 +1,11 @@
-{ inputs, pkgs, ... }:
+{ pkgs, ... }:
 {
-  imports = with inputs.self.modules.nixos; [
-    helium
-  ];
-
   environment.systemPackages = with pkgs; [
     trilium-desktop
     xournalpp
     scrcpy
     (obs-studio.override { browserSupport = false; })
     picard
-    tigervnc
     open-scq30
     zapfast
     android-tools
