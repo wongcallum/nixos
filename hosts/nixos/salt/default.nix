@@ -28,6 +28,7 @@ in
 
         dev
         t3code
+        adbpool-client
       ]);
 
       system.stateVersion = "25.11";

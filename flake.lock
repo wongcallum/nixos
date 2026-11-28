@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "adbpool": {
+      "inputs": {
+        "nixpkgs": [
+          "unstable-upstream"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795856210,
+        "narHash": "sha256-NEpCr1ulEvJ0cJNub0ku/iuSluIHNKs4XuwIeZ5a1+M=",
+        "owner": "wongcallum",
+        "repo": "adbpool",
+        "rev": "b8ad77f03e72c46686a1635b29a768f570a6607f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "wongcallum",
+        "repo": "adbpool",
+        "type": "github"
+      }
+    },
     "bootvine": {
       "inputs": {
         "crane": "crane",
@@ -604,6 +624,7 @@
     },
     "root": {
       "inputs": {
+        "adbpool": "adbpool",
         "bootvine": "bootvine",
         "chaotic": "chaotic",
         "cryptomatord": "cryptomatord",

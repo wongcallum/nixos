@@ -64,6 +64,7 @@ in
 
         attic
         cliproxyapi
+        adbpool-coordinator
 
         vm-ci-host
         vm-gpu-host

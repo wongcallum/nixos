@@ -77,6 +77,10 @@
       inputs.nixpkgs.follows = "unstable";
     };
     llm-agents.url = "github:numtide/llm-agents.nix";
+    adbpool = {
+      url = "github:wongcallum/adbpool";
+      inputs.nixpkgs.follows = "unstable-upstream";
+    };
     bootvine = {
       url = "git+https://codeberg.org/wvhulle/bootvine";
       inputs = {
