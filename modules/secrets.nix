@@ -87,36 +87,26 @@ in
           defaultRecipients = [ "callum" ];
         };
 
-        system.activationScripts = {
-          # workaround: nix-secrets-missing-base-dir
-          nixSecretsBaseDirs = {
-            deps = [ "specialfs" ];
-            text = "mkdir -p ${cfg.baseDir} ${cfg.baseForUsersDir}";
-          };
-          nixSecretsActivate.deps = [ "nixSecretsBaseDirs" ];
-          nixSecretsActivateBeforeUsers.deps = [ "nixSecretsBaseDirs" ];
-
-          # workaround: nix-secrets-restart-units
-          nixSecretsRestartUnits = lib.mkIf (restarts != { }) {
-            deps = [ "nixSecretsActivate" ];
-            supportsDryActivation = false;
-            text = ''
-              mkdir -p /run/nix-secrets-restart
-              ${lib.concatMapStrings (
-                s:
-                let
-                  stamp = "/run/nix-secrets-restart/${builtins.hashString "sha256" s.name}";
-                  hash = if builtins.pathExists (encFile s) then builtins.hashFile "sha256" (encFile s) else "";
-                in
-                ''
-                  if [ -e ${stamp} ] && [ "$(cat ${stamp})" != ${hash} ]; then
-                    printf '%s\n' ${lib.escapeShellArgs s.restartUnits} >> /run/nixos/activation-restart-list
-                  fi
-                  echo ${hash} > ${stamp}
-                ''
-              ) (lib.attrValues restarts)}
-            '';
-          };
+        # workaround: nix-secrets-restart-units
+        system.activationScripts.nixSecretsRestartUnits = lib.mkIf (restarts != { }) {
+          deps = [ "nixSecretsActivate" ];
+          supportsDryActivation = false;
+          text = ''
+            mkdir -p /run/nix-secrets-restart
+            ${lib.concatMapStrings (
+              s:
+              let
+                stamp = "/run/nix-secrets-restart/${builtins.hashString "sha256" s.name}";
+                hash = if builtins.pathExists (encFile s) then builtins.hashFile "sha256" (encFile s) else "";
+              in
+              ''
+                if [ -e ${stamp} ] && [ "$(cat ${stamp})" != ${hash} ]; then
+                  printf '%s\n' ${lib.escapeShellArgs s.restartUnits} >> /run/nixos/activation-restart-list
+                fi
+                echo ${hash} > ${stamp}
+              ''
+            ) (lib.attrValues restarts)}
+          '';
         };
       };
     };
