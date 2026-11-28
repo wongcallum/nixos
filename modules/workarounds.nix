@@ -76,6 +76,11 @@ in
       cleanup = "move each secret's restartUnits to the upstream option";
     };
 
+    nix-secrets-missing-base-dir = {
+      upstream = "not filed; https://github.com/unnamed-systems/nix-secrets activation swaps the new generation in with RENAME_EXCHANGE, which fails with ENOENT on boot because nothing creates the base directory first";
+      done = "nix-secrets-activate creates the base directory, or falls back to a plain rename when it is missing";
+    };
+
     nix-secrets-readonly-storage = {
       upstream = "not filed; https://github.com/unnamed-systems/nix-secrets checks for secrets by reading storage at eval time, which fails under `nix flake check --no-build` once the filtered copy is garbage-collected";
       done = "nix-secrets' missingSecrets check no longer reads files under storage at eval time";
